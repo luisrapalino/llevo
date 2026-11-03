@@ -86,17 +86,17 @@ const floorText = (floor: string | null, elevator: boolean) =>
 ---
 
 <PanelLayout title={`Solicitud ${r.code}`} active="solicitudes">
-  <a href="/panel/solicitudes" class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-ink">
+  <a href="/panel/solicitudes" class="inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:text-ink">
     <Icon name="heroicons:arrow-left" class="size-4" /> Solicitudes
   </a>
 
   <div class="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
     <div>
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="font-display text-3xl font-bold tracking-tight">{r.customer_name}</h1>
+        <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">{r.customer_name}</h1>
         <StatusBadge status={r.status} />
       </div>
-      <p class="mt-1 text-sm text-stone-500">
+      <p class="mt-1 text-sm text-ink-2">
         <span class="font-mono">#{r.code}</span> · {r.service} · recibida {fmtDateTime(r.created_at)}
       </p>
     </div>
@@ -114,9 +114,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
     <!-- Columna principal -->
     <div class="space-y-6">
       <!-- Ruta -->
-      <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
         <div class="flex items-center justify-between">
-          <h2 class="font-display text-lg font-bold">Ruta</h2>
+          <h2 class="text-lg font-medium">Ruta</h2>
           <a href={mapsDir} target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
             <Icon name="heroicons:map" class="size-4" /> Ver en Google Maps
           </a>
@@ -124,15 +124,15 @@ const floorText = (floor: string | null, elevator: boolean) =>
         <div class="mt-5 grid grid-cols-[auto_1fr] gap-x-4">
           <div class="flex flex-col items-center">
             <span class="grid size-8 place-items-center rounded-full bg-brand-100 text-brand-600"><Icon name="heroicons:map-pin-solid" class="size-4" /></span>
-            <span class="my-1 w-px flex-1 border-l-2 border-dashed border-stone-200"></span>
+            <span class="my-1 w-px flex-1 border-l-2 border-dashed border-line"></span>
             <span class="grid size-8 place-items-center rounded-full bg-ink text-white"><Icon name="heroicons:flag-solid" class="size-4" /></span>
           </div>
           <div class="space-y-6">
             <div>
-              <p class="text-xs text-stone-400">Recogida</p>
-              <p class="font-semibold">{r.origin_address}</p>
-              {r.origin_reference && <p class="text-sm text-stone-600">{r.origin_reference}</p>}
-              <p class="text-xs text-stone-500">{floorText(r.origin_floor, r.origin_elevator)}</p>
+              <p class="text-xs text-ink-3">Recogida</p>
+              <p class="font-medium">{r.origin_address}</p>
+              {r.origin_reference && <p class="text-sm text-ink-2">{r.origin_reference}</p>}
+              <p class="text-xs text-ink-2">{floorText(r.origin_floor, r.origin_elevator)}</p>
               {
                 r.origin_location && (
                   <a href={r.origin_location} target="_blank" rel="noopener" class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-600">
@@ -142,27 +142,27 @@ const floorText = (floor: string | null, elevator: boolean) =>
               }
             </div>
             <div>
-              <p class="text-xs text-stone-400">Entrega</p>
-              <p class="font-semibold">{r.destination_address}</p>
-              {r.destination_reference && <p class="text-sm text-stone-600">{r.destination_reference}</p>}
-              <p class="text-xs text-stone-500">{floorText(r.destination_floor, r.destination_elevator)}</p>
+              <p class="text-xs text-ink-3">Entrega</p>
+              <p class="font-medium">{r.destination_address}</p>
+              {r.destination_reference && <p class="text-sm text-ink-2">{r.destination_reference}</p>}
+              <p class="text-xs text-ink-2">{floorText(r.destination_floor, r.destination_elevator)}</p>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Carga -->
-      <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-        <h2 class="font-display text-lg font-bold">Carga</h2>
-        <p class="mt-1 text-sm text-stone-500">{r.load_size}</p>
+      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+        <h2 class="text-lg font-medium">Carga</h2>
+        <p class="mt-1 text-sm text-ink-2">{r.load_size}</p>
 
         {
           photos.length > 0 && (
             <ul class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {photos.map((p, i) => (
                 <li>
-                  <button type="button" data-photo={p.url} class="group block aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200">
-                    <img src={p.url} alt={`Foto ${i + 1}`} loading="lazy" class="size-full object-cover transition group-hover:scale-105" />
+                  <button type="button" data-photo={p.url} class="group block aspect-square w-full overflow-hidden rounded-2xl bg-sand border border-line">
+                    <img src={p.url} alt={`Foto ${i + 1}`} loading="lazy" class="size-full object-cover transition" />
                   </button>
                 </li>
               ))}
@@ -181,40 +181,40 @@ const floorText = (floor: string | null, elevator: boolean) =>
           r.items.length > 0 && (
             <div class="mt-4 flex flex-wrap gap-2">
               {r.items.map((it: string) => (
-                <span class="rounded-full bg-stone-100 px-3 py-1 text-sm">{it}</span>
+                <span class="rounded-full bg-sand px-3 py-1 text-sm">{it}</span>
               ))}
             </div>
           )
         }
 
         <dl class="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-          <div class="rounded-2xl bg-stone-50 p-3">
-            <dt class="text-xs text-stone-500">Ayudantes extra</dt>
-            <dd class="font-semibold">{r.helpers}</dd>
+          <div class="rounded-2xl bg-sand/60 p-3">
+            <dt class="text-xs text-ink-2">Ayudantes extra</dt>
+            <dd class="font-medium">{r.helpers}</dd>
           </div>
-          <div class="rounded-2xl bg-stone-50 p-3">
-            <dt class="text-xs text-stone-500">Desarme / armado</dt>
-            <dd class="font-semibold">{r.extras.includes('Desarme y armado') ? 'Sí' : 'No'}</dd>
+          <div class="rounded-2xl bg-sand/60 p-3">
+            <dt class="text-xs text-ink-2">Desarme / armado</dt>
+            <dd class="font-medium">{r.extras.includes('Desarme y armado') ? 'Sí' : 'No'}</dd>
           </div>
-          <div class="rounded-2xl bg-stone-50 p-3">
-            <dt class="text-xs text-stone-500">Embalaje</dt>
-            <dd class="font-semibold">{r.extras.includes('Material de embalaje') ? 'Sí' : 'No'}</dd>
+          <div class="rounded-2xl bg-sand/60 p-3">
+            <dt class="text-xs text-ink-2">Embalaje</dt>
+            <dd class="font-medium">{r.extras.includes('Material de embalaje') ? 'Sí' : 'No'}</dd>
           </div>
         </dl>
       </section>
 
       <!-- Cliente -->
-      <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-        <h2 class="font-display text-lg font-bold">Cliente</h2>
+      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+        <h2 class="text-lg font-medium">Cliente</h2>
         <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-          <div><dt class="text-xs text-stone-500">Celular</dt><dd class="font-semibold">{r.customer_phone}</dd></div>
-          <div><dt class="text-xs text-stone-500">Correo</dt><dd class="font-semibold">{r.customer_email ?? '—'}</dd></div>
-          <div><dt class="text-xs text-stone-500">Prefiere</dt><dd class="font-semibold">{r.contact_preference ?? 'WhatsApp'}</dd></div>
-          <div><dt class="text-xs text-stone-500">Flexibilidad</dt><dd class="font-semibold">{r.flexible ? 'Sí, es flexible' : 'No'}</dd></div>
+          <div><dt class="text-xs text-ink-2">Celular</dt><dd class="font-medium">{r.customer_phone}</dd></div>
+          <div><dt class="text-xs text-ink-2">Correo</dt><dd class="font-medium">{r.customer_email ?? '—'}</dd></div>
+          <div><dt class="text-xs text-ink-2">Prefiere</dt><dd class="font-medium">{r.contact_preference ?? 'WhatsApp'}</dd></div>
+          <div><dt class="text-xs text-ink-2">Flexibilidad</dt><dd class="font-medium">{r.flexible ? 'Sí, es flexible' : 'No'}</dd></div>
           {
             r.customer_notes && (
               <div class="sm:col-span-2">
-                <dt class="text-xs text-stone-500">Notas del cliente</dt>
+                <dt class="text-xs text-ink-2">Notas del cliente</dt>
                 <dd class="whitespace-pre-line">{r.customer_notes}</dd>
               </div>
             )
@@ -225,9 +225,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
 
     <!-- Columna lateral: gestión -->
     <aside class="space-y-6">
-      <form method="post" class="space-y-5 rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6 lg:sticky lg:top-6">
+      <form method="post" class="space-y-5 rounded-2xl bg-paper p-5 border border-line sm:p-6 lg:sticky lg:top-6">
         <input type="hidden" name="action" value="update" />
-        <h2 class="font-display text-lg font-bold">Gestión</h2>
+        <h2 class="text-lg font-medium">Gestión</h2>
 
         <div>
           <span class="field-label">Estado</span>
@@ -250,11 +250,11 @@ const floorText = (floor: string | null, elevator: boolean) =>
             id="quoted_price"
             name="quoted_price"
             inputmode="numeric"
-            class="field font-semibold"
+            class="field font-medium"
             value={r.quoted_price ?? ''}
             placeholder={r.estimated_price ? `Estimado: ${r.estimated_price}` : 'Ej. 150000'}
           />
-          {r.estimated_price && <p class="mt-1 text-xs text-stone-500">Estimado automático: {formatCOP(r.estimated_price)}</p>}
+          {r.estimated_price && <p class="mt-1 text-xs text-ink-2">Estimado automático: {formatCOP(r.estimated_price)}</p>}
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -290,12 +290,12 @@ const floorText = (floor: string | null, elevator: boolean) =>
         <button class="btn-primary w-full">
           <Icon name="heroicons:check" class="size-4" /> Guardar cambios
         </button>
-        <p class="text-center text-xs text-stone-400">Última actualización {fmtDateTime(r.updated_at)}</p>
+        <p class="text-center text-xs text-ink-3">Última actualización {fmtDateTime(r.updated_at)}</p>
       </form>
 
-      <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-        <h2 class="font-display text-lg font-bold">Mensajes rápidos</h2>
-        <p class="mt-1 text-xs text-stone-500">Abren WhatsApp con el mensaje listo para el cliente.</p>
+      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+        <h2 class="text-lg font-medium">Mensajes rápidos</h2>
+        <p class="mt-1 text-xs text-ink-2">Abren WhatsApp con el mensaje listo para el cliente.</p>
         <div class="mt-4 space-y-2">
           {
             messages.map((m) => (
@@ -303,11 +303,11 @@ const floorText = (floor: string | null, elevator: boolean) =>
                 href={whatsappLink(customerWa, m.text)}
                 target="_blank"
                 rel="noopener"
-                class="flex items-center gap-3 rounded-2xl bg-stone-50 px-4 py-3 text-sm font-medium transition hover:bg-brand-50 hover:text-brand-700"
+                class="flex items-center gap-3 rounded-2xl bg-sand/60 px-4 py-3 text-sm font-medium transition hover:bg-brand-50 hover:text-brand-700"
               >
                 <Icon name={m.icon} class="size-5 text-brand-600" />
                 {m.label}
-                <Icon name="heroicons:arrow-up-right" class="ml-auto size-4 text-stone-400" />
+                <Icon name="heroicons:arrow-up-right" class="ml-auto size-4 text-ink-3" />
               </a>
             ))
           }
@@ -324,10 +324,10 @@ const floorText = (floor: string | null, elevator: boolean) =>
   </div>
 
   <!-- Visor de fotos -->
-  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-3xl bg-transparent p-0 backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-viewer>
-    <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-3xl object-contain" data-viewer-img />
+  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-viewer>
+    <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-2xl object-contain" data-viewer-img />
     <form method="dialog">
-      <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-white text-ink shadow-lg" aria-label="Cerrar">
+      <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg" aria-label="Cerrar">
         <Icon name="heroicons:x-mark" class="size-5" />
       </button>
     </form>

@@ -116,7 +116,7 @@ export const DEFAULT_SETTINGS: Settings = {
     },
     {
       q: '¿Cómo se paga?',
-      a: 'Puedes pagar en efectivo o por transferencia (Nequi, Daviplata o Bancolombia) al terminar el servicio.',
+      a: 'Puedes pagar en efectivo o por Nequi al terminar el servicio.',
     },
   ],
   pricing: {
