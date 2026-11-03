@@ -26,11 +26,38 @@ if (!raw) {
   process.exit(0);
 }
 
-const url = new URL(raw);
-const local = ['localhost', '127.0.0.1'].includes(url.hostname);
-url.search = ''; // quita parámetros propios de otros clientes (sslmode, supa, pgbouncer…)
+/**
+ * Lee la cadena de conexión sin depender de que la contraseña esté codificada para URL
+ * (las contraseñas con / # ? @ [ ] rompen el parser estándar). La contraseña va desde el
+ * primer ":" después del usuario hasta la ÚLTIMA "@".
+ */
+export function parseConnection(str) {
+  const m = /^postgres(?:ql)?:\/\/([^:/?#]+)(?::(.*))?@([^@/?#:]+)(?::(\d+))?(?:\/([^?#]*))?/.exec(str.trim());
+  if (!m) throw new Error('DATABASE_URL no tiene el formato postgresql://usuario:contraseña@servidor:puerto/base');
+  const dec = (v) => {
+    try {
+      return decodeURIComponent(v);
+    } catch {
+      return v;
+    }
+  };
+  const [, user, pass = '', host, port = '5432', database = 'postgres'] = m;
+  if (/\[?YOUR-PASSWORD\]?/i.test(pass)) throw new Error('DATABASE_URL todavía tiene [YOUR-PASSWORD]: reemplázalo por la contraseña de la base de datos.');
+  return { user: dec(user), pass: dec(pass), host, port: Number(port), database: dec(database) || 'postgres' };
+}
 
-const sql = postgres(url.toString(), {
+let conn;
+try {
+  conn = parseConnection(raw);
+} catch (err) {
+  console.error(`[migraciones] ✗ ${err.message}`);
+  process.exit(1);
+}
+const local = ['localhost', '127.0.0.1'].includes(conn.host);
+console.log(`[migraciones] Conectando a ${conn.host}:${conn.port} como ${conn.user}…`);
+
+const sql = postgres({
+  ...conn,
   ssl: local ? false : 'require',
   max: 1,
   prepare: false, // compatible con el pooler de Supabase
@@ -71,7 +98,12 @@ try {
 
   console.log(count ? `[migraciones] ${count} aplicada(s).` : '[migraciones] La base de datos está al día.');
 } catch (err) {
-  console.error('[migraciones] ✗ Error:', err.message);
+  const hint =
+    err.code === 'ENOTFOUND' ? ' (no se encontró el servidor: revisa el host de DATABASE_URL)'
+    : err.code === '28P01' ? ' (contraseña incorrecta)'
+    : err.code === 'ENETUNREACH' || err.code === 'EHOSTUNREACH' ? ' (usa la cadena "Session pooler", no la conexión directa)'
+    : '';
+  console.error(`[migraciones] ✗ Error: ${err.message}${hint}`);
   process.exitCode = 1;
 } finally {
   await sql.end({ timeout: 5 });
