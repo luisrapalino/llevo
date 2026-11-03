@@ -37,7 +37,7 @@ Estados de una solicitud: **Nueva → Cotizada → Agendada → Completada** (o 
 
 > **Atajo:** en Vercel puedes instalar la integración **Supabase** (Storage → Connect Database → Supabase).
 > Crea el proyecto y agrega las claves automáticamente; la web reconoce sus nombres
-> (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`). Igual debes correr el SQL del paso 2.
+> (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`). Igual debes correr el SQL (punto 2 de arriba) y crear tu usuario.
 
 ### 2. Variables de entorno
 Copia `.env.example` a `.env` y llena los valores de **Project Settings → API**:

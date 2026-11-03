@@ -4,7 +4,7 @@ import type { AstroCookies } from 'astro';
 
 // Acepta los nombres propios del proyecto y los que crea la integración de Supabase en Vercel.
 const pick = (...values: (string | undefined)[]) => values.find((v) => v && v.trim()) || undefined;
-const penv = (typeof process !== 'undefined' ? process.env : {}) as Record<string, string | undefined>;
+const penv = ((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {});
 
 const url = pick(
   import.meta.env.PUBLIC_SUPABASE_URL,
