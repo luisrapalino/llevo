@@ -1,0 +1,752 @@
+---
+import { Icon } from 'astro-icon/components';
+import { site } from '../config';
+
+const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
+
+const steps = [
+  { id: 'servicio', title: 'Servicio', hint: 'Qué necesitas', icon: 'heroicons:squares-plus' },
+  { id: 'ruta', title: 'Ruta', hint: 'Desde y hasta', icon: 'heroicons:map-pin' },
+  { id: 'carga', title: 'Tu carga', hint: 'Fotos y detalles', icon: 'heroicons:photo' },
+  { id: 'fecha', title: 'Fecha y hora', hint: 'Cuándo', icon: 'heroicons:calendar-days' },
+  { id: 'contacto', title: 'Contacto', hint: 'Cómo te hablamos', icon: 'heroicons:user' },
+];
+
+const serviceTypes = [
+  { value: 'Trasteo / mudanza', icon: 'heroicons:home-modern', text: 'Casa, apto o habitación' },
+  { value: 'Acarreo puntual', icon: 'heroicons:archive-box', text: 'Uno o pocos objetos' },
+  { value: 'Recoger una compra', icon: 'heroicons:shopping-bag', text: 'Tienda o Marketplace' },
+  { value: 'Negocio / oficina', icon: 'heroicons:building-storefront', text: 'Mercancía o equipos' },
+];
+
+const loadSizes = [
+  { value: 'Pocas cosas', text: '1 a 5 objetos o cajas' },
+  { value: 'Media carga', text: 'Habitación o apartaestudio' },
+  { value: 'Carga completa', text: 'Apartamento pequeño' },
+];
+
+const commonItems = [
+  'Nevera', 'Lavadora', 'Cama', 'Colchón', 'Sofá', 'Comedor', 'Escritorio', 'Closet / armario',
+  'Televisor', 'Cajas', 'Bicicleta', 'Electrodomésticos',
+];
+
+const timeSlots = [
+  { value: 'Temprano (6–9 a.m.)', icon: 'heroicons:sun' },
+  { value: 'Mañana (9 a.m.–12 m.)', icon: 'heroicons:sun' },
+  { value: 'Tarde (12–4 p.m.)', icon: 'heroicons:cloud' },
+  { value: 'Final de tarde (4–8 p.m.)', icon: 'heroicons:moon' },
+];
+
+const floors = ['Primer piso', '2', '3', '4', '5', '6+'];
+---
+
+<section id="cotizar" class="scroll-mt-16 bg-sand/70 py-20 sm:py-28">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="mx-auto max-w-2xl text-center">
+      <span class="section-eyebrow">Cotización gratis</span>
+      <h2 class="section-title mt-4">Cuéntanos qué vamos a llevar</h2>
+      <p class="mt-4 text-stone-600">Entre más detalles y fotos nos des, más exacto será tu precio.</p>
+    </div>
+
+    <div class="mt-12 grid gap-6 lg:grid-cols-[260px_1fr]">
+      <!-- Stepper lateral (desktop) -->
+      <aside class="hidden lg:block">
+        <ol class="sticky top-24 space-y-1" data-stepper>
+          {
+            steps.map((s, i) => (
+              <li>
+                <button
+                  type="button"
+                  data-step-link={i}
+                  class="group flex w-full items-center gap-3 rounded-2xl p-3 text-left transition enabled:hover:bg-white/70 disabled:cursor-default"
+                >
+                  <span class="step-dot grid size-10 shrink-0 place-items-center rounded-xl bg-white text-stone-400 ring-1 ring-stone-200 transition">
+                    <Icon name={s.icon} class="step-icon size-5" />
+                    <Icon name="heroicons:check" class="step-check hidden size-5" />
+                  </span>
+                  <span>
+                    <span class="step-title block text-sm font-semibold text-stone-500">{s.title}</span>
+                    <span class="block text-xs text-stone-400">{s.hint}</span>
+                  </span>
+                </button>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="mt-8 rounded-2xl bg-white/70 p-4 text-sm text-stone-600 ring-1 ring-stone-200">
+          <p class="flex items-center gap-2 font-semibold text-ink">
+            <Icon name="heroicons:lock-closed" class="size-4 text-brand-600" /> Tus datos están seguros
+          </p>
+          <p class="mt-1">Solo los usamos para cotizar y coordinar tu servicio.</p>
+        </div>
+      </aside>
+
+      <!-- Formulario -->
+      <div data-form-card class="rounded-[2rem] bg-cream p-5 shadow-xl ring-1 shadow-stone-900/5 ring-stone-200/80 sm:p-8">
+        <!-- Progreso (móvil) -->
+        <div class="mb-6 lg:hidden">
+          <div class="flex items-center justify-between text-sm">
+            <span class="font-semibold" data-mobile-title>{steps[0].title}</span>
+            <span class="text-stone-500">Paso <span data-mobile-step>1</span> de {steps.length}</span>
+          </div>
+          <div class="mt-2 h-2 overflow-hidden rounded-full bg-stone-200">
+            <div class="h-full rounded-full bg-brand-500 transition-all duration-500" style={`width:${100 / steps.length}%`} data-progress></div>
+          </div>
+        </div>
+
+        <form id="quote-form" novalidate data-endpoint={endpoint} data-whatsapp={site.whatsapp}>
+          <!-- Honeypot anti-spam -->
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+
+          <!-- PASO 1 · Servicio -->
+          <fieldset data-step="0" class="space-y-8">
+            <legend class="sr-only">Tipo de servicio</legend>
+            <div>
+              <h3 class="font-display text-2xl font-bold">¿Qué necesitas?</h3>
+              <p class="mt-1 text-sm text-stone-500">Elige la opción que mejor describa tu servicio.</p>
+              <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                {
+                  serviceTypes.map((s, i) => (
+                    <label class="choice items-center gap-4">
+                      <input type="radio" name="servicio" value={s.value} class="sr-only" required checked={i === 0} />
+                      <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-sand text-brand-600">
+                        <Icon name={s.icon} class="size-6" />
+                      </span>
+                      <span>
+                        <span class="block font-semibold">{s.value}</span>
+                        <span class="block text-sm text-stone-500">{s.text}</span>
+                      </span>
+                    </label>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-semibold">¿Qué tanto vas a llevar?</h4>
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                {
+                  loadSizes.map((l, i) => (
+                    <label class="choice flex-col">
+                      <input type="radio" name="tamano" value={l.value} class="sr-only" required checked={i === 0} />
+                      <span class="flex items-end gap-1" aria-hidden="true">
+                        {[0, 1, 2].map((b) => (
+                          <span class:list={['w-2.5 rounded-sm', b <= i ? 'bg-brand-500' : 'bg-stone-200', ['h-3', 'h-5', 'h-7'][b]]} />
+                        ))}
+                      </span>
+                      <span class="mt-3 font-semibold">{l.value}</span>
+                      <span class="text-sm text-stone-500">{l.text}</span>
+                    </label>
+                  ))
+                }
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- PASO 2 · Ruta -->
+          <fieldset data-step="1" class="hidden space-y-6">
+            <legend class="sr-only">Direcciones</legend>
+            <div>
+              <h3 class="font-display text-2xl font-bold">¿Desde dónde y hasta dónde?</h3>
+              <p class="mt-1 text-sm text-stone-500">Incluye barrio o una referencia para llegar más fácil.</p>
+            </div>
+
+            {
+              [
+                { key: 'origen', label: 'Recogida', icon: 'heroicons:map-pin-solid', tone: 'bg-brand-100 text-brand-600' },
+                { key: 'destino', label: 'Entrega', icon: 'heroicons:flag-solid', tone: 'bg-ink text-white' },
+              ].map((p) => (
+                <div class="rounded-3xl bg-white p-5 ring-1 ring-stone-200">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="flex items-center gap-3 font-semibold">
+                      <span class:list={['grid size-8 place-items-center rounded-full', p.tone]}>
+                        <Icon name={p.icon} class="size-4" />
+                      </span>
+                      {p.label}
+                    </p>
+                    {p.key === 'origen' && (
+                      <button type="button" data-geo class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-50">
+                        <Icon name="heroicons:map" class="size-4" />
+                        <span data-geo-label>Usar mi ubicación</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                      <label for={`${p.key}-dir`} class="field-label">Dirección</label>
+                      <input id={`${p.key}-dir`} name={`${p.key}_direccion`} class="field" required autocomplete={p.key === 'origen' ? 'street-address' : 'off'} placeholder="Ej. Calle 45 #12-30, Apto 502" />
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label for={`${p.key}-ref`} class="field-label">
+                        Barrio / referencia <span class="font-normal text-stone-400">(opcional)</span>
+                      </label>
+                      <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Laureles, frente al parque" />
+                    </div>
+                    <div>
+                      <label for={`${p.key}-piso`} class="field-label">Piso</label>
+                      <select id={`${p.key}-piso`} name={`${p.key}_piso`} class="field appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%2378716c%22><path fill-rule=%22evenodd%22 d=%22M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z%22/></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10">
+                        {floors.map((f) => <option value={f}>{f === 'Primer piso' ? f : `Piso ${f}`}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <span class="field-label">¿Hay ascensor?</span>
+                      <div class="flex gap-2">
+                        <label class="chip flex-1 justify-center py-3">
+                          <input type="radio" name={`${p.key}_ascensor`} value="Sí" class="sr-only" /> Sí
+                        </label>
+                        <label class="chip flex-1 justify-center py-3">
+                          <input type="radio" name={`${p.key}_ascensor`} value="No" class="sr-only" checked /> No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            }
+            <input type="hidden" name="origen_ubicacion" data-geo-value />
+          </fieldset>
+
+          <!-- PASO 3 · Carga -->
+          <fieldset data-step="2" class="hidden space-y-8">
+            <legend class="sr-only">Qué vas a llevar</legend>
+            <div>
+              <h3 class="font-display text-2xl font-bold">¿Qué vamos a llevar?</h3>
+              <p class="mt-1 text-sm text-stone-500">Las fotos nos ayudan a darte un precio exacto.</p>
+            </div>
+
+            <!-- Dropzone -->
+            <div>
+              <label
+                data-dropzone
+                class="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-stone-300 bg-white px-6 py-10 text-center transition hover:border-brand-400 hover:bg-brand-50/50 data-[drag=true]:border-brand-500 data-[drag=true]:bg-brand-50"
+              >
+                <span class="grid size-14 place-items-center rounded-2xl bg-brand-100 text-brand-600 transition group-hover:scale-110">
+                  <Icon name="heroicons:camera" class="size-7" />
+                </span>
+                <span class="mt-4 font-semibold">Sube o toma fotos</span>
+                <span class="mt-1 text-sm text-stone-500">Arrastra aquí o toca para elegir · hasta 10 fotos</span>
+                <input type="file" accept="image/*" multiple class="sr-only" data-file-input />
+              </label>
+              <ul class="mt-4 grid grid-cols-3 gap-3 empty:hidden sm:grid-cols-5" data-previews></ul>
+              <p class="mt-2 hidden text-sm text-red-600" data-file-error></p>
+            </div>
+
+            <div>
+              <h4 class="font-semibold">Marca lo que aplica <span class="font-normal text-stone-400">(opcional)</span></h4>
+              <div class="mt-3 flex flex-wrap gap-2">
+                {
+                  commonItems.map((it) => (
+                    <label class="chip">
+                      <input type="checkbox" name="objetos" value={it} class="sr-only" />
+                      {it}
+                    </label>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div>
+              <label for="descripcion" class="field-label">Describe tu carga</label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                rows="4"
+                class="field resize-none"
+                required
+                minlength="10"
+                placeholder="Ej. Una nevera mediana, una cama doble desarmada, 8 cajas medianas y un escritorio."></textarea>
+            </div>
+
+            <div>
+              <h4 class="font-semibold">Servicios adicionales</h4>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+                  <p class="flex items-center gap-2 text-sm font-semibold">
+                    <Icon name="heroicons:user-group" class="size-5 text-brand-600" /> Ayudantes extra
+                  </p>
+                  <div class="mt-3 flex gap-2">
+                    {
+                      ['0', '1', '2', '3+'].map((n, i) => (
+                        <label class="chip flex-1 justify-center">
+                          <input type="radio" name="ayudantes" value={n} class="sr-only" checked={i === 0} />
+                          {n}
+                        </label>
+                      ))
+                    }
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="choice items-center gap-3 !py-3">
+                    <input type="checkbox" name="extras" value="Desarme y armado" class="peer sr-only" />
+                    <Icon name="heroicons:wrench-screwdriver" class="size-5 text-brand-600" />
+                    <span class="text-sm font-medium">Desarme y armado de muebles</span>
+                  </label>
+                  <label class="choice items-center gap-3 !py-3">
+                    <input type="checkbox" name="extras" value="Material de embalaje" class="sr-only" />
+                    <Icon name="heroicons:cube" class="size-5 text-brand-600" />
+                    <span class="text-sm font-medium">Material de embalaje</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- PASO 4 · Fecha y hora -->
+          <fieldset data-step="3" class="hidden space-y-8">
+            <legend class="sr-only">Fecha y hora</legend>
+            <div>
+              <h3 class="font-display text-2xl font-bold">¿Cuándo lo hacemos?</h3>
+              <p class="mt-1 text-sm text-stone-500">Elige el día y la franja horaria que prefieras.</p>
+            </div>
+
+            <div>
+              <span class="field-label">Día</span>
+              <div class="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]" data-days></div>
+              <div class="mt-3 flex items-center gap-3">
+                <label for="fecha" class="text-sm text-stone-500">u otra fecha:</label>
+                <input id="fecha" name="fecha" type="date" class="field !w-auto !py-2" required />
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Franja horaria</span>
+              <div class="grid gap-3 sm:grid-cols-2">
+                {
+                  timeSlots.map((t) => (
+                    <label class="choice items-center gap-3">
+                      <input type="radio" name="franja" value={t.value} class="sr-only" required />
+                      <Icon name={t.icon} class="size-5 text-brand-600" />
+                      <span class="text-sm font-semibold">{t.value}</span>
+                    </label>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="hora" class="field-label">
+                  Hora exacta <span class="font-normal text-stone-400">(opcional)</span>
+                </label>
+                <input id="hora" name="hora" type="time" class="field" />
+              </div>
+              <label class="choice items-center gap-3 self-end">
+                <input type="checkbox" name="flexible" value="Sí" class="sr-only" />
+                <Icon name="heroicons:arrows-right-left" class="size-5 text-brand-600" />
+                <span class="text-sm font-medium">Tengo flexibilidad de fecha u hora</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- PASO 5 · Contacto -->
+          <fieldset data-step="4" class="hidden space-y-6">
+            <legend class="sr-only">Datos de contacto</legend>
+            <div>
+              <h3 class="font-display text-2xl font-bold">¿Cómo te contactamos?</h3>
+              <p class="mt-1 text-sm text-stone-500">Te enviaremos la cotización a este número.</p>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <label for="nombre" class="field-label">Nombre</label>
+                <input id="nombre" name="nombre" class="field" required autocomplete="name" placeholder="¿Cómo te llamas?" />
+              </div>
+              <div>
+                <label for="telefono" class="field-label">Celular / WhatsApp</label>
+                <input
+                  id="telefono"
+                  name="telefono"
+                  type="tel"
+                  inputmode="tel"
+                  class="field"
+                  required
+                  autocomplete="tel"
+                  pattern="[0-9\s\+\(\)\-]{7,}"
+                  placeholder="300 123 4567"
+                />
+              </div>
+              <div>
+                <label for="email" class="field-label">
+                  Correo <span class="font-normal text-stone-400">(opcional)</span>
+                </label>
+                <input id="email" name="email" type="email" class="field" autocomplete="email" placeholder="tu@correo.com" />
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Prefiero que me contacten por</span>
+              <div class="flex flex-wrap gap-2">
+                {
+                  [
+                    { v: 'WhatsApp', i: 'heroicons:chat-bubble-left-right' },
+                    { v: 'Llamada', i: 'heroicons:phone' },
+                    { v: 'Correo', i: 'heroicons:envelope' },
+                  ].map((c, idx) => (
+                    <label class="chip">
+                      <input type="radio" name="contacto_preferido" value={c.v} class="sr-only" checked={idx === 0} />
+                      <Icon name={c.i} class="size-4" />
+                      {c.v}
+                    </label>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div>
+              <label for="notas" class="field-label">
+                ¿Algo más que debamos saber? <span class="font-normal text-stone-400">(opcional)</span>
+              </label>
+              <textarea id="notas" name="notas" rows="3" class="field resize-none" placeholder="Ej. La calle es estrecha, hay que pedir permiso en portería, etc."></textarea>
+            </div>
+
+            <label class="flex items-start gap-3 text-sm text-stone-600">
+              <input type="checkbox" name="acepta_datos" value="Sí" required class="mt-0.5 size-5 shrink-0 rounded-md accent-brand-500" />
+              <span>Autorizo el uso de mis datos para recibir la cotización y coordinar el servicio.</span>
+            </label>
+          </fieldset>
+
+          <!-- Navegación -->
+          <div class="mt-10 flex items-center justify-between gap-3 border-t border-stone-200 pt-6">
+            <button type="button" class="btn-ghost invisible" data-prev>
+              <Icon name="heroicons:arrow-left" class="size-4" /> Atrás
+            </button>
+            <button type="button" class="btn-primary" data-next>
+              Continuar <Icon name="heroicons:arrow-right" class="size-4" />
+            </button>
+            <button type="submit" class="btn-primary hidden" data-submit>
+              <Icon name="heroicons:paper-airplane" class="size-4" />
+              <span data-submit-label>Enviar solicitud</span>
+            </button>
+          </div>
+          <p class="mt-4 hidden rounded-2xl bg-red-50 p-3 text-sm text-red-700" data-form-error></p>
+        </form>
+
+        <!-- Éxito -->
+        <div class="hidden py-8 text-center" data-success>
+          <span class="mx-auto grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+            <Icon name="heroicons:check-badge" class="size-10" />
+          </span>
+          <h3 class="mt-6 font-display text-3xl font-bold">¡Solicitud enviada!</h3>
+          <p class="mx-auto mt-3 max-w-md text-stone-600" data-success-text>
+            Revisaremos tus fotos y detalles, y te enviaremos la cotización muy pronto.
+          </p>
+          <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <a href="#" target="_blank" rel="noopener" class="btn-primary" data-success-wa>
+              <Icon name="heroicons:chat-bubble-left-right" class="size-4" /> Continuar por WhatsApp
+            </a>
+            <button type="button" class="btn-ghost" data-reset>Hacer otra solicitud</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const MAX_FILES = 10;
+  const MAX_DIM = 1600;
+
+  const form = document.querySelector<HTMLFormElement>('#quote-form')!;
+  const stepsEls = [...form.querySelectorAll<HTMLFieldSetElement>('[data-step]')];
+  const stepLinks = [...document.querySelectorAll<HTMLButtonElement>('[data-step-link]')];
+  const prevBtn = form.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const nextBtn = form.querySelector<HTMLButtonElement>('[data-next]')!;
+  const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const submitLabel = form.querySelector<HTMLSpanElement>('[data-submit-label]')!;
+  const progress = document.querySelector<HTMLElement>('[data-progress]')!;
+  const mobileStep = document.querySelector<HTMLElement>('[data-mobile-step]')!;
+  const mobileTitle = document.querySelector<HTMLElement>('[data-mobile-title]')!;
+  const formError = form.querySelector<HTMLElement>('[data-form-error]')!;
+  const success = document.querySelector<HTMLElement>('[data-success]')!;
+  const stepTitles = stepLinks.map((b) => b.querySelector('.step-title')?.textContent ?? '');
+
+  let current = 0;
+  let maxReached = 0;
+  let photos: File[] = [];
+
+  /* ---------- Navegación entre pasos ---------- */
+  function render() {
+    stepsEls.forEach((el, i) => el.classList.toggle('hidden', i !== current));
+    prevBtn.classList.toggle('invisible', current === 0);
+    const last = current === stepsEls.length - 1;
+    nextBtn.classList.toggle('hidden', last);
+    submitBtn.classList.toggle('hidden', !last);
+    progress.style.width = `${((current + 1) / stepsEls.length) * 100}%`;
+    mobileStep.textContent = String(current + 1);
+    mobileTitle.textContent = stepTitles[current] || '';
+
+    stepLinks.forEach((btn, i) => {
+      const dot = btn.querySelector<HTMLElement>('.step-dot')!;
+      const title = btn.querySelector<HTMLElement>('.step-title')!;
+      const done = i < current || (i <= maxReached && i !== current);
+      dot.className = 'step-dot grid size-10 shrink-0 place-items-center rounded-xl ring-1 transition ' +
+        (i === current
+          ? 'bg-brand-500 text-white ring-brand-500 shadow-lg shadow-brand-500/30'
+          : done
+            ? 'bg-ink text-white ring-ink'
+            : 'bg-white text-stone-400 ring-stone-200');
+      btn.querySelector('.step-icon')?.classList.toggle('hidden', done);
+      btn.querySelector('.step-check')?.classList.toggle('hidden', !done);
+      title.classList.toggle('text-ink', i <= maxReached);
+      title.classList.toggle('text-stone-500', i > maxReached);
+      btn.disabled = i > maxReached;
+      btn.toggleAttribute('aria-current', i === current);
+    });
+  }
+
+  function validateStep(i: number) {
+    const fields = [...stepsEls[i].querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select')];
+    fields.forEach((f) => f.removeAttribute('aria-invalid'));
+    const invalid = fields.find((f) => !f.checkValidity());
+    if (invalid) {
+      invalid.setAttribute('aria-invalid', 'true');
+      invalid.reportValidity();
+      if (!(invalid instanceof HTMLInputElement && (invalid.type === 'radio' || invalid.type === 'checkbox'))) invalid.focus();
+      return false;
+    }
+    return true;
+  }
+
+  function goTo(i: number) {
+    current = Math.max(0, Math.min(i, stepsEls.length - 1));
+    maxReached = Math.max(maxReached, current);
+    render();
+    const top = document.querySelector('[data-form-card]')!.getBoundingClientRect().top;
+    if (top < 0) window.scrollBy({ top: top - 90, behavior: 'smooth' });
+  }
+
+  nextBtn.addEventListener('click', () => validateStep(current) && goTo(current + 1));
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  stepLinks.forEach((btn, i) =>
+    btn.addEventListener('click', () => {
+      if (i <= maxReached && (i < current || validateStep(current))) goTo(i);
+    }),
+  );
+  form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute('aria-invalid'));
+  form.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT' && current < stepsEls.length - 1) {
+      e.preventDefault();
+      nextBtn.click();
+    }
+  });
+
+  /* ---------- Fecha: chips de próximos días ---------- */
+  const dateInput = form.querySelector<HTMLInputElement>('#fecha')!;
+  const daysWrap = form.querySelector<HTMLElement>('[data-days]')!;
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const today = new Date();
+  dateInput.min = iso(today);
+  const dayFmt = new Intl.DateTimeFormat('es-CO', { weekday: 'short' });
+  const monFmt = new Intl.DateTimeFormat('es-CO', { month: 'short' });
+  for (let k = 0; k < 10; k++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + k);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.date = iso(d);
+    b.className =
+      'flex w-16 shrink-0 flex-col items-center rounded-2xl bg-white py-3 ring-1 ring-stone-200 transition hover:ring-stone-300 aria-pressed:bg-ink aria-pressed:text-white aria-pressed:ring-ink';
+    const label = k === 0 ? 'Hoy' : k === 1 ? 'Mañana' : dayFmt.format(d).replace('.', '');
+    b.innerHTML = `<span class="text-[11px] font-medium uppercase opacity-60">${label}</span><span class="font-display text-xl font-bold">${d.getDate()}</span><span class="text-[11px] opacity-60">${monFmt.format(d).replace('.', '')}</span>`;
+    b.addEventListener('click', () => {
+      dateInput.value = b.dataset.date!;
+      dateInput.removeAttribute('aria-invalid');
+      syncDays();
+    });
+    daysWrap.append(b);
+  }
+  const syncDays = () =>
+    daysWrap.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.date === dateInput.value)));
+  dateInput.addEventListener('change', syncDays);
+
+  /* ---------- Geolocalización ---------- */
+  const geoBtn = form.querySelector<HTMLButtonElement>('[data-geo]');
+  const geoLabel = form.querySelector<HTMLElement>('[data-geo-label]');
+  const geoValue = form.querySelector<HTMLInputElement>('[data-geo-value]')!;
+  geoBtn?.addEventListener('click', () => {
+    if (!navigator.geolocation || !geoLabel) return;
+    geoLabel.textContent = 'Ubicando…';
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        geoValue.value = `https://maps.google.com/?q=${coords.latitude.toFixed(6)},${coords.longitude.toFixed(6)}`;
+        geoLabel.textContent = 'Ubicación agregada ✓';
+      },
+      () => (geoLabel.textContent = 'No se pudo obtener'),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  });
+
+  /* ---------- Fotos ---------- */
+  const fileInput = form.querySelector<HTMLInputElement>('[data-file-input]')!;
+  const dropzone = form.querySelector<HTMLElement>('[data-dropzone]')!;
+  const previews = form.querySelector<HTMLUListElement>('[data-previews]')!;
+  const fileError = form.querySelector<HTMLElement>('[data-file-error]')!;
+
+  async function compress(file: File): Promise<File> {
+    if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_DIM / Math.max(bmp.width, bmp.height));
+      if (scale === 1 && file.size < 900_000) return file;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.82));
+      if (!blob) return file;
+      return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch {
+      return file;
+    }
+  }
+
+  async function addFiles(list: FileList | File[]) {
+    const incoming = [...list].filter((f) => f.type.startsWith('image/'));
+    const room = MAX_FILES - photos.length;
+    fileError.classList.toggle('hidden', incoming.length <= room);
+    fileError.textContent = `Máximo ${MAX_FILES} fotos. Algunas no se agregaron.`;
+    const processed = await Promise.all(incoming.slice(0, Math.max(0, room)).map(compress));
+    photos = [...photos, ...processed];
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    previews.querySelectorAll('img').forEach((img) => URL.revokeObjectURL(img.src));
+    previews.innerHTML = '';
+    photos.forEach((file, i) => {
+      const li = document.createElement('li');
+      li.className = 'group relative aspect-square overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200';
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.alt = `Foto ${i + 1}`;
+      img.className = 'size-full object-cover';
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.setAttribute('aria-label', `Quitar foto ${i + 1}`);
+      rm.className = 'absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-ink/80 text-white backdrop-blur transition hover:bg-ink';
+      rm.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor" class="size-4"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>';
+      rm.addEventListener('click', () => {
+        photos.splice(i, 1);
+        fileError.classList.add('hidden');
+        renderPreviews();
+      });
+      li.append(img, rm);
+      previews.append(li);
+    });
+  }
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files) addFiles(fileInput.files);
+    fileInput.value = '';
+  });
+  ['dragenter', 'dragover'].forEach((ev) =>
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      dropzone.dataset.drag = 'true';
+    }),
+  );
+  ['dragleave', 'drop'].forEach((ev) =>
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      dropzone.dataset.drag = 'false';
+    }),
+  );
+  dropzone.addEventListener('drop', (e) => e.dataTransfer?.files && addFiles(e.dataTransfer.files));
+
+  /* ---------- Envío ---------- */
+  function summary(data: FormData) {
+    const g = (k: string) => String(data.get(k) ?? '').trim();
+    const all = (k: string) => data.getAll(k).map(String).filter(Boolean);
+    const piso = (p: string) => `${g(`${p}_piso`)}${g(`${p}_piso`) === 'Primer piso' ? '' : ` · ascensor: ${g(`${p}_ascensor`)}`}`;
+    const lines = [
+      `*Nueva solicitud de ${g('servicio')}* 🚚`,
+      '',
+      `👤 ${g('nombre')} · ${g('telefono')}${g('email') ? ` · ${g('email')}` : ''}`,
+      `📦 ${g('tamano')}`,
+      `📍 Recogida: ${g('origen_direccion')}${g('origen_referencia') ? ` (${g('origen_referencia')})` : ''} — ${piso('origen')}`,
+      g('origen_ubicacion') ? `   ${g('origen_ubicacion')}` : '',
+      `🏁 Entrega: ${g('destino_direccion')}${g('destino_referencia') ? ` (${g('destino_referencia')})` : ''} — ${piso('destino')}`,
+      `📅 ${g('fecha')} · ${g('franja')}${g('hora') ? ` · ${g('hora')}` : ''}${g('flexible') ? ' (flexible)' : ''}`,
+      '',
+      `📝 ${g('descripcion')}`,
+      all('objetos').length ? `Incluye: ${all('objetos').join(', ')}` : '',
+      `Ayudantes extra: ${g('ayudantes')}${all('extras').length ? ` · ${all('extras').join(', ')}` : ''}`,
+      g('notas') ? `Notas: ${g('notas')}` : '',
+      photos.length ? `📷 ${photos.length} foto(s)` : '',
+    ];
+    return lines.filter((l, i, arr) => l !== '' || arr[i - 1] !== '').join('\n');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    for (let i = 0; i < stepsEls.length; i++) {
+      if (!validateStep(i)) {
+        if (i !== current) {
+          goTo(i);
+          setTimeout(() => validateStep(i), 50);
+        }
+        return;
+      }
+    }
+
+    const data = new FormData(form);
+    if (data.get('_gotcha')) return;
+    const text = summary(data);
+    const waNumber = form.dataset.whatsapp!;
+    const endpoint = form.dataset.endpoint;
+    const successText = success.querySelector<HTMLElement>('[data-success-text]')!;
+    const successWa = success.querySelector<HTMLAnchorElement>('[data-success-wa]')!;
+
+    formError.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitLabel.textContent = 'Enviando…';
+
+    try {
+      if (endpoint) {
+        photos.forEach((p) => data.append('fotos', p, p.name));
+        data.set('resumen', text);
+        data.set('_subject', `Nueva solicitud de trasteo · ${data.get('nombre')}`);
+        const res = await fetch(endpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(String(res.status));
+        successWa.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(`¡Hola! Acabo de enviar una solicitud desde la web.\n\n${text}`)}`;
+      } else {
+        const msg = photos.length ? `${text}\n\n(Te envío las fotos a continuación)` : text;
+        successWa.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+        successText.textContent = photos.length
+          ? 'Abrimos WhatsApp con tu solicitud lista. Envía el mensaje y adjunta tus fotos en el chat.'
+          : 'Abrimos WhatsApp con tu solicitud lista. Solo tienes que enviar el mensaje.';
+        window.open(successWa.href, '_blank', 'noopener');
+      }
+      form.classList.add('hidden');
+      document.querySelector('[data-stepper]')?.closest('aside')?.classList.add('lg:invisible');
+      progress.parentElement!.parentElement!.classList.add('hidden');
+      success.classList.remove('hidden');
+    } catch {
+      formError.textContent = 'No pudimos enviar tu solicitud. Intenta de nuevo o escríbenos por WhatsApp.';
+      formError.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Enviar solicitud';
+    }
+  });
+
+  success.querySelector('[data-reset]')?.addEventListener('click', () => {
+    form.reset();
+    photos = [];
+    renderPreviews();
+    syncDays();
+    geoValue.value = '';
+    if (geoLabel) geoLabel.textContent = 'Usar mi ubicación';
+    current = 0;
+    maxReached = 0;
+    form.classList.remove('hidden');
+    success.classList.add('hidden');
+    document.querySelector('[data-stepper]')?.closest('aside')?.classList.remove('lg:invisible');
+    progress.parentElement!.parentElement!.classList.remove('hidden');
+    render();
+  });
+
+  render();
+</script>

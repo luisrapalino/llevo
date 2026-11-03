@@ -1,0 +1,58 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const services = [
+  {
+    icon: 'heroicons:home-modern',
+    title: 'Trasteos y mudanzas',
+    text: 'Apartaestudios, habitaciones y apartamentos pequeños. Cargamos, transportamos y descargamos.',
+    tone: 'bg-brand-500 text-white',
+  },
+  {
+    icon: 'heroicons:archive-box',
+    title: 'Acarreos puntuales',
+    text: 'Una nevera, una cama, un sofá o unas cajas. Lo llevamos de un punto a otro el mismo día.',
+    tone: 'bg-ink text-white',
+  },
+  {
+    icon: 'heroicons:shopping-bag',
+    title: 'Compras y entregas',
+    text: '¿Compraste algo grande en una tienda o por Marketplace? Lo recogemos y te lo llevamos.',
+    tone: 'bg-amber-300 text-ink',
+  },
+  {
+    icon: 'heroicons:building-storefront',
+    title: 'Negocios y oficinas',
+    text: 'Mercancía, mobiliario o equipos para tu local, bodega u oficina. Viajes únicos o recurrentes.',
+    tone: 'bg-emerald-500 text-white',
+  },
+];
+---
+
+<section id="servicios" class="scroll-mt-20 py-20 sm:py-28">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+      <div class="max-w-2xl">
+        <span class="section-eyebrow">Servicios</span>
+        <h2 class="section-title mt-4">Lo que necesites mover, lo movemos.</h2>
+      </div>
+      <p class="max-w-sm text-stone-600">
+        Servicio personalizado con un solo vehículo: tu carga viaja sola, sin mezclarse con la de nadie más.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        services.map((s) => (
+          <article class="group flex flex-col rounded-3xl bg-white p-6 ring-1 ring-stone-200/80 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-900/5">
+            <span class:list={['grid size-12 place-items-center rounded-2xl transition group-hover:scale-110', s.tone]}>
+              <Icon name={s.icon} class="size-6" />
+            </span>
+            <h3 class="mt-6 font-display text-xl font-bold">{s.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-stone-600">{s.text}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
