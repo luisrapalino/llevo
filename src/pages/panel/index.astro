@@ -1,0 +1,166 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../layouts/PanelLayout.astro';
+import StatusBadge from '../../components/panel/StatusBadge.astro';
+import { STATUSES, STATUS_KEYS, type Status } from '../../lib/constants';
+import { addDays, fmtDate, shortSlot, timeAgo, todayISO } from '../../lib/format';
+import { formatCOP } from '../../lib/settings';
+
+const db = Astro.locals.supabase!;
+const today = todayISO();
+const in7 = addDays(today, 7);
+
+const [counts, upcoming, latest, revenue] = await Promise.all([
+  Promise.all(
+    STATUS_KEYS.map(async (s) => {
+      const { count } = await db.from('requests').select('id', { count: 'exact', head: true }).eq('status', s);
+      return [s, count ?? 0] as const;
+    }),
+  ),
+  db
+    .from('requests')
+    .select('id, code, customer_name, service, service_date, time_slot, status, origin_address, destination_address')
+    .in('status', ['agendada', 'cotizada', 'nueva'])
+    .gte('service_date', today)
+    .lte('service_date', in7)
+    .order('service_date')
+    .limit(8),
+  db
+    .from('requests')
+    .select('id, code, customer_name, service, created_at, status, photos, estimated_price')
+    .eq('status', 'nueva')
+    .order('created_at', { ascending: false })
+    .limit(6),
+  db
+    .from('requests')
+    .select('quoted_price')
+    .eq('status', 'completada')
+    .gte('service_date', `${today.slice(0, 7)}-01`),
+]);
+
+const byStatus = Object.fromEntries(counts) as Record<Status, number>;
+const monthRevenue = (revenue.data ?? []).reduce((a, r) => a + (r.quoted_price ?? 0), 0);
+const name = Astro.locals.profile?.full_name?.split(' ')[0];
+
+const stats = [
+  { label: 'Nuevas', value: byStatus.nueva, icon: 'heroicons:inbox-arrow-down', href: '/panel/solicitudes?estado=nueva', tone: 'bg-sky-100 text-sky-700' },
+  { label: 'Por confirmar', value: byStatus.cotizada, icon: 'heroicons:chat-bubble-left-ellipsis', href: '/panel/solicitudes?estado=cotizada', tone: 'bg-amber-100 text-amber-700' },
+  { label: 'Agendadas', value: byStatus.agendada, icon: 'heroicons:calendar-days', href: '/panel/solicitudes?estado=agendada', tone: 'bg-violet-100 text-violet-700' },
+  { label: 'Ingresos del mes', value: formatCOP(monthRevenue), icon: 'heroicons:banknotes', href: '/panel/solicitudes?estado=completada', tone: 'bg-emerald-100 text-emerald-700' },
+];
+---
+
+<PanelLayout title="Inicio" active="inicio">
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <p class="text-sm text-stone-500">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <h1 class="font-display text-3xl font-bold tracking-tight">Hola{name ? `, ${name}` : ''} 👋</h1>
+    </div>
+    <a href="/panel/agenda" class="btn-ghost self-start sm:self-auto">
+      <Icon name="heroicons:calendar-days" class="size-4" /> Ver agenda
+    </a>
+  </div>
+
+  <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    {
+      stats.map((s) => (
+        <a href={s.href} class="group rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 transition hover:shadow-lg hover:shadow-stone-900/5">
+          <span class:list={['grid size-10 place-items-center rounded-xl', s.tone]}>
+            <Icon name={s.icon} class="size-5" />
+          </span>
+          <p class="mt-4 font-display text-2xl font-bold sm:text-3xl">{s.value}</p>
+          <p class="text-sm text-stone-500">{s.label}</p>
+        </a>
+      ))
+    }
+  </div>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-2">
+    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-lg font-bold">Próximos 7 días</h2>
+        <a href="/panel/agenda" class="text-sm font-medium text-brand-600 hover:text-brand-700">Agenda →</a>
+      </div>
+      {
+        upcoming.data?.length ? (
+          <ul class="mt-4 divide-y divide-stone-100">
+            {upcoming.data.map((r) => (
+              <li>
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-stone-50">
+                  <span class="flex w-12 shrink-0 flex-col items-center rounded-xl bg-sand py-1.5">
+                    <span class="text-[10px] font-semibold text-stone-500 uppercase">{fmtDate(r.service_date, { weekday: 'short' }).replace('.', '')}</span>
+                    <span class="font-display text-lg leading-none font-bold">{r.service_date.slice(8, 10)}</span>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate font-semibold">{r.customer_name}</span>
+                    <span class="block truncate text-xs text-stone-500">
+                      {shortSlot(r.time_slot)} · {r.origin_address} → {r.destination_address}
+                    </span>
+                  </span>
+                  <StatusBadge status={r.status} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">No hay servicios en los próximos 7 días.</p>
+        )
+      }
+    </section>
+
+    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-lg font-bold">Solicitudes nuevas</h2>
+        <a href="/panel/solicitudes?estado=nueva" class="text-sm font-medium text-brand-600 hover:text-brand-700">Ver todas →</a>
+      </div>
+      {
+        latest.data?.length ? (
+          <ul class="mt-4 divide-y divide-stone-100">
+            {latest.data.map((r) => (
+              <li>
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-stone-50">
+                  <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-600">
+                    <Icon name="heroicons:inbox-arrow-down" class="size-5" />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate font-semibold">{r.customer_name}</span>
+                    <span class="block truncate text-xs text-stone-500">
+                      {r.service} · {timeAgo(r.created_at)}
+                      {r.photos.length > 0 && ` · ${r.photos.length} foto(s)`}
+                    </span>
+                  </span>
+                  <span class="text-right text-sm font-semibold whitespace-nowrap">{r.estimated_price ? formatCOP(r.estimated_price) : ''}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">Estás al día. No hay solicitudes nuevas.</p>
+        )
+      }
+    </section>
+  </div>
+
+  <section class="mt-6 rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+    <h2 class="font-display text-lg font-bold">Resumen por estado</h2>
+    <div class="mt-4 flex h-3 overflow-hidden rounded-full bg-stone-100">
+      {
+        STATUS_KEYS.map((s) => {
+          const total = Object.values(byStatus).reduce((a, b) => a + b, 0) || 1;
+          return <span class:list={[STATUSES[s].dot]} style={`width:${(byStatus[s] / total) * 100}%`} title={`${STATUSES[s].label}: ${byStatus[s]}`} />;
+        })
+      }
+    </div>
+    <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      {
+        STATUS_KEYS.map((s) => (
+          <li class="flex items-center gap-2">
+            <span class:list={['size-2.5 rounded-full', STATUSES[s].dot]} />
+            <span class="text-stone-600">{STATUSES[s].label}</span>
+            <span class="font-semibold">{byStatus[s]}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</PanelLayout>

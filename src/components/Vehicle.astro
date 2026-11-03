@@ -1,8 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { site } from '../config';
+import type { Vehicle } from '../lib/settings';
 
-const fits = ['Nevera', 'Lavadora', 'Cama doble', 'Sofá 3 puestos', 'Comedor 4 puestos', '20+ cajas'];
+const { vehicle } = Astro.props as { vehicle: Vehicle };
 const perks = [
   { icon: 'heroicons:squares-2x2', text: 'Cobijas y amarres para proteger tus muebles' },
   { icon: 'heroicons:user-group', text: 'Ayudantes adicionales si los necesitas' },
@@ -19,22 +19,22 @@ const perks = [
 
       <Icon name="heroicons:truck" class="relative size-14 opacity-90" />
       <p class="relative mt-6 text-sm font-medium tracking-wide text-white/70 uppercase">Nuestro vehículo</p>
-      <h3 class="relative mt-1 font-display text-3xl font-bold">{site.vehicle.name}</h3>
+      <h3 class="relative mt-1 font-display text-3xl font-bold">{vehicle.name}</h3>
 
       <dl class="relative mt-8 grid grid-cols-2 gap-4">
         <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
           <dt class="text-xs text-white/70">Capacidad</dt>
-          <dd class="mt-1 font-semibold">{site.vehicle.capacity}</dd>
+          <dd class="mt-1 font-semibold">{vehicle.capacity}</dd>
         </div>
         <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
           <dt class="text-xs text-white/70">Espacio</dt>
-          <dd class="mt-1 font-semibold">{site.vehicle.size}</dd>
+          <dd class="mt-1 font-semibold">{vehicle.size}</dd>
         </div>
       </dl>
 
       <p class="relative mt-8 text-sm font-medium text-white/80">Cabe, por ejemplo:</p>
       <ul class="relative mt-3 flex flex-wrap gap-2">
-        {fits.map((f) => <li class="rounded-full bg-white px-3 py-1 text-sm font-medium text-brand-700">{f}</li>)}
+        {vehicle.fits.map((f) => <li class="rounded-full bg-white px-3 py-1 text-sm font-medium text-brand-700">{f}</li>)}
       </ul>
     </div>
 

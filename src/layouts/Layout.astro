@@ -1,12 +1,13 @@
 ---
 import '../styles/global.css';
-import { site } from '../config';
+import type { Business } from '../lib/settings';
 
 interface Props {
+  business: Business;
   title?: string;
   description?: string;
 }
-const { title = `${site.name} · ${site.tagline}`, description = site.description } = Astro.props;
+const { business, title = `${business.name} · ${business.tagline}`, description = business.description } = Astro.props;
 ---
 
 <!doctype html>

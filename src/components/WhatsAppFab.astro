@@ -1,9 +1,11 @@
 ---
-import { whatsappLink } from '../config';
+import { whatsappLink } from '../lib/settings';
+
+const { phone } = Astro.props as { phone: string };
 ---
 
 <a
-  href={whatsappLink()}
+  href={whatsappLink(phone)}
   target="_blank"
   rel="noopener"
   aria-label="Escríbenos por WhatsApp"

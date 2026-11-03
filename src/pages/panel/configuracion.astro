@@ -1,0 +1,345 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../layouts/PanelLayout.astro';
+import { ICON_CHOICES, LOAD_SIZES } from '../../lib/constants';
+import { getSettings, type Faq, type Service, type Settings, type SettingsKey } from '../../lib/settings';
+
+const db = Astro.locals.supabase!;
+
+const tabs = [
+  { key: 'negocio', label: 'Negocio', icon: 'heroicons:building-storefront', setting: 'business' },
+  { key: 'vehiculo', label: 'Vehículo', icon: 'heroicons:truck', setting: 'vehicle' },
+  { key: 'servicios', label: 'Servicios', icon: 'heroicons:squares-2x2', setting: 'services' },
+  { key: 'faq', label: 'Preguntas', icon: 'heroicons:question-mark-circle', setting: 'faqs' },
+  { key: 'precios', label: 'Precios', icon: 'heroicons:calculator', setting: 'pricing' },
+] as const;
+const tab = tabs.find((t) => t.key === Astro.url.searchParams.get('tab')) ?? tabs[0];
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const t = tabs.find((x) => x.key === form.get('tab')) ?? tabs[0];
+  const str = (k: string, max = 500) => String(form.get(k) ?? '').trim().slice(0, max);
+  const num = (k: string) => Math.max(0, Number(String(form.get(k) ?? '').replace(/[^\d.]/g, '')) || 0);
+  const list = (k: string) => form.getAll(k).map((v) => String(v).trim());
+
+  let value: unknown;
+  switch (t.setting) {
+    case 'business':
+      value = {
+        name: str('name', 60) || 'Llevo',
+        tagline: str('tagline', 120),
+        description: str('description', 300),
+        whatsapp: str('whatsapp').replace(/\D/g, ''),
+        countryCode: str('countryCode').replace(/\D/g, '') || '57',
+        phoneDisplay: str('phoneDisplay', 40),
+        email: str('email', 120),
+        city: str('city', 80),
+        hours: str('hours', 120),
+        heroBadge: str('heroBadge', 60),
+      };
+      break;
+    case 'vehicle':
+      value = {
+        name: str('name', 80),
+        capacity: str('capacity', 80),
+        size: str('size', 80),
+        fits: str('fits', 1000).split(/\n|,/).map((s) => s.trim()).filter(Boolean).slice(0, 15),
+      };
+      break;
+    case 'services': {
+      const icons = list('icon'), titles = list('title'), texts = list('text');
+      value = titles
+        .map((title, i): Service => ({ icon: ICON_CHOICES.includes(icons[i]) ? icons[i] : ICON_CHOICES[0], title, text: texts[i] ?? '' }))
+        .filter((s) => s.title)
+        .slice(0, 8);
+      break;
+    }
+    case 'faqs': {
+      const qs = list('q'), as = list('a');
+      value = qs.map((q, i): Faq => ({ q, a: as[i] ?? '' })).filter((f) => f.q && f.a).slice(0, 20);
+      break;
+    }
+    case 'pricing':
+      value = {
+        showEstimate: form.get('showEstimate') === 'on',
+        base: Object.fromEntries(LOAD_SIZES.map((l, i) => [l.value, num(`base_${i}`)])),
+        perFloor: num('perFloor'),
+        perHelper: num('perHelper'),
+        assembly: num('assembly'),
+        packing: num('packing'),
+        weekendPct: Math.min(100, num('weekendPct')),
+      };
+      break;
+  }
+
+  const { error } = await db
+    .from('settings')
+    .upsert({ key: t.setting satisfies SettingsKey, value, updated_at: new Date().toISOString(), updated_by: Astro.locals.profile!.id });
+  return Astro.redirect(
+    `/panel/configuracion?tab=${t.key}&` + (error ? `error=${encodeURIComponent(error.message)}` : 'ok=Configuraci%C3%B3n%20guardada'),
+  );
+}
+
+const settings: Settings = await getSettings(db);
+const { business, vehicle, services, faqs, pricing } = settings;
+---
+
+<PanelLayout title="Configuración" active="configuracion">
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <h1 class="font-display text-3xl font-bold tracking-tight">Configuración</h1>
+      <p class="mt-1 text-sm text-stone-500">Lo que cambies aquí se ve en la web en menos de un minuto.</p>
+    </div>
+    <a href="/" target="_blank" class="btn-ghost self-start sm:self-auto">
+      <Icon name="heroicons:eye" class="size-4" /> Ver la web
+    </a>
+  </div>
+
+  <nav class="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
+    {
+      tabs.map((t) => (
+        <a href={`?tab=${t.key}`} class:list={['chip shrink-0', tab.key === t.key && '!bg-ink !text-white !ring-ink']}>
+          <Icon name={t.icon} class="size-4" /> {t.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <form method="post" class="mt-6 rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-8">
+    <input type="hidden" name="tab" value={tab.key} />
+
+    {
+      tab.key === 'negocio' && (
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="field-label" for="name">Nombre del negocio</label>
+            <input class="field" id="name" name="name" value={business.name} required />
+          </div>
+          <div>
+            <label class="field-label" for="heroBadge">Etiqueta destacada</label>
+            <input class="field" id="heroBadge" name="heroBadge" value={business.heroBadge} placeholder="Disponible esta semana" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" for="tagline">Eslogan</label>
+            <input class="field" id="tagline" name="tagline" value={business.tagline} />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" for="description">Descripción (para Google y redes)</label>
+            <textarea class="field resize-none" id="description" name="description" rows="2">{business.description}</textarea>
+          </div>
+          <div>
+            <label class="field-label" for="whatsapp">WhatsApp del negocio</label>
+            <input class="field" id="whatsapp" name="whatsapp" value={business.whatsapp} inputmode="numeric" required />
+            <p class="mt-1 text-xs text-stone-500">Con indicativo y sin “+”. Ej. 573001234567</p>
+          </div>
+          <div>
+            <label class="field-label" for="countryCode">Indicativo del país</label>
+            <input class="field" id="countryCode" name="countryCode" value={business.countryCode} inputmode="numeric" />
+            <p class="mt-1 text-xs text-stone-500">Se usa para escribirle a los clientes por WhatsApp.</p>
+          </div>
+          <div>
+            <label class="field-label" for="phoneDisplay">Teléfono visible</label>
+            <input class="field" id="phoneDisplay" name="phoneDisplay" value={business.phoneDisplay} />
+          </div>
+          <div>
+            <label class="field-label" for="email">Correo</label>
+            <input class="field" id="email" name="email" type="email" value={business.email} />
+          </div>
+          <div>
+            <label class="field-label" for="city">Ciudad / zona</label>
+            <input class="field" id="city" name="city" value={business.city} />
+          </div>
+          <div>
+            <label class="field-label" for="hours">Horario de atención</label>
+            <input class="field" id="hours" name="hours" value={business.hours} />
+          </div>
+        </div>
+      )
+    }
+
+    {
+      tab.key === 'vehiculo' && (
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="field-label" for="vname">Tipo de vehículo</label>
+            <input class="field" id="vname" name="name" value={vehicle.name} />
+          </div>
+          <div>
+            <label class="field-label" for="capacity">Capacidad</label>
+            <input class="field" id="capacity" name="capacity" value={vehicle.capacity} />
+          </div>
+          <div>
+            <label class="field-label" for="size">Espacio de carga</label>
+            <input class="field" id="size" name="size" value={vehicle.size} />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" for="fits">Ejemplos de lo que cabe (uno por línea)</label>
+            <textarea class="field" id="fits" name="fits" rows="6">{vehicle.fits.join('\n')}</textarea>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      tab.key === 'servicios' && (
+        <div>
+          <ul class="space-y-3" data-list>
+            {services.map((s) => (
+              <li class="grid gap-3 rounded-2xl bg-stone-50 p-4 sm:grid-cols-[180px_1fr_auto]" data-row>
+                <select name="icon" class="field" aria-label="Icono">
+                  {ICON_CHOICES.map((i) => (
+                    <option value={i} selected={i === s.icon}>{i.replace('heroicons:', '')}</option>
+                  ))}
+                </select>
+                <div class="space-y-2">
+                  <input name="title" class="field" value={s.title} placeholder="Título" />
+                  <textarea name="text" class="field resize-none" rows="2" placeholder="Descripción">{s.text}</textarea>
+                </div>
+                <button type="button" class="self-start rounded-xl p-2.5 text-stone-400 hover:bg-red-50 hover:text-red-600" data-remove aria-label="Quitar">
+                  <Icon name="heroicons:trash" class="size-5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <template data-template>
+            <li class="grid gap-3 rounded-2xl bg-stone-50 p-4 sm:grid-cols-[180px_1fr_auto]" data-row>
+              <select name="icon" class="field" aria-label="Icono">
+                {ICON_CHOICES.map((i) => <option value={i}>{i.replace('heroicons:', '')}</option>)}
+              </select>
+              <div class="space-y-2">
+                <input name="title" class="field" placeholder="Título" />
+                <textarea name="text" class="field resize-none" rows="2" placeholder="Descripción" />
+              </div>
+              <button type="button" class="self-start rounded-xl p-2.5 text-stone-400 hover:bg-red-50 hover:text-red-600" data-remove aria-label="Quitar">
+                <Icon name="heroicons:trash" class="size-5" />
+              </button>
+            </li>
+          </template>
+          <button type="button" class="btn-ghost mt-4" data-add>
+            <Icon name="heroicons:plus" class="size-4" /> Agregar servicio
+          </button>
+        </div>
+      )
+    }
+
+    {
+      tab.key === 'faq' && (
+        <div>
+          <ul class="space-y-3" data-list>
+            {faqs.map((f) => (
+              <li class="grid gap-3 rounded-2xl bg-stone-50 p-4 sm:grid-cols-[1fr_auto]" data-row>
+                <div class="space-y-2">
+                  <input name="q" class="field font-semibold" value={f.q} placeholder="Pregunta" />
+                  <textarea name="a" class="field resize-none" rows="2" placeholder="Respuesta">{f.a}</textarea>
+                </div>
+                <button type="button" class="self-start rounded-xl p-2.5 text-stone-400 hover:bg-red-50 hover:text-red-600" data-remove aria-label="Quitar">
+                  <Icon name="heroicons:trash" class="size-5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <template data-template>
+            <li class="grid gap-3 rounded-2xl bg-stone-50 p-4 sm:grid-cols-[1fr_auto]" data-row>
+              <div class="space-y-2">
+                <input name="q" class="field font-semibold" placeholder="Pregunta" />
+                <textarea name="a" class="field resize-none" rows="2" placeholder="Respuesta" />
+              </div>
+              <button type="button" class="self-start rounded-xl p-2.5 text-stone-400 hover:bg-red-50 hover:text-red-600" data-remove aria-label="Quitar">
+                <Icon name="heroicons:trash" class="size-5" />
+              </button>
+            </li>
+          </template>
+          <button type="button" class="btn-ghost mt-4" data-add>
+            <Icon name="heroicons:plus" class="size-4" /> Agregar pregunta
+          </button>
+        </div>
+      )
+    }
+
+    {
+      tab.key === 'precios' && (
+        <div class="space-y-8">
+          <label class="choice items-start gap-4">
+            <input type="checkbox" name="showEstimate" class="mt-1 size-5 shrink-0 accent-brand-500" checked={pricing.showEstimate} />
+            <span>
+              <span class="block font-semibold">Mostrar precio estimado al cliente</span>
+              <span class="block text-sm text-stone-500">
+                En el último paso del formulario verá “Desde $…”. Aunque esté apagado, el estimado se calcula y lo ves en el panel.
+              </span>
+            </span>
+          </label>
+
+          <div>
+            <h3 class="font-semibold">Tarifa base por tamaño de carga</h3>
+            <div class="mt-3 grid gap-4 sm:grid-cols-3">
+              {LOAD_SIZES.map((l, i) => (
+                <div>
+                  <label class="field-label" for={`base_${i}`}>{l.value}</label>
+                  <div class="relative">
+                    <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-stone-400">$</span>
+                    <input class="field !pl-8" id={`base_${i}`} name={`base_${i}`} inputmode="numeric" value={pricing.base[l.value] ?? 0} data-price />
+                  </div>
+                  <p class="mt-1 text-xs text-stone-500">{l.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-semibold">Recargos</h3>
+            <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { k: 'perFloor', label: 'Por piso sin ascensor', hint: 'Cada piso arriba del primero, en recogida y entrega.', v: pricing.perFloor },
+                { k: 'perHelper', label: 'Por ayudante extra', hint: 'Por cada ayudante adicional.', v: pricing.perHelper },
+                { k: 'assembly', label: 'Desarme y armado', hint: 'Valor fijo si lo piden.', v: pricing.assembly },
+                { k: 'packing', label: 'Material de embalaje', hint: 'Valor fijo si lo piden.', v: pricing.packing },
+              ].map((f) => (
+                <div>
+                  <label class="field-label" for={f.k}>{f.label}</label>
+                  <div class="relative">
+                    <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-stone-400">$</span>
+                    <input class="field !pl-8" id={f.k} name={f.k} inputmode="numeric" value={f.v} />
+                  </div>
+                  <p class="mt-1 text-xs text-stone-500">{f.hint}</p>
+                </div>
+              ))}
+              <div>
+                <label class="field-label" for="weekendPct">Recargo fin de semana</label>
+                <div class="relative">
+                  <input class="field !pr-10" id="weekendPct" name="weekendPct" inputmode="numeric" value={pricing.weekendPct} />
+                  <span class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-stone-400">%</span>
+                </div>
+                <p class="mt-1 text-xs text-stone-500">Sábados y domingos.</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="rounded-2xl bg-sand/70 p-4 text-sm text-stone-600">
+            <Icon name="heroicons:information-circle" class="mr-1 inline size-4 align-[-3px] text-brand-600" />
+            La distancia no se calcula automáticamente: ajusta el precio final en cada solicitud antes de enviarlo.
+          </p>
+        </div>
+      )
+    }
+
+    <div class="mt-8 flex justify-end border-t border-stone-100 pt-6">
+      <button class="btn-primary">
+        <Icon name="heroicons:check" class="size-4" /> Guardar
+      </button>
+    </div>
+  </form>
+</PanelLayout>
+
+<script>
+  const list = document.querySelector<HTMLUListElement>('[data-list]');
+  const tpl = document.querySelector<HTMLTemplateElement>('[data-template]');
+  document.querySelector('[data-add]')?.addEventListener('click', () => {
+    if (!list || !tpl) return;
+    list.append(tpl.content.cloneNode(true));
+    list.querySelector<HTMLInputElement>('[data-row]:last-child input')?.focus();
+  });
+  list?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('[data-remove]');
+    if (btn) btn.closest('[data-row]')?.remove();
+  });
+</script>

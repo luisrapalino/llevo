@@ -1,5 +1,8 @@
 ---
-import { site } from '../config';
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
 ---
 
 <span class="flex items-center gap-2">
@@ -10,5 +13,5 @@ import { site } from '../config';
       <circle cx="17" cy="17.5" r="1.8" fill="#1c1917" stroke="currentColor" stroke-width="1" />
     </svg>
   </span>
-  <span class="font-display text-xl font-bold tracking-tight">{site.name}</span>
+  <span class="font-display text-xl font-bold tracking-tight">{name}</span>
 </span>

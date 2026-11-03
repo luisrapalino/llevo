@@ -1,0 +1,160 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../layouts/PanelLayout.astro';
+import { fmtDateTime } from '../../lib/format';
+import { createAdminClient } from '../../lib/supabase';
+
+const db = Astro.locals.supabase!;
+const me = Astro.locals.profile!;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('action');
+  const admin = createAdminClient()!;
+  const go = (q: string) => Astro.redirect(`/panel/usuarios?${q}`);
+
+  if (action === 'create') {
+    const email = String(form.get('email') ?? '').trim().toLowerCase();
+    const password = String(form.get('password') ?? '');
+    const full_name = String(form.get('full_name') ?? '').trim();
+    const role = form.get('role') === 'admin' ? 'admin' : 'staff';
+    if (password.length < 8) return go('error=La%20contrase%C3%B1a%20debe%20tener%20al%20menos%208%20caracteres');
+    const { error } = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name, role } });
+    if (error) return go(`error=${encodeURIComponent(error.message.includes('already') ? 'Ya existe un usuario con ese correo' : error.message)}`);
+    return go(`ok=${encodeURIComponent(`Usuario ${email} creado. Compártele su contraseña temporal.`)}`);
+  }
+
+  const id = String(form.get('id') ?? '');
+  if (id === me.id) return go('error=No%20puedes%20modificar%20tu%20propio%20rol%20o%20cuenta%20desde%20aqu%C3%AD');
+
+  if (action === 'role') {
+    const role = form.get('role') === 'admin' ? 'admin' : 'staff';
+    const { error } = await db.from('profiles').update({ role }).eq('id', id);
+    return go(error ? `error=${encodeURIComponent(error.message)}` : 'ok=Rol%20actualizado');
+  }
+  if (action === 'password') {
+    const password = String(form.get('password') ?? '');
+    if (password.length < 8) return go('error=La%20contrase%C3%B1a%20debe%20tener%20al%20menos%208%20caracteres');
+    const { error } = await admin.auth.admin.updateUserById(id, { password });
+    return go(error ? `error=${encodeURIComponent(error.message)}` : 'ok=Contrase%C3%B1a%20actualizada');
+  }
+  if (action === 'delete') {
+    const { error } = await admin.auth.admin.deleteUser(id);
+    return go(error ? `error=${encodeURIComponent(error.message)}` : 'ok=Usuario%20eliminado');
+  }
+}
+
+const { data: users } = await db.from('profiles').select('id, email, full_name, role, created_at').order('created_at');
+---
+
+<PanelLayout title="Usuarios" active="usuarios">
+  <h1 class="font-display text-3xl font-bold tracking-tight">Usuarios</h1>
+  <p class="mt-1 text-sm text-stone-500">Personas que pueden entrar al panel.</p>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]">
+    <section class="overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200/80">
+      <ul class="divide-y divide-stone-100">
+        {
+          (users ?? []).map((u) => (
+            <li class="p-5">
+              <div class="flex flex-wrap items-center gap-4">
+                <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-sand font-bold text-stone-600">
+                  {(u.full_name || u.email)[0]!.toUpperCase()}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-semibold">
+                    {u.full_name || 'Sin nombre'} {u.id === me.id && <span class="text-xs font-normal text-stone-400">(tú)</span>}
+                  </p>
+                  <p class="truncate text-sm text-stone-500">{u.email}</p>
+                </div>
+                <span
+                  class:list={[
+                    'rounded-full px-2.5 py-1 text-xs font-semibold ring-1',
+                    u.role === 'admin' ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-stone-50 text-stone-600 ring-stone-200',
+                  ]}
+                >
+                  {u.role === 'admin' ? 'Administrador' : 'Equipo'}
+                </span>
+              </div>
+
+              {u.id !== me.id && (
+                <details class="group mt-3">
+                  <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-stone-500 hover:text-ink [&::-webkit-details-marker]:hidden">
+                    <Icon name="heroicons:cog-6-tooth" class="size-4" /> Gestionar
+                  </summary>
+                  <div class="mt-3 grid gap-3 rounded-2xl bg-stone-50 p-4 sm:grid-cols-2">
+                    <form method="post" class="flex gap-2">
+                      <input type="hidden" name="action" value="role" />
+                      <input type="hidden" name="id" value={u.id} />
+                      <select name="role" class="field !py-2" aria-label="Rol">
+                        <option value="staff" selected={u.role === 'staff'}>Equipo</option>
+                        <option value="admin" selected={u.role === 'admin'}>Administrador</option>
+                      </select>
+                      <button class="btn-dark !px-4 !py-2">Cambiar</button>
+                    </form>
+                    <form method="post" class="flex gap-2">
+                      <input type="hidden" name="action" value="password" />
+                      <input type="hidden" name="id" value={u.id} />
+                      <input name="password" type="text" minlength="8" required placeholder="Nueva contraseña" class="field !py-2" autocomplete="off" />
+                      <button class="btn-dark !px-4 !py-2">Cambiar</button>
+                    </form>
+                    <form method="post" data-confirm={`¿Eliminar a ${u.email}? Ya no podrá entrar al panel.`} class="sm:col-span-2">
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="id" value={u.id} />
+                      <button class="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700">
+                        <Icon name="heroicons:trash" class="size-4" /> Eliminar usuario
+                      </button>
+                    </form>
+                  </div>
+                </details>
+              )}
+              <p class="mt-2 text-xs text-stone-400">Desde {fmtDateTime(u.created_at)}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="h-fit rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <h2 class="font-display text-lg font-bold">Agregar usuario</h2>
+      <p class="mt-1 text-sm text-stone-500">Crea la cuenta con una contraseña temporal y compártela. Podrá cambiarla en “Mi cuenta”.</p>
+      <form method="post" class="mt-5 space-y-4">
+        <input type="hidden" name="action" value="create" />
+        <div>
+          <label for="full_name" class="field-label">Nombre</label>
+          <input id="full_name" name="full_name" required class="field" />
+        </div>
+        <div>
+          <label for="email" class="field-label">Correo</label>
+          <input id="email" name="email" type="email" required class="field" autocomplete="off" />
+        </div>
+        <div>
+          <label for="password" class="field-label">Contraseña temporal</label>
+          <input id="password" name="password" type="text" minlength="8" required class="field" autocomplete="off" />
+        </div>
+        <div>
+          <span class="field-label">Rol</span>
+          <div class="grid gap-2">
+            <label class="choice items-start gap-3 !p-3">
+              <input type="radio" name="role" value="staff" class="sr-only" checked />
+              <span>
+                <span class="block text-sm font-semibold">Equipo</span>
+                <span class="block text-xs text-stone-500">Gestiona solicitudes y agenda.</span>
+              </span>
+            </label>
+            <label class="choice items-start gap-3 !p-3">
+              <input type="radio" name="role" value="admin" class="sr-only" />
+              <span>
+                <span class="block text-sm font-semibold">Administrador</span>
+                <span class="block text-xs text-stone-500">Además edita la configuración y los usuarios.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <button class="btn-primary w-full">
+          <Icon name="heroicons:user-plus" class="size-4" /> Crear usuario
+        </button>
+      </form>
+    </section>
+  </div>
+</PanelLayout>

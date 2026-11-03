@@ -1,0 +1,75 @@
+---
+import '../../styles/global.css';
+import { Icon } from 'astro-icon/components';
+import Logo from '../../components/Logo.astro';
+import { isSupabaseConfigured } from '../../lib/supabase';
+
+let error = '';
+let email = '';
+
+if (Astro.request.method === 'POST' && Astro.locals.supabase) {
+  const form = await Astro.request.formData();
+  email = String(form.get('email') ?? '').trim();
+  const password = String(form.get('password') ?? '');
+  const { error: err } = await Astro.locals.supabase.auth.signInWithPassword({ email, password });
+  if (!err) return Astro.redirect('/panel');
+  error = err.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : 'No pudimos iniciar sesión. Intenta de nuevo.';
+}
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Entrar · Panel</title>
+  </head>
+  <body class="grid min-h-dvh place-items-center bg-cream px-4 py-10">
+    <div class="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
+      <div class="absolute -top-40 -right-32 size-[520px] rounded-full bg-brand-200/50 blur-3xl"></div>
+      <div class="absolute bottom-0 -left-40 size-[420px] rounded-full bg-amber-100/70 blur-3xl"></div>
+    </div>
+
+    <div class="w-full max-w-sm">
+      <div class="flex justify-center"><Logo name="Panel" /></div>
+      <div class="mt-8 rounded-[2rem] bg-white p-6 shadow-xl ring-1 shadow-stone-900/5 ring-stone-200/80 sm:p-8">
+        <h1 class="font-display text-2xl font-bold">Bienvenido de vuelta</h1>
+        <p class="mt-1 text-sm text-stone-500">Entra para gestionar solicitudes y la agenda.</p>
+
+        {
+          !isSupabaseConfigured && (
+            <p class="mt-6 rounded-2xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">
+              Falta conectar Supabase. Revisa las variables de entorno en el README.
+            </p>
+          )
+        }
+        {
+          error && (
+            <p class="mt-6 flex items-center gap-2 rounded-2xl bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
+              <Icon name="heroicons:exclamation-circle" class="size-5 shrink-0" /> {error}
+            </p>
+          )
+        }
+
+        <form method="post" class="mt-6 space-y-4">
+          <div>
+            <label for="email" class="field-label">Correo</label>
+            <input id="email" name="email" type="email" required autocomplete="email" class="field" value={email} />
+          </div>
+          <div>
+            <label for="password" class="field-label">Contraseña</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password" class="field" />
+          </div>
+          <button class="btn-primary w-full !py-3.5" disabled={!isSupabaseConfigured}>
+            Entrar <Icon name="heroicons:arrow-right" class="size-4" />
+          </button>
+        </form>
+      </div>
+      <p class="mt-6 text-center text-sm text-stone-500">
+        <a href="/" class="hover:text-ink">← Volver a la web</a>
+      </p>
+    </div>
+  </body>
+</html>

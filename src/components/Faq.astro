@@ -1,32 +1,9 @@
 ---
 import { Icon } from 'astro-icon/components';
 
-const faqs = [
-  {
-    q: '¿Cómo calculan el precio?',
-    a: 'Depende de la distancia, el volumen de la carga, los pisos (y si hay ascensor) y si necesitas ayudantes. Con las fotos que subes te damos un precio cerrado antes de confirmar.',
-  },
-  {
-    q: '¿Con cuánta anticipación debo reservar?',
-    a: 'Idealmente 1 o 2 días antes, sobre todo para fines de semana y fin de mes. Si es urgente, escríbenos: muchas veces podemos el mismo día.',
-  },
-  {
-    q: '¿Ayudan a cargar y descargar?',
-    a: 'Sí. El conductor ayuda con la carga y descarga. Para trasteos grandes o pisos altos sin ascensor puedes pedir ayudantes adicionales en el formulario.',
-  },
-  {
-    q: '¿Qué pasa si mis cosas no caben en un viaje?',
-    a: 'Con las fotos te avisamos antes si se necesitan dos viajes y te damos el precio total desde el principio.',
-  },
-  {
-    q: '¿Qué cosas no transportan?',
-    a: 'No llevamos sustancias peligrosas, inflamables, animales vivos ni artículos ilegales. Si tienes dudas sobre algo puntual, pregúntanos.',
-  },
-  {
-    q: '¿Cómo se paga?',
-    a: 'Puedes pagar en efectivo o por transferencia (Nequi, Daviplata o Bancolombia) al terminar el servicio.',
-  },
-];
+import type { Faq } from '../lib/settings';
+
+const { faqs } = Astro.props as { faqs: Faq[] };
 ---
 
 <section id="faq" class="scroll-mt-20 py-20 sm:py-28">

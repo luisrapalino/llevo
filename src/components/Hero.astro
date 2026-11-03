@@ -1,6 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { site, whatsappLink } from '../config';
+import { whatsappLink, type Business } from '../lib/settings';
+
+const { business } = Astro.props as { business: Business };
 ---
 
 <section class="relative overflow-hidden">
@@ -21,7 +23,7 @@ import { site, whatsappLink } from '../config';
           <span class="absolute inline-flex size-full animate-ping rounded-full bg-brand-500 opacity-60"></span>
           <span class="relative inline-flex size-2 rounded-full bg-brand-500"></span>
         </span>
-        Disponible esta semana
+        {business.heroBadge}
       </span>
 
       <h1 class="mt-6 font-display text-[2.6rem] leading-[1.04] font-bold tracking-tight text-balance sm:text-6xl lg:text-7xl">
@@ -45,7 +47,7 @@ import { site, whatsappLink } from '../config';
           Cotizar mi trasteo
           <Icon name="heroicons:arrow-right" class="size-5" />
         </a>
-        <a href={whatsappLink()} target="_blank" rel="noopener" class="btn-ghost !px-7 !py-4 !text-base">
+        <a href={whatsappLink(business.whatsapp)} target="_blank" rel="noopener" class="btn-ghost !px-7 !py-4 !text-base">
           <Icon name="heroicons:chat-bubble-left-right" class="size-5" />
           Escríbenos
         </a>

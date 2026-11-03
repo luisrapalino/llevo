@@ -1,0 +1,43 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../layouts/PanelLayout.astro';
+
+const db = Astro.locals.supabase!;
+const me = Astro.locals.profile!;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('action') === 'name') {
+    const { error } = await db.from('profiles').update({ full_name: String(form.get('full_name') ?? '').trim() }).eq('id', me.id);
+    return Astro.redirect(`/panel/cuenta?${error ? `error=${encodeURIComponent(error.message)}` : 'ok=Nombre%20actualizado'}`);
+  }
+  const password = String(form.get('password') ?? '');
+  if (password.length < 8 || password !== form.get('confirm')) {
+    return Astro.redirect('/panel/cuenta?error=Las%20contrase%C3%B1as%20no%20coinciden%20o%20tienen%20menos%20de%208%20caracteres');
+  }
+  const { error } = await db.auth.updateUser({ password });
+  return Astro.redirect(`/panel/cuenta?${error ? `error=${encodeURIComponent(error.message)}` : 'ok=Contrase%C3%B1a%20actualizada'}`);
+}
+---
+
+<PanelLayout title="Mi cuenta">
+  <h1 class="font-display text-3xl font-bold tracking-tight">Mi cuenta</h1>
+  <p class="mt-1 text-sm text-stone-500">{me.email} · {me.role === 'admin' ? 'Administrador' : 'Equipo'}</p>
+
+  <div class="mt-8 grid max-w-3xl gap-6 md:grid-cols-2">
+    <form method="post" class="space-y-4 rounded-3xl bg-white p-6 ring-1 ring-stone-200/80">
+      <input type="hidden" name="action" value="name" />
+      <h2 class="flex items-center gap-2 font-display text-lg font-bold"><Icon name="heroicons:user" class="size-5 text-brand-600" /> Tu nombre</h2>
+      <input name="full_name" class="field" value={me.full_name} required />
+      <button class="btn-dark w-full">Guardar</button>
+    </form>
+
+    <form method="post" class="space-y-4 rounded-3xl bg-white p-6 ring-1 ring-stone-200/80">
+      <input type="hidden" name="action" value="password" />
+      <h2 class="flex items-center gap-2 font-display text-lg font-bold"><Icon name="heroicons:key" class="size-5 text-brand-600" /> Cambiar contraseña</h2>
+      <input name="password" type="password" minlength="8" required class="field" placeholder="Nueva contraseña" autocomplete="new-password" />
+      <input name="confirm" type="password" minlength="8" required class="field" placeholder="Repítela" autocomplete="new-password" />
+      <button class="btn-dark w-full">Actualizar</button>
+    </form>
+  </div>
+</PanelLayout>

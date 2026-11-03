@@ -1,32 +1,10 @@
 ---
 import { Icon } from 'astro-icon/components';
 
-const services = [
-  {
-    icon: 'heroicons:home-modern',
-    title: 'Trasteos y mudanzas',
-    text: 'Apartaestudios, habitaciones y apartamentos pequeños. Cargamos, transportamos y descargamos.',
-    tone: 'bg-brand-500 text-white',
-  },
-  {
-    icon: 'heroicons:archive-box',
-    title: 'Acarreos puntuales',
-    text: 'Una nevera, una cama, un sofá o unas cajas. Lo llevamos de un punto a otro el mismo día.',
-    tone: 'bg-ink text-white',
-  },
-  {
-    icon: 'heroicons:shopping-bag',
-    title: 'Compras y entregas',
-    text: '¿Compraste algo grande en una tienda o por Marketplace? Lo recogemos y te lo llevamos.',
-    tone: 'bg-amber-300 text-ink',
-  },
-  {
-    icon: 'heroicons:building-storefront',
-    title: 'Negocios y oficinas',
-    text: 'Mercancía, mobiliario o equipos para tu local, bodega u oficina. Viajes únicos o recurrentes.',
-    tone: 'bg-emerald-500 text-white',
-  },
-];
+import type { Service } from '../lib/settings';
+
+const { services } = Astro.props as { services: Service[] };
+const tones = ['bg-brand-500 text-white', 'bg-ink text-white', 'bg-amber-300 text-ink', 'bg-emerald-500 text-white'];
 ---
 
 <section id="servicios" class="scroll-mt-20 py-20 sm:py-28">
@@ -43,9 +21,9 @@ const services = [
 
     <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {
-        services.map((s) => (
+        services.map((s, i) => (
           <article class="group flex flex-col rounded-3xl bg-white p-6 ring-1 ring-stone-200/80 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-900/5">
-            <span class:list={['grid size-12 place-items-center rounded-2xl transition group-hover:scale-110', s.tone]}>
+            <span class:list={['grid size-12 place-items-center rounded-2xl transition group-hover:scale-110', tones[i % tones.length]]}>
               <Icon name={s.icon} class="size-6" />
             </span>
             <h3 class="mt-6 font-display text-xl font-bold">{s.title}</h3>

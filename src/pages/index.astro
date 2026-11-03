@@ -9,18 +9,34 @@ import Vehicle from '../components/Vehicle.astro';
 import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFab from '../components/WhatsAppFab.astro';
+import { getSettings } from '../lib/settings';
+import { createAdminClient, isSupabaseConfigured } from '../lib/supabase';
+
+export const prerender = false;
+
+const db = createAdminClient();
+const settings = await getSettings(db);
+
+const today = new Date();
+const from = new Date(today.getTime() - 86_400_000).toISOString().slice(0, 10);
+const { data: blocked } = db
+  ? await db.from('blocked_slots').select('date, time_slot').gte('date', from).order('date')
+  : { data: [] };
+
+// La página se puede cachear un minuto en la CDN; los cambios del panel se ven casi al instante.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 ---
 
-<Layout>
-  <Navbar />
+<Layout business={settings.business}>
+  <Navbar business={settings.business} />
   <main>
-    <Hero />
-    <Services />
+    <Hero business={settings.business} />
+    <Services services={settings.services} />
     <HowItWorks />
-    <QuoteForm />
-    <Vehicle />
-    <Faq />
+    <QuoteForm business={settings.business} pricing={settings.pricing} blocked={blocked ?? []} apiEnabled={isSupabaseConfigured} />
+    <Vehicle vehicle={settings.vehicle} />
+    <Faq faqs={settings.faqs} />
   </main>
-  <Footer />
-  <WhatsAppFab />
+  <Footer business={settings.business} />
+  <WhatsAppFab phone={settings.business.whatsapp} />
 </Layout>
