@@ -50,24 +50,24 @@ const link = (over: Record<string, string | number | null>) => {
 <PanelLayout title="Solicitudes" active="solicitudes">
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <h1 class="font-display text-3xl font-bold tracking-tight">Solicitudes</h1>
-      <p class="mt-1 text-sm text-stone-500">Todas las cotizaciones que llegan desde la web.</p>
+      <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">Solicitudes</h1>
+      <p class="mt-1 text-sm text-ink-2">Todas las cotizaciones que llegan desde la web.</p>
     </div>
     <form class="relative w-full sm:w-72">
       {estado && <input type="hidden" name="estado" value={estado} />}
-      <Icon name="heroicons:magnifying-glass" class="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-stone-400" />
+      <Icon name="heroicons:magnifying-glass" class="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-ink-3" />
       <input name="q" value={q} placeholder="Buscar nombre, celular, código…" class="field !rounded-full !pl-10" />
     </form>
   </div>
 
   <!-- Filtros por estado -->
   <div class="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
-    <a href={link({ estado: null, p: null })} class:list={['chip shrink-0', !estado && '!bg-ink !text-white !ring-ink']}>
+    <a href={link({ estado: null, p: null })} class:list={['chip shrink-0', !estado && '!bg-ink !text-white !border-ink']}>
       Todas <span class="opacity-60">{total}</span>
     </a>
     {
       STATUS_KEYS.map((s) => (
-        <a href={link({ estado: s, p: null })} class:list={['chip shrink-0', estado === s && '!bg-ink !text-white !ring-ink']}>
+        <a href={link({ estado: s, p: null })} class:list={['chip shrink-0', estado === s && '!bg-ink !text-white !border-ink']}>
           <span class:list={['size-2 rounded-full', STATUSES[s].dot]} />
           {STATUSES[s].label} <span class="opacity-60">{counts[s]}</span>
         </a>
@@ -77,10 +77,10 @@ const link = (over: Record<string, string | number | null>) => {
 
   {
     rows?.length ? (
-      <div class="mt-6 overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200/80">
+      <div class="mt-6 overflow-hidden rounded-2xl bg-paper border border-line">
         <!-- Tabla (escritorio) -->
         <table class="hidden w-full text-left text-sm md:table">
-          <thead class="border-b border-stone-100 text-xs tracking-wide text-stone-500 uppercase">
+          <thead class="border-b border-line text-xs text-ink-3">
             <tr>
               <th class="px-5 py-3 font-medium">Cliente</th>
               <th class="px-5 py-3 font-medium">Servicio</th>
@@ -89,20 +89,20 @@ const link = (over: Record<string, string | number | null>) => {
               <th class="px-5 py-3 font-medium">Estado</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-stone-100">
+          <tbody class="divide-y divide-line">
             {rows.map((r) => (
-              <tr class="group relative transition hover:bg-stone-50">
+              <tr class="group relative transition hover:bg-sand/60">
                 <td class="px-5 py-4">
-                  <a href={`/panel/solicitudes/${r.id}`} class="font-semibold after:absolute after:inset-0">
+                  <a href={`/panel/solicitudes/${r.id}`} class="font-medium after:absolute after:inset-0">
                     {r.customer_name}
                   </a>
-                  <p class="text-xs text-stone-500">
+                  <p class="text-xs text-ink-2">
                     <span class="font-mono">#{r.code}</span> · {timeAgo(r.created_at)}
                   </p>
                 </td>
                 <td class="px-5 py-4">
                   <p class="font-medium">{r.service}</p>
-                  <p class="flex items-center gap-1 text-xs text-stone-500">
+                  <p class="flex items-center gap-1 text-xs text-ink-2">
                     {r.load_size}
                     {r.photos.length > 0 && (
                       <>
@@ -113,13 +113,13 @@ const link = (over: Record<string, string | number | null>) => {
                 </td>
                 <td class="px-5 py-4 whitespace-nowrap">
                   <p class="font-medium">{fmtDate(r.service_date)}</p>
-                  <p class="text-xs text-stone-500">{shortSlot(r.time_slot)}</p>
+                  <p class="text-xs text-ink-2">{shortSlot(r.time_slot)}</p>
                 </td>
                 <td class="px-5 py-4 whitespace-nowrap">
                   {r.quoted_price ? (
-                    <p class="font-semibold">{formatCOP(r.quoted_price)}</p>
+                    <p class="font-medium">{formatCOP(r.quoted_price)}</p>
                   ) : (
-                    <p class="text-stone-400">{r.estimated_price ? `~ ${formatCOP(r.estimated_price)}` : '—'}</p>
+                    <p class="text-ink-3">{r.estimated_price ? `~ ${formatCOP(r.estimated_price)}` : '—'}</p>
                   )}
                 </td>
                 <td class="px-5 py-4">
@@ -131,20 +131,20 @@ const link = (over: Record<string, string | number | null>) => {
         </table>
 
         <!-- Tarjetas (móvil) -->
-        <ul class="divide-y divide-stone-100 md:hidden">
+        <ul class="divide-y divide-line md:hidden">
           {rows.map((r) => (
             <li>
-              <a href={`/panel/solicitudes/${r.id}`} class="block p-4 transition active:bg-stone-50">
+              <a href={`/panel/solicitudes/${r.id}`} class="block p-4 transition active:bg-sand/60">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <p class="truncate font-semibold">{r.customer_name}</p>
-                    <p class="text-xs text-stone-500">
+                    <p class="truncate font-medium">{r.customer_name}</p>
+                    <p class="text-xs text-ink-2">
                       {r.service} · <span>{fmtDate(r.service_date)}</span>
                     </p>
                   </div>
                   <StatusBadge status={r.status} />
                 </div>
-                <p class="mt-2 truncate text-xs text-stone-500">
+                <p class="mt-2 truncate text-xs text-ink-2">
                   {r.origin_address} → {r.destination_address}
                 </p>
               </a>
@@ -153,12 +153,12 @@ const link = (over: Record<string, string | number | null>) => {
         </ul>
       </div>
     ) : (
-      <div class="mt-6 rounded-3xl bg-white p-12 text-center ring-1 ring-stone-200/80">
-        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-sand text-stone-400">
+      <div class="mt-6 rounded-2xl bg-paper p-12 text-center border border-line">
+        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-sand text-ink-3">
           <Icon name="heroicons:inbox" class="size-7" />
         </span>
-        <p class="mt-4 font-semibold">{q ? 'Sin resultados' : 'Aún no hay solicitudes aquí'}</p>
-        <p class="mt-1 text-sm text-stone-500">{q ? 'Prueba con otra búsqueda.' : 'Cuando alguien cotice desde la web, aparecerá en esta lista.'}</p>
+        <p class="mt-4 font-medium">{q ? 'Sin resultados' : 'Aún no hay solicitudes aquí'}</p>
+        <p class="mt-1 text-sm text-ink-2">{q ? 'Prueba con otra búsqueda.' : 'Cuando alguien cotice desde la web, aparecerá en esta lista.'}</p>
       </div>
     )
   }
@@ -169,7 +169,7 @@ const link = (over: Record<string, string | number | null>) => {
         <a href={link({ p: page - 1 })} class:list={['btn-ghost !py-2', page <= 1 && 'pointer-events-none opacity-40']}>
           ← Anterior
         </a>
-        <span class="text-stone-500">
+        <span class="text-ink-2">
           Página {page} de {pages}
         </span>
         <a href={link({ p: page + 1 })} class:list={['btn-ghost !py-2', page >= pages && 'pointer-events-none opacity-40']}>

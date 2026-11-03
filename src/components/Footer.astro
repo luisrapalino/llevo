@@ -7,36 +7,33 @@ const { business: site } = Astro.props as { business: Business };
 ---
 
 <footer class="px-4 pb-6 sm:px-6">
-  <div class="mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-ink text-white">
-    <div class="relative grid gap-8 p-8 sm:p-12 lg:grid-cols-[1.5fr_1fr] lg:items-center">
-      <div class="absolute -top-24 -right-24 size-72 rounded-full bg-brand-500/20 blur-3xl" aria-hidden="true"></div>
-      <div class="relative">
-        <h2 class="font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-          ¿Listo para mover tus cosas? <span class="text-brand-400">Cotiza gratis.</span>
-        </h2>
-        <p class="mt-3 text-stone-400">Sin compromiso. Te respondemos en minutos.</p>
+  <div class="mx-auto max-w-6xl overflow-hidden rounded-[20px] bg-ink text-[#efe9de]">
+    <div class="grid gap-8 p-8 sm:p-12 lg:grid-cols-[1.5fr_1fr] lg:items-center">
+      <div>
+        <h2 class="text-3xl font-medium tracking-[-0.02em] text-balance sm:text-4xl">¿Listo para mover tus cosas? Cotiza gratis</h2>
+        <p class="mt-3 text-[#aaa398]">Sin compromiso. Respuesta en minutos.</p>
       </div>
-      <div class="relative flex flex-col gap-3 sm:flex-row lg:justify-end">
-        <a href="#cotizar" class="btn-primary !py-4">Cotizar ahora <Icon name="heroicons:arrow-right" class="size-4" /></a>
-        <a href={whatsappLink(site.whatsapp)} target="_blank" rel="noopener" class="btn !bg-white/10 !py-4 text-white hover:!bg-white/15">
-          <Icon name="heroicons:chat-bubble-left-right" class="size-4" /> WhatsApp
+      <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+        <a href="#cotizar" class="btn-primary h-12 px-6">Cotizar ahora <Icon name="heroicons:arrow-right" class="size-4" /></a>
+        <a href={whatsappLink(site.whatsapp)} target="_blank" rel="noopener" class="btn h-12 border border-white/15 px-6 text-[#efe9de] hover:bg-white/5">
+          WhatsApp
         </a>
       </div>
     </div>
 
     <div class="grid gap-8 border-t border-white/10 p-8 text-sm sm:grid-cols-3 sm:p-12">
       <div>
-        <div class="[&_span]:text-white"><Logo name={site.name} /></div>
-        <p class="mt-3 text-stone-400">{site.tagline}.</p>
+        <Logo name={site.name} />
+        <p class="mt-3 text-[#aaa398]">{site.tagline}</p>
       </div>
-      <ul class="space-y-3 text-stone-300">
-        <li class="flex items-center gap-2"><Icon name="heroicons:phone" class="size-4 text-brand-400" /> {site.phoneDisplay}</li>
-        <li class="flex items-center gap-2"><Icon name="heroicons:envelope" class="size-4 text-brand-400" /> {site.email}</li>
-        <li class="flex items-center gap-2"><Icon name="heroicons:map-pin" class="size-4 text-brand-400" /> {site.city}</li>
+      <ul class="space-y-3 text-[#aaa398]">
+        <li class="flex items-center gap-2.5"><Icon name="heroicons:phone" class="size-4 text-[#8a847a]" /> {site.phoneDisplay}</li>
+        <li class="flex items-center gap-2.5"><Icon name="heroicons:envelope" class="size-4 text-[#8a847a]" /> {site.email}</li>
+        <li class="flex items-center gap-2.5"><Icon name="heroicons:map-pin" class="size-4 text-[#8a847a]" /> {site.city}</li>
       </ul>
-      <ul class="space-y-3 text-stone-300">
-        <li class="flex items-center gap-2"><Icon name="heroicons:clock" class="size-4 text-brand-400" /> {site.hours}</li>
-        <li class="text-stone-500">© {new Date().getFullYear()} {site.name}. Todos los derechos reservados.</li>
+      <ul class="space-y-3 text-[#aaa398]">
+        <li class="flex items-center gap-2.5"><Icon name="heroicons:clock" class="size-4 text-[#8a847a]" /> {site.hours}</li>
+        <li class="text-[#8a847a]">© {new Date().getFullYear()} {site.name}</li>
       </ul>
     </div>
   </div>

@@ -12,50 +12,44 @@ const perks = [
 ---
 
 <section id="vehiculo" class="scroll-mt-20 py-20 sm:py-28">
-  <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-400 to-brand-600 p-8 text-white sm:p-10">
-      <div class="absolute -top-16 -right-16 size-64 rounded-full bg-white/10" aria-hidden="true"></div>
-      <div class="absolute -bottom-24 -left-10 size-72 rounded-full bg-black/5" aria-hidden="true"></div>
-
-      <Icon name="heroicons:truck" class="relative size-14 opacity-90" />
-      <p class="relative mt-6 text-sm font-medium tracking-wide text-white/70 uppercase">Nuestro vehículo</p>
-      <h3 class="relative mt-1 font-display text-3xl font-bold">{vehicle.name}</h3>
-
-      <dl class="relative mt-8 grid grid-cols-2 gap-4">
-        <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
-          <dt class="text-xs text-white/70">Capacidad</dt>
-          <dd class="mt-1 font-semibold">{vehicle.capacity}</dd>
-        </div>
-        <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
-          <dt class="text-xs text-white/70">Espacio</dt>
-          <dd class="mt-1 font-semibold">{vehicle.size}</dd>
-        </div>
-      </dl>
-
-      <p class="relative mt-8 text-sm font-medium text-white/80">Cabe, por ejemplo:</p>
-      <ul class="relative mt-3 flex flex-wrap gap-2">
-        {vehicle.fits.map((f) => <li class="rounded-full bg-white px-3 py-1 text-sm font-medium text-brand-700">{f}</li>)}
-      </ul>
-    </div>
-
+  <div class="mx-auto grid max-w-6xl items-start gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
     <div>
-      <span class="section-eyebrow">El vehículo</span>
-      <h2 class="section-title mt-4">Un solo viaje, todo tuyo.</h2>
-      <p class="mt-4 text-lg text-stone-600">
-        Trabajamos con un vehículo propio y cuidado. Tus cosas no comparten espacio con otros clientes y vamos directo de
-        origen a destino.
+      <p class="section-eyebrow">El vehículo</p>
+      <h2 class="section-title mt-3">Un solo viaje, todo tuyo</h2>
+      <p class="mt-4 max-w-lg text-lg text-ink-2">
+        Trabajamos con un vehículo propio. Tus cosas no comparten espacio con otros clientes y vamos directo de origen a
+        destino.
       </p>
-      <ul class="mt-8 space-y-4">
+      <ul class="mt-10 space-y-4">
         {
           perks.map((p) => (
-            <li class="flex items-start gap-4">
-              <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm ring-1 ring-stone-200">
-                <Icon name={p.icon} class="size-5" />
-              </span>
-              <span class="pt-2 text-stone-700">{p.text}</span>
+            <li class="flex items-start gap-3">
+              <Icon name={p.icon} class="mt-0.5 size-5 shrink-0 text-ink-3" />
+              <span class="text-ink-2">{p.text}</span>
             </li>
           ))
         }
+      </ul>
+    </div>
+
+    <div class="surface p-6 sm:p-8">
+      <div class="flex items-center gap-3">
+        <Icon name="heroicons:truck" class="size-5 text-ink-3" />
+        <p class="font-medium">{vehicle.name}</p>
+      </div>
+      <dl class="mt-6 divide-y divide-line border-y border-line text-[15px]">
+        <div class="flex justify-between gap-4 py-3">
+          <dt class="text-ink-2">Capacidad</dt>
+          <dd class="text-right font-medium">{vehicle.capacity}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+          <dt class="text-ink-2">Espacio de carga</dt>
+          <dd class="text-right font-medium">{vehicle.size}</dd>
+        </div>
+      </dl>
+      <p class="mt-6 text-sm text-ink-2">Cabe, por ejemplo</p>
+      <ul class="mt-3 flex flex-wrap gap-2">
+        {vehicle.fits.map((f) => <li class="rounded-md bg-sand px-2.5 py-1 text-sm">{f}</li>)}
       </ul>
     </div>
   </div>

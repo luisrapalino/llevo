@@ -32,7 +32,7 @@ export const STATUSES = {
   cotizada: { label: 'Cotizada', badge: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500' },
   agendada: { label: 'Agendada', badge: 'bg-violet-50 text-violet-700 ring-violet-200', dot: 'bg-violet-500' },
   completada: { label: 'Completada', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500' },
-  cancelada: { label: 'Cancelada', badge: 'bg-stone-100 text-stone-500 ring-stone-200', dot: 'bg-stone-400' },
+  cancelada: { label: 'Cancelada', badge: 'bg-sand text-ink-3 ring-line-strong', dot: 'bg-ink-3' },
 } as const;
 
 export type Status = keyof typeof STATUSES;

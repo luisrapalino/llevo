@@ -1,5 +1,4 @@
 ---
-import { Icon } from 'astro-icon/components';
 import { whatsappLink, type Business } from '../lib/settings';
 import Logo from './Logo.astro';
 
@@ -13,17 +12,17 @@ const links = [
 ];
 ---
 
-<header class="sticky top-0 z-40 border-b border-transparent transition-colors" data-navbar>
+<header class="sticky top-0 z-40 border-b border-transparent bg-cream/90 backdrop-blur-md transition-colors" data-navbar>
   <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-    <a href="/" class="flex items-center gap-2" aria-label={`${business.name}, inicio`}>
+    <a href="/" aria-label={`${business.name}, inicio`}>
       <Logo name={business.name} />
     </a>
 
-    <ul class="hidden items-center gap-1 md:flex">
+    <ul class="hidden items-center gap-6 md:flex">
       {
         links.map((l) => (
           <li>
-            <a href={l.href} class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-white hover:text-ink">
+            <a href={l.href} class="text-sm text-ink-2 transition-colors hover:text-ink">
               {l.label}
             </a>
           </li>
@@ -31,24 +30,18 @@ const links = [
       }
     </ul>
 
-    <div class="flex items-center gap-2">
-      <a href={whatsappLink(business.whatsapp)} target="_blank" rel="noopener" class="btn-ghost hidden !px-4 sm:inline-flex">
-        <Icon name="heroicons:chat-bubble-left-right" class="size-4" />
+    <div class="flex items-center gap-5">
+      <a href={whatsappLink(business.whatsapp)} target="_blank" rel="noopener" class="hidden text-sm text-ink-2 transition-colors hover:text-ink sm:inline">
         WhatsApp
       </a>
-      <a href="#cotizar" class="btn-primary !px-5 !py-2.5">Cotizar</a>
+      <a href="#cotizar" class="btn-primary btn-sm">Cotizar</a>
     </div>
   </nav>
 </header>
 
 <script>
   const nav = document.querySelector<HTMLElement>('[data-navbar]');
-  const onScroll = () => {
-    const scrolled = window.scrollY > 8;
-    nav?.classList.toggle('bg-cream/80', scrolled);
-    nav?.classList.toggle('backdrop-blur-lg', scrolled);
-    nav?.classList.toggle('border-stone-200/70', scrolled);
-  };
+  const onScroll = () => nav?.classList.toggle('border-line', window.scrollY > 8);
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
 </script>

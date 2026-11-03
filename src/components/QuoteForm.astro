@@ -31,7 +31,7 @@ const floors = FLOORS;
     <div class="mx-auto max-w-2xl text-center">
       <span class="section-eyebrow">Cotización gratis</span>
       <h2 class="section-title mt-4">Cuéntanos qué vamos a llevar</h2>
-      <p class="mt-4 text-stone-600">Entre más detalles y fotos nos des, más exacto será tu precio.</p>
+      <p class="mt-4 text-ink-2">Entre más detalles y fotos nos des, más exacto será tu precio.</p>
     </div>
 
     <div class="mt-12 grid gap-6 lg:grid-cols-[260px_1fr]">
@@ -44,15 +44,15 @@ const floors = FLOORS;
                 <button
                   type="button"
                   data-step-link={i}
-                  class="group flex w-full items-center gap-3 rounded-2xl p-3 text-left transition enabled:hover:bg-white/70 disabled:cursor-default"
+                  class="group flex w-full items-center gap-3 rounded-2xl p-3 text-left transition enabled:hover:bg-paper/70 disabled:cursor-default"
                 >
-                  <span class="step-dot grid size-10 shrink-0 place-items-center rounded-xl bg-white text-stone-400 ring-1 ring-stone-200 transition">
+                  <span class="step-dot grid size-10 shrink-0 place-items-center rounded-xl bg-paper text-ink-3 border border-line transition">
                     <Icon name={s.icon} class="step-icon size-5" />
                     <Icon name="heroicons:check" class="step-check hidden size-5" />
                   </span>
                   <span>
-                    <span class="step-title block text-sm font-semibold text-stone-500">{s.title}</span>
-                    <span class="block text-xs text-stone-400">{s.hint}</span>
+                    <span class="step-title block text-sm font-medium text-ink-2">{s.title}</span>
+                    <span class="block text-xs text-ink-3">{s.hint}</span>
                   </span>
                 </button>
               </li>
@@ -60,24 +60,24 @@ const floors = FLOORS;
           }
         </ol>
 
-        <div class="mt-8 rounded-2xl bg-white/70 p-4 text-sm text-stone-600 ring-1 ring-stone-200">
-          <p class="flex items-center gap-2 font-semibold text-ink">
-            <Icon name="heroicons:lock-closed" class="size-4 text-brand-600" /> Tus datos están seguros
+        <div class="mt-8 rounded-2xl bg-paper/70 p-4 text-sm text-ink-2 border border-line">
+          <p class="flex items-center gap-2 font-medium text-ink">
+            <Icon name="heroicons:lock-closed" class="size-4 text-ink-3" /> Tus datos están seguros
           </p>
           <p class="mt-1">Solo los usamos para cotizar y coordinar tu servicio.</p>
         </div>
       </aside>
 
       <!-- Formulario -->
-      <div data-form-card class="rounded-[2rem] bg-cream p-5 shadow-xl ring-1 shadow-stone-900/5 ring-stone-200/80 sm:p-8">
+      <div data-form-card class="rounded-[20px] bg-cream p-5 border border-line sm:p-8">
         <!-- Progreso (móvil) -->
         <div class="mb-6 lg:hidden">
           <div class="flex items-center justify-between text-sm">
-            <span class="font-semibold" data-mobile-title>{steps[0].title}</span>
-            <span class="text-stone-500">Paso <span data-mobile-step>1</span> de {steps.length}</span>
+            <span class="font-medium" data-mobile-title>{steps[0].title}</span>
+            <span class="text-ink-2">Paso <span data-mobile-step>1</span> de {steps.length}</span>
           </div>
-          <div class="mt-2 h-2 overflow-hidden rounded-full bg-stone-200">
-            <div class="h-full rounded-full bg-brand-500 transition-all duration-500" style={`width:${100 / steps.length}%`} data-progress></div>
+          <div class="mt-2 h-2 overflow-hidden rounded-full bg-sand">
+            <div class="h-full rounded-full bg-brand-500 " style={`width:${100 / steps.length}%`} data-progress></div>
           </div>
         </div>
 
@@ -96,19 +96,19 @@ const floors = FLOORS;
           <fieldset data-step="0" class="space-y-8">
             <legend class="sr-only">Tipo de servicio</legend>
             <div>
-              <h3 class="font-display text-2xl font-bold">¿Qué necesitas?</h3>
-              <p class="mt-1 text-sm text-stone-500">Elige la opción que mejor describa tu servicio.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Qué necesitas?</h3>
+              <p class="mt-1 text-sm text-ink-2">Elige la opción que mejor describa tu servicio.</p>
               <div class="mt-5 grid gap-3 sm:grid-cols-2">
                 {
                   serviceTypes.map((s, i) => (
                     <label class="choice items-center gap-4">
                       <input type="radio" name="servicio" value={s.value} class="sr-only" required checked={i === 0} />
-                      <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-sand text-brand-600">
+                      <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-sand text-ink-2">
                         <Icon name={s.icon} class="size-6" />
                       </span>
                       <span>
-                        <span class="block font-semibold">{s.value}</span>
-                        <span class="block text-sm text-stone-500">{s.text}</span>
+                        <span class="block font-medium">{s.value}</span>
+                        <span class="block text-sm text-ink-2">{s.text}</span>
                       </span>
                     </label>
                   ))
@@ -117,7 +117,7 @@ const floors = FLOORS;
             </div>
 
             <div>
-              <h4 class="font-semibold">¿Qué tanto vas a llevar?</h4>
+              <h4 class="font-medium">¿Qué tanto vas a llevar?</h4>
               <div class="mt-3 grid gap-3 sm:grid-cols-3">
                 {
                   loadSizes.map((l, i) => (
@@ -125,11 +125,11 @@ const floors = FLOORS;
                       <input type="radio" name="tamano" value={l.value} class="sr-only" required checked={i === 0} />
                       <span class="flex items-end gap-1" aria-hidden="true">
                         {[0, 1, 2].map((b) => (
-                          <span class:list={['w-2.5 rounded-sm', b <= i ? 'bg-brand-500' : 'bg-stone-200', ['h-3', 'h-5', 'h-7'][b]]} />
+                          <span class:list={['w-2.5 rounded-sm', b <= i ? 'bg-brand-500' : 'bg-sand', ['h-3', 'h-5', 'h-7'][b]]} />
                         ))}
                       </span>
-                      <span class="mt-3 font-semibold">{l.value}</span>
-                      <span class="text-sm text-stone-500">{l.text}</span>
+                      <span class="mt-3 font-medium">{l.value}</span>
+                      <span class="text-sm text-ink-2">{l.text}</span>
                     </label>
                   ))
                 }
@@ -141,25 +141,25 @@ const floors = FLOORS;
           <fieldset data-step="1" class="hidden space-y-6">
             <legend class="sr-only">Direcciones</legend>
             <div>
-              <h3 class="font-display text-2xl font-bold">¿Desde dónde y hasta dónde?</h3>
-              <p class="mt-1 text-sm text-stone-500">Incluye barrio o una referencia para llegar más fácil.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Desde dónde y hasta dónde?</h3>
+              <p class="mt-1 text-sm text-ink-2">Incluye barrio o una referencia para llegar más fácil.</p>
             </div>
 
             {
               [
-                { key: 'origen', label: 'Recogida', icon: 'heroicons:map-pin-solid', tone: 'bg-brand-100 text-brand-600' },
+                { key: 'origen', label: 'Recogida', icon: 'heroicons:map-pin-solid', tone: 'bg-brand-100 text-ink-3' },
                 { key: 'destino', label: 'Entrega', icon: 'heroicons:flag-solid', tone: 'bg-ink text-white' },
               ].map((p) => (
-                <div class="rounded-3xl bg-white p-5 ring-1 ring-stone-200">
+                <div class="rounded-2xl bg-paper p-5 border border-line">
                   <div class="flex items-center justify-between gap-3">
-                    <p class="flex items-center gap-3 font-semibold">
+                    <p class="flex items-center gap-3 font-medium">
                       <span class:list={['grid size-8 place-items-center rounded-full', p.tone]}>
                         <Icon name={p.icon} class="size-4" />
                       </span>
                       {p.label}
                     </p>
                     {p.key === 'origen' && (
-                      <button type="button" data-geo class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-50">
+                      <button type="button" data-geo class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-500 transition-colors hover:bg-brand-50">
                         <Icon name="heroicons:map" class="size-4" />
                         <span data-geo-label>Usar mi ubicación</span>
                       </button>
@@ -173,7 +173,7 @@ const floors = FLOORS;
                     </div>
                     <div class="sm:col-span-2">
                       <label for={`${p.key}-ref`} class="field-label">
-                        Barrio / referencia <span class="font-normal text-stone-400">(opcional)</span>
+                        Barrio / referencia <span class="font-normal text-ink-3">(opcional)</span>
                       </label>
                       <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Laureles, frente al parque" />
                     </div>
@@ -205,21 +205,21 @@ const floors = FLOORS;
           <fieldset data-step="2" class="hidden space-y-8">
             <legend class="sr-only">Qué vas a llevar</legend>
             <div>
-              <h3 class="font-display text-2xl font-bold">¿Qué vamos a llevar?</h3>
-              <p class="mt-1 text-sm text-stone-500">Las fotos nos ayudan a darte un precio exacto.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Qué vamos a llevar?</h3>
+              <p class="mt-1 text-sm text-ink-2">Las fotos nos ayudan a darte un precio exacto.</p>
             </div>
 
             <!-- Dropzone -->
             <div>
               <label
                 data-dropzone
-                class="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-stone-300 bg-white px-6 py-10 text-center transition hover:border-brand-400 hover:bg-brand-50/50 data-[drag=true]:border-brand-500 data-[drag=true]:bg-brand-50"
+                class="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line-strong bg-paper px-6 py-10 text-center transition hover:border-brand-400 hover:bg-brand-50/50 data-[drag=true]:border-brand-500 data-[drag=true]:bg-brand-50"
               >
-                <span class="grid size-14 place-items-center rounded-2xl bg-brand-100 text-brand-600 transition group-hover:scale-110">
+                <span class="grid size-14 place-items-center rounded-2xl bg-brand-100 text-ink-3 transition">
                   <Icon name="heroicons:camera" class="size-7" />
                 </span>
-                <span class="mt-4 font-semibold">Sube o toma fotos</span>
-                <span class="mt-1 text-sm text-stone-500">Arrastra aquí o toca para elegir · hasta 10 fotos</span>
+                <span class="mt-4 font-medium">Sube o toma fotos</span>
+                <span class="mt-1 text-sm text-ink-2">Arrastra aquí o toca para elegir · hasta 10 fotos</span>
                 <input type="file" accept="image/*" multiple class="sr-only" data-file-input />
               </label>
               <ul class="mt-4 grid grid-cols-3 gap-3 empty:hidden sm:grid-cols-5" data-previews></ul>
@@ -227,7 +227,7 @@ const floors = FLOORS;
             </div>
 
             <div>
-              <h4 class="font-semibold">Marca lo que aplica <span class="font-normal text-stone-400">(opcional)</span></h4>
+              <h4 class="font-medium">Marca lo que aplica <span class="font-normal text-ink-3">(opcional)</span></h4>
               <div class="mt-3 flex flex-wrap gap-2">
                 {
                   commonItems.map((it) => (
@@ -253,11 +253,11 @@ const floors = FLOORS;
             </div>
 
             <div>
-              <h4 class="font-semibold">Servicios adicionales</h4>
+              <h4 class="font-medium">Servicios adicionales</h4>
               <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                <div class="rounded-2xl bg-white p-4 ring-1 ring-stone-200">
-                  <p class="flex items-center gap-2 text-sm font-semibold">
-                    <Icon name="heroicons:user-group" class="size-5 text-brand-600" /> Ayudantes extra
+                <div class="rounded-2xl bg-paper p-4 border border-line">
+                  <p class="flex items-center gap-2 text-sm font-medium">
+                    <Icon name="heroicons:user-group" class="size-5 text-ink-3" /> Ayudantes extra
                   </p>
                   <div class="mt-3 flex gap-2">
                     {
@@ -273,12 +273,12 @@ const floors = FLOORS;
                 <div class="space-y-2">
                   <label class="choice items-center gap-3 !py-3">
                     <input type="checkbox" name="extras" value="Desarme y armado" class="peer sr-only" />
-                    <Icon name="heroicons:wrench-screwdriver" class="size-5 text-brand-600" />
+                    <Icon name="heroicons:wrench-screwdriver" class="size-5 text-ink-3" />
                     <span class="text-sm font-medium">Desarme y armado de muebles</span>
                   </label>
                   <label class="choice items-center gap-3 !py-3">
                     <input type="checkbox" name="extras" value="Material de embalaje" class="sr-only" />
-                    <Icon name="heroicons:cube" class="size-5 text-brand-600" />
+                    <Icon name="heroicons:cube" class="size-5 text-ink-3" />
                     <span class="text-sm font-medium">Material de embalaje</span>
                   </label>
                 </div>
@@ -290,8 +290,8 @@ const floors = FLOORS;
           <fieldset data-step="3" class="hidden space-y-8">
             <legend class="sr-only">Fecha y hora</legend>
             <div>
-              <h3 class="font-display text-2xl font-bold">¿Cuándo lo hacemos?</h3>
-              <p class="mt-1 text-sm text-stone-500">Elige el día y la franja horaria que prefieras.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Cuándo lo hacemos?</h3>
+              <p class="mt-1 text-sm text-ink-2">Elige el día y la franja horaria que prefieras.</p>
             </div>
 
             <div>
@@ -299,7 +299,7 @@ const floors = FLOORS;
               <div class="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]" data-days></div>
               <p class="mt-2 hidden text-sm text-red-600" data-date-msg>Ese día no tenemos disponibilidad. Elige otra fecha.</p>
               <div class="mt-3 flex items-center gap-3">
-                <label for="fecha" class="text-sm text-stone-500">u otra fecha:</label>
+                <label for="fecha" class="text-sm text-ink-2">u otra fecha:</label>
                 <input id="fecha" name="fecha" type="date" class="field !w-auto !py-2" required />
               </div>
             </div>
@@ -311,8 +311,8 @@ const floors = FLOORS;
                   timeSlots.map((t) => (
                     <label class="choice items-center gap-3 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-40" data-slot-label>
                       <input type="radio" name="franja" value={t.value} class="sr-only" required />
-                      <Icon name={t.icon} class="size-5 text-brand-600" />
-                      <span class="text-sm font-semibold">{t.value}</span>
+                      <Icon name={t.icon} class="size-5 text-ink-3" />
+                      <span class="text-sm font-medium">{t.value}</span>
                     </label>
                   ))
                 }
@@ -322,13 +322,13 @@ const floors = FLOORS;
             <div class="grid gap-4 sm:grid-cols-2">
               <div>
                 <label for="hora" class="field-label">
-                  Hora exacta <span class="font-normal text-stone-400">(opcional)</span>
+                  Hora exacta <span class="font-normal text-ink-3">(opcional)</span>
                 </label>
                 <input id="hora" name="hora" type="time" class="field" />
               </div>
               <label class="choice items-center gap-3 self-end">
                 <input type="checkbox" name="flexible" value="Sí" class="sr-only" />
-                <Icon name="heroicons:arrows-right-left" class="size-5 text-brand-600" />
+                <Icon name="heroicons:arrows-right-left" class="size-5 text-ink-3" />
                 <span class="text-sm font-medium">Tengo flexibilidad de fecha u hora</span>
               </label>
             </div>
@@ -338,8 +338,8 @@ const floors = FLOORS;
           <fieldset data-step="4" class="hidden space-y-6">
             <legend class="sr-only">Datos de contacto</legend>
             <div>
-              <h3 class="font-display text-2xl font-bold">¿Cómo te contactamos?</h3>
-              <p class="mt-1 text-sm text-stone-500">Te enviaremos la cotización a este número.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Cómo te contactamos?</h3>
+              <p class="mt-1 text-sm text-ink-2">Te enviaremos la cotización a este número.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
@@ -363,7 +363,7 @@ const floors = FLOORS;
               </div>
               <div>
                 <label for="email" class="field-label">
-                  Correo <span class="font-normal text-stone-400">(opcional)</span>
+                  Correo <span class="font-normal text-ink-3">(opcional)</span>
                 </label>
                 <input id="email" name="email" type="email" class="field" autocomplete="email" placeholder="tu@correo.com" />
               </div>
@@ -390,30 +390,30 @@ const floors = FLOORS;
 
             <div>
               <label for="notas" class="field-label">
-                ¿Algo más que debamos saber? <span class="font-normal text-stone-400">(opcional)</span>
+                ¿Algo más que debamos saber? <span class="font-normal text-ink-3">(opcional)</span>
               </label>
               <textarea id="notas" name="notas" rows="3" class="field resize-none" placeholder="Ej. La calle es estrecha, hay que pedir permiso en portería, etc."></textarea>
             </div>
 
-            <div class="hidden items-center justify-between gap-4 rounded-3xl bg-ink p-5 text-white" data-estimate-box>
+            <div class="hidden items-center justify-between gap-4 rounded-2xl bg-ink p-5 text-white" data-estimate-box>
               <div>
-                <p class="text-xs font-medium tracking-wide text-stone-400 uppercase">Precio estimado</p>
-                <p class="font-display text-3xl font-bold" data-estimate>—</p>
-                <p class="mt-1 text-xs text-stone-400">Valor de referencia. Te confirmamos el precio final al revisar tus fotos.</p>
+                <p class="text-sm text-[#aaa398]">Precio estimado</p>
+                <p class="text-3xl font-medium tracking-[-0.02em]" data-estimate>—</p>
+                <p class="mt-1 text-xs text-ink-3">Valor de referencia. Te confirmamos el precio final al revisar tus fotos.</p>
               </div>
               <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-500">
                 <Icon name="heroicons:calculator" class="size-6" />
               </span>
             </div>
 
-            <label class="flex items-start gap-3 text-sm text-stone-600">
+            <label class="flex items-start gap-3 text-sm text-ink-2">
               <input type="checkbox" name="acepta_datos" value="Sí" required class="mt-0.5 size-5 shrink-0 rounded-md accent-brand-500" />
               <span>Autorizo el uso de mis datos para recibir la cotización y coordinar el servicio.</span>
             </label>
           </fieldset>
 
           <!-- Navegación -->
-          <div class="mt-10 flex items-center justify-between gap-3 border-t border-stone-200 pt-6">
+          <div class="mt-10 flex items-center justify-between gap-3 border-t border-line pt-6">
             <button type="button" class="btn-ghost invisible" data-prev>
               <Icon name="heroicons:arrow-left" class="size-4" /> Atrás
             </button>
@@ -433,11 +433,11 @@ const floors = FLOORS;
           <span class="mx-auto grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-600">
             <Icon name="heroicons:check-badge" class="size-10" />
           </span>
-          <h3 class="mt-6 font-display text-3xl font-bold">¡Solicitud enviada!</h3>
-          <p class="mt-2 hidden text-sm text-stone-500" data-success-code-wrap>
-            Código de tu solicitud: <span class="rounded-lg bg-sand px-2 py-0.5 font-mono font-semibold text-ink" data-success-code></span>
+          <h3 class="mt-6 text-3xl font-medium tracking-[-0.02em]">Solicitud enviada</h3>
+          <p class="mt-2 hidden text-sm text-ink-2" data-success-code-wrap>
+            Código de tu solicitud: <span class="rounded-lg bg-sand px-2 py-0.5 font-mono font-medium text-ink" data-success-code></span>
           </p>
-          <p class="mx-auto mt-3 max-w-md text-stone-600" data-success-text>
+          <p class="mx-auto mt-3 max-w-md text-ink-2" data-success-text>
             Revisaremos tus fotos y detalles, y te enviaremos la cotización muy pronto.
           </p>
           <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -494,14 +494,14 @@ const floors = FLOORS;
       const done = i < current || (i <= maxReached && i !== current);
       dot.className = 'step-dot grid size-10 shrink-0 place-items-center rounded-xl ring-1 transition ' +
         (i === current
-          ? 'bg-brand-500 text-white ring-brand-500 shadow-lg shadow-brand-500/30'
+          ? 'bg-brand-500 text-white ring-brand-500 '
           : done
             ? 'bg-ink text-white ring-ink'
-            : 'bg-white text-stone-400 ring-stone-200');
+            : 'bg-paper text-ink-3 ring-line');
       btn.querySelector('.step-icon')?.classList.toggle('hidden', done);
       btn.querySelector('.step-check')?.classList.toggle('hidden', !done);
       title.classList.toggle('text-ink', i <= maxReached);
-      title.classList.toggle('text-stone-500', i > maxReached);
+      title.classList.toggle('text-ink-2', i > maxReached);
       btn.disabled = i > maxReached;
       btn.toggleAttribute('aria-current', i === current);
     });
@@ -565,14 +565,14 @@ const floors = FLOORS;
     b.type = 'button';
     b.dataset.date = iso(d);
     b.className =
-      'flex w-16 shrink-0 flex-col items-center rounded-2xl bg-white py-3 ring-1 ring-stone-200 transition hover:ring-stone-300 aria-pressed:bg-ink aria-pressed:text-white aria-pressed:ring-ink';
+      'flex w-16 shrink-0 flex-col items-center rounded-2xl bg-paper py-3 border border-line transition hover:bg-sand/60 aria-pressed:bg-ink aria-pressed:text-white aria-pressed:ring-ink';
     const label = k === 0 ? 'Hoy' : k === 1 ? 'Mañana' : dayFmt.format(d).replace('.', '');
     if (dayBlocked(iso(d))) {
       b.disabled = true;
       b.title = 'Sin disponibilidad';
       b.classList.add('opacity-40', 'line-through', 'cursor-not-allowed');
     }
-    b.innerHTML = `<span class="text-[11px] font-medium uppercase opacity-60">${label}</span><span class="font-display text-xl font-bold">${d.getDate()}</span><span class="text-[11px] opacity-60">${monFmt.format(d).replace('.', '')}</span>`;
+    b.innerHTML = `<span class="text-[11px] font-medium opacity-60">${label}</span><span class="text-xl font-medium">${d.getDate()}</span><span class="text-[11px] opacity-60">${monFmt.format(d).replace('.', '')}</span>`;
     b.addEventListener('click', () => {
       dateInput.value = b.dataset.date!;
       dateInput.removeAttribute('aria-invalid');
@@ -676,7 +676,7 @@ const floors = FLOORS;
     previews.innerHTML = '';
     photos.forEach((file, i) => {
       const li = document.createElement('li');
-      li.className = 'group relative aspect-square overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200';
+      li.className = 'group relative aspect-square overflow-hidden rounded-2xl bg-sand border border-line';
       const img = document.createElement('img');
       img.src = URL.createObjectURL(file);
       img.alt = `Foto ${i + 1}`;

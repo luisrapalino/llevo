@@ -99,3 +99,8 @@ src/
     panel/           Panel de gestión
 supabase/migrations/ Esquema de la base de datos
 ```
+
+## Créditos de diseño
+
+El rediseño visual siguió el proceso de [unslop](https://github.com/heydamir/unslop) de Damir Sokolovsky
+([@heydamir](https://x.com/heydamir)), licenciado bajo CC BY 4.0.

@@ -66,15 +66,15 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
 <PanelLayout title="Agenda" active="agenda">
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <h1 class="font-display text-3xl font-bold tracking-tight">Agenda</h1>
-      <p class="mt-1 text-sm text-stone-500">Servicios por día y fechas en las que no trabajas.</p>
+      <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">Agenda</h1>
+      <p class="mt-1 text-sm text-ink-2">Servicios por día y fechas en las que no trabajas.</p>
     </div>
     <div class="flex items-center gap-2">
-      <a href={`?mes=${prev}`} class="grid size-10 place-items-center rounded-full bg-white ring-1 ring-stone-200 hover:bg-stone-50" aria-label="Mes anterior">
+      <a href={`?mes=${prev}`} class="grid size-10 place-items-center rounded-full bg-paper border border-line hover:bg-sand/60" aria-label="Mes anterior">
         <Icon name="heroicons:chevron-left" class="size-5" />
       </a>
-      <span class="min-w-40 text-center font-display text-lg font-bold">{monthName}</span>
-      <a href={`?mes=${next}`} class="grid size-10 place-items-center rounded-full bg-white ring-1 ring-stone-200 hover:bg-stone-50" aria-label="Mes siguiente">
+      <span class="min-w-40 text-center text-lg font-medium">{monthName}</span>
+      <a href={`?mes=${next}`} class="grid size-10 place-items-center rounded-full bg-paper border border-line hover:bg-sand/60" aria-label="Mes siguiente">
         <Icon name="heroicons:chevron-right" class="size-5" />
       </a>
       {mes !== today.slice(0, 7) && <a href="/panel/agenda" class="btn-ghost !px-4 !py-2">Hoy</a>}
@@ -82,12 +82,12 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
   </div>
 
   <!-- Calendario -->
-  <div class="mt-6 overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200/80">
-    <div class="grid grid-cols-7 border-b border-stone-100 text-center text-xs font-semibold tracking-wide text-stone-500 uppercase">
+  <div class="mt-6 overflow-hidden rounded-2xl bg-paper border border-line">
+    <div class="grid grid-cols-7 border-b border-line text-center text-xs font-medium text-ink-3">
       {weekdays.map((w) => <div class="py-3">{w}</div>)}
     </div>
     <div class="grid grid-cols-7">
-      {Array.from({ length: lead }).map(() => <div class="min-h-16 border-r border-b border-stone-100 bg-stone-50/50 sm:min-h-28" />)}
+      {Array.from({ length: lead }).map(() => <div class="min-h-16 border-r border-b border-line bg-sand/40 sm:min-h-28" />)}
       {
         days.map((d) => {
           const fullBlock = d.blocks.find((b) => !b.time_slot);
@@ -96,7 +96,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
           return (
             <div
               class:list={[
-                'relative min-h-16 border-r border-b border-stone-100 p-1.5 sm:min-h-28 sm:p-2',
+                'relative min-h-16 border-r border-b border-line p-1.5 sm:min-h-28 sm:p-2',
                 fullBlock && 'bg-[repeating-linear-gradient(135deg,#f5f5f4_0_6px,#fff_6px_12px)]',
                 past && 'opacity-60',
               ]}
@@ -104,8 +104,8 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
             >
               <span
                 class:list={[
-                  'grid size-7 place-items-center rounded-full text-sm font-semibold',
-                  isToday ? 'bg-brand-500 text-white' : 'text-stone-700',
+                  'grid size-7 place-items-center rounded-full text-sm font-medium',
+                  isToday ? 'bg-brand-500 text-white' : 'text-ink-2',
                 ]}
               >
                 {d.day}
@@ -115,15 +115,15 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
                 {d.requests.slice(0, 3).map((r) => (
                   <a
                     href={`/panel/solicitudes/${r.id}`}
-                    class="flex items-center gap-1.5 truncate rounded-lg bg-stone-50 px-1.5 py-1 text-xs font-medium transition hover:bg-stone-100"
+                    class="flex items-center gap-1.5 truncate rounded-lg bg-sand/60 px-1.5 py-1 text-xs font-medium transition hover:bg-sand"
                   >
                     <span class:list={['size-1.5 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
                     <span class="truncate">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)} · {r.customer_name.split(' ')[0]}</span>
                   </a>
                 ))}
-                {d.requests.length > 3 && <p class="px-1.5 text-xs text-stone-500">+{d.requests.length - 3} más</p>}
+                {d.requests.length > 3 && <p class="px-1.5 text-xs text-ink-2">+{d.requests.length - 3} más</p>}
                 {d.blocks.filter((b) => b.time_slot).map((b) => (
-                  <p class="flex items-center gap-1 truncate px-1.5 text-[11px] text-stone-400">
+                  <p class="flex items-center gap-1 truncate px-1.5 text-[11px] text-ink-3">
                     <Icon name="heroicons:no-symbol" class="size-3 shrink-0" /> {shortSlot(b.time_slot!)}
                   </p>
                 ))}
@@ -141,7 +141,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
     </div>
   </div>
 
-  <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-stone-500">
+  <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-2">
     {
       (['nueva', 'cotizada', 'agendada', 'completada'] as const).map((s) => (
         <span class="flex items-center gap-1.5">
@@ -150,27 +150,27 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
       ))
     }
     <span class="flex items-center gap-1.5">
-      <span class="size-3 rounded bg-[repeating-linear-gradient(135deg,#e7e5e4_0_3px,#fff_3px_6px)] ring-1 ring-stone-200"></span> Día bloqueado
+      <span class="size-3 rounded bg-[repeating-linear-gradient(135deg,#e7e5e4_0_3px,#fff_3px_6px)] border border-line"></span> Día bloqueado
     </span>
   </div>
 
   <div class="mt-8 grid gap-6 lg:grid-cols-2">
     <!-- Lista de servicios del mes (útil en móvil) -->
-    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-      <h2 class="font-display text-lg font-bold">Servicios del mes</h2>
+    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <h2 class="text-lg font-medium">Servicios del mes</h2>
       {
         agendaList.length ? (
           <ul class="mt-4 space-y-4">
             {agendaList.map((d) => (
               <li>
-                <p class="text-xs font-semibold tracking-wide text-stone-500 uppercase">{fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'short' })}</p>
+                <p class="text-xs font-medium text-ink-3">{fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'short' })}</p>
                 <ul class="mt-2 space-y-1.5">
                   {d.requests.map((r) => (
                     <li>
-                      <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 rounded-2xl bg-stone-50 px-3 py-2.5 text-sm transition hover:bg-stone-100">
+                      <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 rounded-2xl bg-sand/60 px-3 py-2.5 text-sm transition hover:bg-sand">
                         <span class:list={['size-2 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
                         <span class="font-medium">{r.customer_name}</span>
-                        <span class="ml-auto text-xs text-stone-500">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
+                        <span class="ml-auto text-xs text-ink-2">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
                       </a>
                     </li>
                   ))}
@@ -179,15 +179,15 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
             ))}
           </ul>
         ) : (
-          <p class="mt-4 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">No hay servicios pendientes este mes.</p>
+          <p class="mt-4 rounded-2xl bg-sand/60 p-6 text-center text-sm text-ink-2">No hay servicios pendientes este mes.</p>
         )
       }
     </section>
 
     <!-- Bloqueos -->
-    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-      <h2 class="font-display text-lg font-bold">Bloquear disponibilidad</h2>
-      <p class="mt-1 text-sm text-stone-500">Los días u horarios bloqueados no se pueden elegir en el formulario de la web.</p>
+    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <h2 class="text-lg font-medium">Bloquear disponibilidad</h2>
+      <p class="mt-1 text-sm text-ink-2">Los días u horarios bloqueados no se pueden elegir en el formulario de la web.</p>
 
       <form method="post" class="mt-5 grid gap-3 sm:grid-cols-2">
         <input type="hidden" name="mes" value={mes} />
@@ -196,7 +196,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
           <input id="date" name="date" type="date" min={today} required class="field" />
         </div>
         <div>
-          <label for="date_to" class="field-label">Hasta <span class="font-normal text-stone-400">(opcional)</span></label>
+          <label for="date_to" class="field-label">Hasta <span class="font-normal text-ink-3">(opcional)</span></label>
           <input id="date_to" name="date_to" type="date" min={today} class="field" />
         </div>
         <div>
@@ -207,7 +207,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
           </select>
         </div>
         <div>
-          <label for="reason" class="field-label">Motivo <span class="font-normal text-stone-400">(opcional)</span></label>
+          <label for="reason" class="field-label">Motivo <span class="font-normal text-ink-3">(opcional)</span></label>
           <input id="reason" name="reason" class="field" placeholder="Ej. Mantenimiento" />
         </div>
         <button class="btn-dark sm:col-span-2">
@@ -215,23 +215,23 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
         </button>
       </form>
 
-      <h3 class="mt-8 text-sm font-semibold">Próximos bloqueos</h3>
+      <h3 class="mt-8 text-sm font-medium">Próximos bloqueos</h3>
       {
         upcomingBlocks?.length ? (
-          <ul class="mt-3 divide-y divide-stone-100">
+          <ul class="mt-3 divide-y divide-line">
             {upcomingBlocks.map((b) => (
               <li class="flex items-center gap-3 py-2.5 text-sm">
-                <Icon name="heroicons:no-symbol" class="size-4 shrink-0 text-stone-400" />
+                <Icon name="heroicons:no-symbol" class="size-4 shrink-0 text-ink-3" />
                 <span class="min-w-0 flex-1">
                   <span class="font-medium">{fmtDate(b.date)}</span>
-                  <span class="text-stone-500"> · {b.time_slot ? shortSlot(b.time_slot) : 'Todo el día'}</span>
-                  {b.reason && <span class="block truncate text-xs text-stone-400">{b.reason}</span>}
+                  <span class="text-ink-2"> · {b.time_slot ? shortSlot(b.time_slot) : 'Todo el día'}</span>
+                  {b.reason && <span class="block truncate text-xs text-ink-3">{b.reason}</span>}
                 </span>
                 <form method="post">
                   <input type="hidden" name="action" value="unblock" />
                   <input type="hidden" name="id" value={b.id} />
                   <input type="hidden" name="mes" value={mes} />
-                  <button class="rounded-lg p-2 text-stone-400 transition hover:bg-red-50 hover:text-red-600" aria-label="Quitar bloqueo">
+                  <button class="rounded-lg p-2 text-ink-3 transition hover:bg-red-50 hover:text-red-600" aria-label="Quitar bloqueo">
                     <Icon name="heroicons:x-mark" class="size-4" />
                   </button>
                 </form>
@@ -239,7 +239,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
             ))}
           </ul>
         ) : (
-          <p class="mt-3 text-sm text-stone-400">No hay bloqueos programados.</p>
+          <p class="mt-3 text-sm text-ink-3">No hay bloqueos programados.</p>
         )
       }
     </section>

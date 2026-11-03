@@ -10,7 +10,10 @@ const db = Astro.locals.supabase!;
 const today = todayISO();
 const in7 = addDays(today, 7);
 
-const [counts, upcoming, latest, revenue] = await Promise.all([
+const monthStart = `${today.slice(0, 7)}-01`;
+const prevMonthStart = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)) - 2, 1)).toISOString().slice(0, 10);
+
+const [counts, upcoming, latest, revenue, prevRevenue] = await Promise.all([
   Promise.all(
     STATUS_KEYS.map(async (s) => {
       const { count } = await db.from('requests').select('id', { count: 'exact', head: true }).eq('status', s);
@@ -35,26 +38,40 @@ const [counts, upcoming, latest, revenue] = await Promise.all([
     .from('requests')
     .select('quoted_price')
     .eq('status', 'completada')
-    .gte('service_date', `${today.slice(0, 7)}-01`),
+    .gte('service_date', monthStart)
+    .lte('service_date', today),
+  db
+    .from('requests')
+    .select('quoted_price')
+    .eq('status', 'completada')
+    .gte('service_date', prevMonthStart)
+    .lt('service_date', monthStart),
 ]);
 
 const byStatus = Object.fromEntries(counts) as Record<Status, number>;
-const monthRevenue = (revenue.data ?? []).reduce((a, r) => a + (r.quoted_price ?? 0), 0);
-const name = Astro.locals.profile?.full_name?.split(' ')[0];
+const sum = (rows: { quoted_price: number | null }[] | null) => (rows ?? []).reduce((a, r) => a + (r.quoted_price ?? 0), 0);
+const monthRevenue = sum(revenue.data);
+const prevMonthRevenue = sum(prevRevenue.data);
+const revenueDelta = monthRevenue - prevMonthRevenue;
 
 const stats = [
-  { label: 'Nuevas', value: byStatus.nueva, icon: 'heroicons:inbox-arrow-down', href: '/panel/solicitudes?estado=nueva', tone: 'bg-sky-100 text-sky-700' },
-  { label: 'Por confirmar', value: byStatus.cotizada, icon: 'heroicons:chat-bubble-left-ellipsis', href: '/panel/solicitudes?estado=cotizada', tone: 'bg-amber-100 text-amber-700' },
-  { label: 'Agendadas', value: byStatus.agendada, icon: 'heroicons:calendar-days', href: '/panel/solicitudes?estado=agendada', tone: 'bg-violet-100 text-violet-700' },
-  { label: 'Ingresos del mes', value: formatCOP(monthRevenue), icon: 'heroicons:banknotes', href: '/panel/solicitudes?estado=completada', tone: 'bg-emerald-100 text-emerald-700' },
+  { label: 'Nuevas', value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
+  { label: 'Por confirmar', value: String(byStatus.cotizada), meta: 'Cotizadas, esperando respuesta', href: '/panel/solicitudes?estado=cotizada' },
+  { label: 'Agendadas', value: String(byStatus.agendada), meta: 'Servicios pendientes', href: '/panel/solicitudes?estado=agendada' },
+  {
+    label: 'Ingresos del mes',
+    value: formatCOP(monthRevenue),
+    meta: `${revenueDelta >= 0 ? '+' : '−'}${formatCOP(Math.abs(revenueDelta))} vs mes anterior`,
+    href: '/panel/solicitudes?estado=completada',
+  },
 ];
 ---
 
 <PanelLayout title="Inicio" active="inicio">
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <p class="text-sm text-stone-500">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-      <h1 class="font-display text-3xl font-bold tracking-tight">Hola{name ? `, ${name}` : ''} 👋</h1>
+      <p class="text-sm text-ink-2">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <h1 class="text-3xl font-medium tracking-[-0.02em]">Resumen</h1>
     </div>
     <a href="/panel/agenda" class="btn-ghost self-start sm:self-auto">
       <Icon name="heroicons:calendar-days" class="size-4" /> Ver agenda
@@ -64,36 +81,34 @@ const stats = [
   <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
     {
       stats.map((s) => (
-        <a href={s.href} class="group rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 transition hover:shadow-lg hover:shadow-stone-900/5">
-          <span class:list={['grid size-10 place-items-center rounded-xl', s.tone]}>
-            <Icon name={s.icon} class="size-5" />
-          </span>
-          <p class="mt-4 font-display text-2xl font-bold sm:text-3xl">{s.value}</p>
-          <p class="text-sm text-stone-500">{s.label}</p>
+        <a href={s.href} class="rounded-2xl border border-line bg-paper p-5 transition-colors hover:bg-sand/40">
+          <p class="text-sm text-ink-2">{s.label}</p>
+          <p class="mt-3 text-[28px] leading-none font-medium tracking-[-0.01em] tabular-nums">{s.value}</p>
+          <p class="mt-3 text-xs text-ink-3 tabular-nums">{s.meta}</p>
         </a>
       ))
     }
   </div>
 
   <div class="mt-8 grid gap-6 lg:grid-cols-2">
-    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
       <div class="flex items-center justify-between">
-        <h2 class="font-display text-lg font-bold">Próximos 7 días</h2>
+        <h2 class="text-lg font-medium">Próximos 7 días</h2>
         <a href="/panel/agenda" class="text-sm font-medium text-brand-600 hover:text-brand-700">Agenda →</a>
       </div>
       {
         upcoming.data?.length ? (
-          <ul class="mt-4 divide-y divide-stone-100">
+          <ul class="mt-4 divide-y divide-line">
             {upcoming.data.map((r) => (
               <li>
-                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-stone-50">
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60">
                   <span class="flex w-12 shrink-0 flex-col items-center rounded-xl bg-sand py-1.5">
-                    <span class="text-[10px] font-semibold text-stone-500 uppercase">{fmtDate(r.service_date, { weekday: 'short' }).replace('.', '')}</span>
-                    <span class="font-display text-lg leading-none font-bold">{r.service_date.slice(8, 10)}</span>
+                    <span class="text-[11px] text-ink-3">{fmtDate(r.service_date, { weekday: 'short' }).replace('.', '')}</span>
+                    <span class="text-lg leading-none font-medium">{r.service_date.slice(8, 10)}</span>
                   </span>
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold">{r.customer_name}</span>
-                    <span class="block truncate text-xs text-stone-500">
+                    <span class="block truncate font-medium">{r.customer_name}</span>
+                    <span class="block truncate text-xs text-ink-2">
                       {shortSlot(r.time_slot)} · {r.origin_address} → {r.destination_address}
                     </span>
                   </span>
@@ -103,47 +118,47 @@ const stats = [
             ))}
           </ul>
         ) : (
-          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">No hay servicios en los próximos 7 días.</p>
+          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-ink-2">No hay servicios en los próximos 7 días.</p>
         )
       }
     </section>
 
-    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
       <div class="flex items-center justify-between">
-        <h2 class="font-display text-lg font-bold">Solicitudes nuevas</h2>
+        <h2 class="text-lg font-medium">Solicitudes nuevas</h2>
         <a href="/panel/solicitudes?estado=nueva" class="text-sm font-medium text-brand-600 hover:text-brand-700">Ver todas →</a>
       </div>
       {
         latest.data?.length ? (
-          <ul class="mt-4 divide-y divide-stone-100">
+          <ul class="mt-4 divide-y divide-line">
             {latest.data.map((r) => (
               <li>
-                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-stone-50">
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60">
                   <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-600">
                     <Icon name="heroicons:inbox-arrow-down" class="size-5" />
                   </span>
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold">{r.customer_name}</span>
-                    <span class="block truncate text-xs text-stone-500">
+                    <span class="block truncate font-medium">{r.customer_name}</span>
+                    <span class="block truncate text-xs text-ink-2">
                       {r.service} · {timeAgo(r.created_at)}
                       {r.photos.length > 0 && ` · ${r.photos.length} foto(s)`}
                     </span>
                   </span>
-                  <span class="text-right text-sm font-semibold whitespace-nowrap">{r.estimated_price ? formatCOP(r.estimated_price) : ''}</span>
+                  <span class="text-right text-sm font-medium whitespace-nowrap">{r.estimated_price ? formatCOP(r.estimated_price) : ''}</span>
                 </a>
               </li>
             ))}
           </ul>
         ) : (
-          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">Estás al día. No hay solicitudes nuevas.</p>
+          <p class="mt-6 rounded-2xl bg-sand/60 p-6 text-center text-sm text-ink-2">Estás al día. No hay solicitudes nuevas.</p>
         )
       }
     </section>
   </div>
 
-  <section class="mt-6 rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
-    <h2 class="font-display text-lg font-bold">Resumen por estado</h2>
-    <div class="mt-4 flex h-3 overflow-hidden rounded-full bg-stone-100">
+  <section class="mt-6 rounded-2xl bg-paper p-5 border border-line sm:p-6">
+    <h2 class="text-lg font-medium">Resumen por estado</h2>
+    <div class="mt-4 flex h-3 overflow-hidden rounded-full bg-sand">
       {
         STATUS_KEYS.map((s) => {
           const total = Object.values(byStatus).reduce((a, b) => a + b, 0) || 1;
@@ -156,8 +171,8 @@ const stats = [
         STATUS_KEYS.map((s) => (
           <li class="flex items-center gap-2">
             <span class:list={['size-2.5 rounded-full', STATUSES[s].dot]} />
-            <span class="text-stone-600">{STATUSES[s].label}</span>
-            <span class="font-semibold">{byStatus[s]}</span>
+            <span class="text-ink-2">{STATUSES[s].label}</span>
+            <span class="font-medium">{byStatus[s]}</span>
           </li>
         ))
       }
