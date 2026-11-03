@@ -28,34 +28,41 @@ Estados de una solicitud: **Nueva → Cotizada → Agendada → Completada** (o 
 ## Puesta en marcha
 
 ### 1. Supabase
-1. Crea un proyecto gratis en [supabase.com](https://supabase.com).
-2. En **SQL Editor**, pega y ejecuta el contenido de `supabase/migrations/20261103000000_init.sql`.
-   Crea las tablas, la seguridad (RLS) y el almacenamiento de fotos.
-3. En **Authentication → Sign In / Providers**, desactiva *Allow new users to sign up* (las cuentas las creas tú desde el panel).
-4. En **Authentication → Users → Add user**, crea tu usuario con correo y contraseña (marca *Auto Confirm User*).
-   **El primer usuario que se crea queda como administrador.**
+Crea un proyecto gratis en [supabase.com](https://supabase.com) (o desde Vercel: **Storage → Connect Database → Supabase**).
+No hace falta ejecutar SQL a mano: las migraciones se aplican solas al publicar.
 
-> **Atajo:** en Vercel puedes instalar la integración **Supabase** (Storage → Connect Database → Supabase).
-> Crea el proyecto y agrega las claves automáticamente; la web reconoce sus nombres
-> (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`). Igual debes correr el SQL (punto 2 de arriba) y crear tu usuario.
+### 2. Variables de entorno (Vercel → Settings → Environment Variables)
 
-### 2. Variables de entorno
-Copia `.env.example` a `.env` y llena los valores de **Project Settings → API**:
+| Variable | Dónde se obtiene |
+| --- | --- |
+| `PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → `anon` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → `service_role` (secreta) |
+| `DATABASE_URL` | Supabase → botón **Connect** → **Session pooler** (reemplaza `[YOUR-PASSWORD]`) |
 
-```
-PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...   # secreta, solo en el servidor
-```
+La integración de Supabase en Vercel también sirve: la web reconoce `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_URL`.
 
-### 3. Publicar en Vercel
-1. Importa el repositorio en [vercel.com](https://vercel.com).
-2. Agrega las 3 variables de entorno.
-3. Despliega. Entra a `https://tu-dominio/panel` con tu usuario y completa la **Configuración** (WhatsApp, ciudad, tarifas…).
+### 3. Publicar
+1. Importa el repositorio en [vercel.com](https://vercel.com) y agrega las variables.
+2. Despliega. Antes de compilar, `scripts/migrate.mjs` aplica las migraciones pendientes de `supabase/migrations/`.
+3. Entra a `https://tu-dominio/panel`: la primera vez te pide **crear tu cuenta de administrador**.
+4. Completa la **Configuración** (WhatsApp, ciudad, tarifas…) y crea las cuentas de tu equipo en **Usuarios**.
+
+Solo las cuentas creadas desde el panel tienen acceso; un registro por fuera no recibe permisos.
 
 > ¿Prefieres Netlify u otro hosting? Cambia el adaptador en `astro.config.mjs` (`@astrojs/netlify` o `@astrojs/node`).
 
 Si las variables no están configuradas, la web sigue funcionando: el formulario envía la solicitud por WhatsApp.
+
+## Migraciones
+
+- Cada cambio de base de datos es un archivo nuevo en `supabase/migrations/` con el formato `AAAAMMDDHHMMSS_nombre.sql`.
+- Se aplican en orden y una sola vez; el registro vive en `supabase_migrations.schema_migrations`
+  (la misma tabla que usa la CLI de Supabase, así que `npx supabase db push` también es compatible).
+- En Vercel solo corren en las publicaciones de **producción**; las vistas previas no tocan la base de datos.
+- Para aplicarlas a mano: `DATABASE_URL=... npm run migrate`.
+- Si una migración falla, la publicación se detiene y la versión anterior de la web sigue en línea.
 
 ## Desarrollo local
 

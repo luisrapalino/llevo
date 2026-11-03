@@ -45,3 +45,12 @@ export function createAdminClient(): SupabaseClient | null {
   if (!url || !serviceKey) return null;
   return createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 }
+
+/** Estado de la base de datos para el panel: sin tablas, sin usuarios o lista. */
+export async function panelStatus(): Promise<'no-config' | 'no-db' | 'no-users' | 'ok'> {
+  const admin = createAdminClient();
+  if (!admin) return 'no-config';
+  const { count, error } = await admin.from('profiles').select('id', { count: 'exact', head: true });
+  if (error) return 'no-db';
+  return count ? 'ok' : 'no-users';
+}

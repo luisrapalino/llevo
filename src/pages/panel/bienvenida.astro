@@ -1,0 +1,103 @@
+---
+import '../../styles/global.css';
+import { Icon } from 'astro-icon/components';
+import Logo from '../../components/Logo.astro';
+import { createAdminClient, panelStatus } from '../../lib/supabase';
+
+// Solo disponible mientras no exista ningún usuario.
+const status = await panelStatus();
+if (status === 'ok') return Astro.redirect('/panel/login');
+
+let error = '';
+let values = { full_name: '', email: '' };
+
+if (Astro.request.method === 'POST' && status === 'no-users') {
+  const form = await Astro.request.formData();
+  values = { full_name: String(form.get('full_name') ?? '').trim(), email: String(form.get('email') ?? '').trim().toLowerCase() };
+  const password = String(form.get('password') ?? '');
+
+  if (password.length < 8) error = 'La contraseña debe tener al menos 8 caracteres.';
+  else if (password !== form.get('confirm')) error = 'Las contraseñas no coinciden.';
+  else if ((await panelStatus()) !== 'no-users') return Astro.redirect('/panel/login');
+  else {
+    const { error: err } = await createAdminClient()!.auth.admin.createUser({
+      email: values.email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: values.full_name },
+    });
+    if (err) error = err.message;
+    else {
+      await Astro.locals.supabase?.auth.signInWithPassword({ email: values.email, password });
+      return Astro.redirect('/panel?ok=%C2%A1Listo!%20Tu%20cuenta%20de%20administrador%20est%C3%A1%20creada');
+    }
+  }
+}
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Bienvenida · Panel</title>
+  </head>
+  <body class="grid min-h-dvh place-items-center bg-cream px-4 py-10">
+    <div class="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
+      <div class="absolute -top-40 -right-32 size-[520px] rounded-full bg-brand-200/50 blur-3xl"></div>
+      <div class="absolute bottom-0 -left-40 size-[420px] rounded-full bg-amber-100/70 blur-3xl"></div>
+    </div>
+
+    <div class="w-full max-w-md">
+      <div class="flex justify-center"><Logo name="Panel" /></div>
+      <div class="mt-8 rounded-[2rem] bg-white p-6 shadow-xl ring-1 shadow-stone-900/5 ring-stone-200/80 sm:p-8">
+        <span class="grid size-12 place-items-center rounded-2xl bg-brand-100 text-brand-600">
+          <Icon name="heroicons:sparkles" class="size-6" />
+        </span>
+        <h1 class="mt-4 font-display text-2xl font-bold">¡Bienvenido a tu panel!</h1>
+        <p class="mt-1 text-sm text-stone-500">Crea tu cuenta de administrador. Este paso solo aparece una vez.</p>
+
+        {
+          status !== 'no-users' ? (
+            <p class="mt-6 rounded-2xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">
+              {status === 'no-config'
+                ? 'Falta conectar Supabase (variables de entorno).'
+                : 'La base de datos aún no está lista: revisa que las migraciones se hayan aplicado.'}
+            </p>
+          ) : (
+            <form method="post" class="mt-6 space-y-4">
+              {error && (
+                <p class="flex items-center gap-2 rounded-2xl bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
+                  <Icon name="heroicons:exclamation-circle" class="size-5 shrink-0" /> {error}
+                </p>
+              )}
+              <div>
+                <label for="full_name" class="field-label">Tu nombre</label>
+                <input id="full_name" name="full_name" required class="field" autocomplete="name" value={values.full_name} />
+              </div>
+              <div>
+                <label for="email" class="field-label">Correo</label>
+                <input id="email" name="email" type="email" required class="field" autocomplete="email" value={values.email} />
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="password" class="field-label">Contraseña</label>
+                  <input id="password" name="password" type="password" minlength="8" required class="field" autocomplete="new-password" />
+                </div>
+                <div>
+                  <label for="confirm" class="field-label">Repítela</label>
+                  <input id="confirm" name="confirm" type="password" minlength="8" required class="field" autocomplete="new-password" />
+                </div>
+              </div>
+              <button class="btn-primary w-full !py-3.5">
+                Crear mi cuenta <Icon name="heroicons:arrow-right" class="size-4" />
+              </button>
+            </form>
+          )
+        }
+      </div>
+    </div>
+  </body>
+</html>

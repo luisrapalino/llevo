@@ -2,9 +2,10 @@
 import '../../styles/global.css';
 import { Icon } from 'astro-icon/components';
 import Logo from '../../components/Logo.astro';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { isSupabaseConfigured, panelStatus } from '../../lib/supabase';
 
 let error = '';
+const status = await panelStatus();
 let email = '';
 
 if (Astro.request.method === 'POST' && Astro.locals.supabase) {
@@ -42,6 +43,13 @@ if (Astro.request.method === 'POST' && Astro.locals.supabase) {
           !isSupabaseConfigured && (
             <p class="mt-6 rounded-2xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">
               Falta conectar Supabase. Revisa las variables de entorno en el README.
+            </p>
+          )
+        }
+        {
+          status === 'no-db' && (
+            <p class="mt-6 rounded-2xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">
+              La base de datos aún no está lista. Revisa que las migraciones se hayan aplicado (variable DATABASE_URL en Vercel).
             </p>
           )
         }

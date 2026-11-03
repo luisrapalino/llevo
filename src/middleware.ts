@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
-import { createSessionClient } from './lib/supabase';
+import { createSessionClient, panelStatus } from './lib/supabase';
 
-const PUBLIC_PANEL = ['/panel/login'];
+const PUBLIC_PANEL = ['/panel/login', '/panel/bienvenida'];
 const ADMIN_ONLY = ['/panel/configuracion', '/panel/usuarios'];
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
@@ -30,7 +30,10 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   }
 
   if (PUBLIC_PANEL.includes(path)) {
-    return ctx.locals.profile ? ctx.redirect('/panel') : next();
+    if (ctx.locals.profile) return ctx.redirect('/panel');
+    // Sin usuarios todavía: guía a crear el primer administrador.
+    if (path === '/panel/login' && (await panelStatus()) === 'no-users') return ctx.redirect('/panel/bienvenida');
+    return next();
   }
   if (!ctx.locals.profile) return ctx.redirect('/panel/login');
   if (ADMIN_ONLY.some((p) => path.startsWith(p)) && ctx.locals.profile.role !== 'admin') {
