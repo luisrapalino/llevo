@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import type { Business } from '../lib/settings';
+import Toaster from '../components/Toaster';
 
 interface Props {
   business: Business;
@@ -25,5 +26,6 @@ const { business, title = `${business.name} · ${business.tagline}`, description
   </head>
   <body class="min-h-dvh">
     <slot />
+    <Toaster client:load />
   </body>
 </html>

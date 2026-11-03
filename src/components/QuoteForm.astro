@@ -37,7 +37,8 @@ const floors = FLOORS;
     <div class="mt-12 grid gap-6 lg:grid-cols-[260px_1fr]">
       <!-- Stepper lateral (desktop) -->
       <aside class="hidden lg:block">
-        <ol class="sticky top-24 space-y-1" data-stepper>
+        <div class="sticky top-24">
+        <ol class="space-y-1" data-stepper>
           {
             steps.map((s, i) => (
               <li>
@@ -65,6 +66,7 @@ const floors = FLOORS;
             <Icon name="heroicons:lock-closed" class="size-4 text-ink-3" /> Tus datos están seguros
           </p>
           <p class="mt-1">Solo los usamos para cotizar y coordinar tu servicio.</p>
+        </div>
         </div>
       </aside>
 
@@ -223,7 +225,6 @@ const floors = FLOORS;
                 <input type="file" accept="image/*" multiple class="sr-only" data-file-input />
               </label>
               <ul class="mt-4 grid grid-cols-3 gap-3 empty:hidden sm:grid-cols-5" data-previews></ul>
-              <p class="mt-2 hidden text-sm text-red-600" data-file-error></p>
             </div>
 
             <div>
@@ -454,6 +455,7 @@ const floors = FLOORS;
 
 <script>
   import { estimate, type EstimateInput } from '../lib/pricing';
+  import { toast } from '../lib/toast';
   import type { Pricing } from '../lib/settings';
 
   const MAX_FILES = 10;
@@ -630,9 +632,13 @@ const floors = FLOORS;
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         geoValue.value = `https://maps.google.com/?q=${coords.latitude.toFixed(6)},${coords.longitude.toFixed(6)}`;
-        geoLabel.textContent = 'Ubicación agregada ✓';
+        geoLabel.textContent = 'Ubicación agregada';
+        toast.success('Ubicación agregada', { description: 'La usaremos como referencia para la recogida.' });
       },
-      () => (geoLabel.textContent = 'No se pudo obtener'),
+      () => {
+        geoLabel.textContent = 'Usar mi ubicación';
+        toast.error('No pudimos obtener tu ubicación', { description: 'Revisa los permisos del navegador o escribe la dirección.' });
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   });
@@ -641,7 +647,6 @@ const floors = FLOORS;
   const fileInput = form.querySelector<HTMLInputElement>('[data-file-input]')!;
   const dropzone = form.querySelector<HTMLElement>('[data-dropzone]')!;
   const previews = form.querySelector<HTMLUListElement>('[data-previews]')!;
-  const fileError = form.querySelector<HTMLElement>('[data-file-error]')!;
 
   async function compress(file: File): Promise<File> {
     if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
@@ -664,8 +669,9 @@ const floors = FLOORS;
   async function addFiles(list: FileList | File[]) {
     const incoming = [...list].filter((f) => f.type.startsWith('image/'));
     const room = MAX_FILES - photos.length;
-    fileError.classList.toggle('hidden', incoming.length <= room);
-    fileError.textContent = `Máximo ${MAX_FILES} fotos. Algunas no se agregaron.`;
+    if (incoming.length > room) {
+      toast.warning(`Máximo ${MAX_FILES} fotos`, { description: `Agregamos ${Math.max(0, room)} y dejamos por fuera ${incoming.length - Math.max(0, room)}.` });
+    }
     const processed = await Promise.all(incoming.slice(0, Math.max(0, room)).map(compress));
     photos = [...photos, ...processed];
     renderPreviews();
@@ -688,7 +694,6 @@ const floors = FLOORS;
       rm.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor" class="size-4"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>';
       rm.addEventListener('click', () => {
         photos.splice(i, 1);
-        fileError.classList.add('hidden');
         renderPreviews();
       });
       li.append(img, rm);
@@ -763,6 +768,7 @@ const floors = FLOORS;
     submitBtn.disabled = true;
     submitLabel.textContent = 'Enviando…';
 
+    let json_code = '';
     try {
       if (form.dataset.api) {
         data.set('fotos_tipos', JSON.stringify(photos.map((p) => p.type || 'image/jpeg')));
@@ -782,6 +788,7 @@ const floors = FLOORS;
         }
 
         codeEl.textContent = json.code;
+        json_code = json.code;
         codeWrap.classList.remove('hidden');
         successText.textContent = failed
           ? `Recibimos tu solicitud, pero ${failed} foto(s) no se pudieron subir. Envíalas por WhatsApp citando tu código.`
@@ -795,14 +802,18 @@ const floors = FLOORS;
           : 'Abrimos WhatsApp con tu solicitud lista. Solo tienes que enviar el mensaje.';
         window.open(successWa.href, '_blank', 'noopener');
       }
+      toast.success('Solicitud enviada', {
+        description: json_code ? `Código ${json_code}. Te escribimos por WhatsApp muy pronto.` : 'Termina de enviarla en WhatsApp.',
+      });
       form.classList.add('hidden');
       document.querySelector('[data-stepper]')?.closest('aside')?.classList.add('lg:invisible');
       progress.parentElement!.parentElement!.classList.add('hidden');
       success.classList.remove('hidden');
     } catch (err) {
-      formError.textContent =
-        (err instanceof Error && err.message) || 'No pudimos enviar tu solicitud. Intenta de nuevo o escríbenos por WhatsApp.';
+      const message = (err instanceof Error && err.message) || 'Intenta de nuevo o escríbenos por WhatsApp.';
+      formError.textContent = message;
       formError.classList.remove('hidden');
+      toast.error('No pudimos enviar tu solicitud', { description: message });
     } finally {
       submitBtn.disabled = false;
       submitLabel.textContent = 'Enviar solicitud';

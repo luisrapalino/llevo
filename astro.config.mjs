@@ -3,12 +3,13 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import icon from 'astro-icon';
 import vercel from '@astrojs/vercel';
+import react from '@astrojs/react';
 
 export default defineConfig({
   output: 'server',
   devToolbar: { enabled: false },
   adapter: vercel(),
-  integrations: [icon()],
+  integrations: [icon(), react()],
   vite: {
     plugins: [tailwindcss()],
   },

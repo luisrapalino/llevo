@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
 import Logo from '../components/Logo.astro';
+import Toaster from '../components/Toaster';
 
 interface Props {
   title: string;
@@ -25,6 +26,7 @@ const nav = [
 
 const ok = Astro.url.searchParams.get('ok');
 const error = Astro.url.searchParams.get('error');
+const flash = error ? { type: 'error' as const, message: error } : ok ? { type: 'success' as const, message: ok } : null;
 const initials = (profile?.full_name || profile?.email || '?')
   .split(/[\s@]/)
   .filter(Boolean)
@@ -100,20 +102,6 @@ const initials = (profile?.full_name || profile?.email || '?')
 
       <main class="min-w-0 px-4 py-6 sm:px-8 sm:py-10">
         <div class="mx-auto max-w-6xl">
-          {
-            ok && (
-              <div class="mb-6 flex items-center gap-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200" data-flash>
-                <Icon name="heroicons:check-circle" class="size-5 shrink-0" /> {ok}
-              </div>
-            )
-          }
-          {
-            error && (
-              <div class="mb-6 flex items-center gap-3 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 ring-1 ring-red-200">
-                <Icon name="heroicons:exclamation-triangle" class="size-5 shrink-0" /> {error}
-              </div>
-            )
-          }
           <slot />
         </div>
       </main>
@@ -129,12 +117,12 @@ const initials = (profile?.full_name || profile?.email || '?')
       document.querySelector('[data-menu-btn]')?.addEventListener('click', () => toggle(true));
       overlay.addEventListener('click', () => toggle(false));
 
-      // Quita ?ok= de la URL para que el aviso no reaparezca al recargar.
+      // Quita ?ok= / ?error= de la URL para que el aviso no reaparezca al recargar.
       const url = new URL(location.href);
-      if (url.searchParams.has('ok')) {
+      if (url.searchParams.has('ok') || url.searchParams.has('error')) {
         url.searchParams.delete('ok');
+        url.searchParams.delete('error');
         history.replaceState(null, '', url);
-        setTimeout(() => document.querySelector('[data-flash]')?.remove(), 4000);
       }
 
       // Confirmación para acciones destructivas.
@@ -144,5 +132,6 @@ const initials = (profile?.full_name || profile?.email || '?')
         }),
       );
     </script>
+    <Toaster client:load flash={flash} />
   </body>
 </html>
