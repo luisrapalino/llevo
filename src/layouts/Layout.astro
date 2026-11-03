@@ -1,0 +1,29 @@
+---
+import '../styles/global.css';
+import type { Business } from '../lib/settings';
+
+interface Props {
+  business: Business;
+  title?: string;
+  description?: string;
+}
+const { business, title = `${business.name} · ${business.tagline}`, description = business.description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#fbf8f3" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-dvh">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,247 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../layouts/PanelLayout.astro';
+import { STATUSES, TIME_SLOTS } from '../../lib/constants';
+import { addDays, capitalize, fmtDate, shortSlot, todayISO } from '../../lib/format';
+
+const db = Astro.locals.supabase!;
+const today = todayISO();
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const back = `/panel/agenda?mes=${String(form.get('mes') ?? today.slice(0, 7))}`;
+  if (form.get('action') === 'unblock') {
+    await db.from('blocked_slots').delete().eq('id', String(form.get('id')));
+    return Astro.redirect(`${back}&ok=Bloqueo%20eliminado`);
+  }
+  const from = String(form.get('date') ?? '');
+  const to = String(form.get('date_to') ?? '') || from;
+  const slot = String(form.get('time_slot') ?? '') || null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || to < from) return Astro.redirect(`${back}&error=Revisa%20las%20fechas`);
+  const rows = [];
+  for (let d = from; d <= to && rows.length < 62; d = addDays(d, 1)) {
+    rows.push({ date: d, time_slot: slot, reason: String(form.get('reason') ?? '').trim() || null });
+  }
+  const { error } = await db.from('blocked_slots').upsert(rows, { onConflict: 'date,time_slot', ignoreDuplicates: true });
+  return Astro.redirect(error ? `${back}&error=${encodeURIComponent(error.message)}` : `${back}&ok=Fechas%20bloqueadas`);
+}
+
+// Mes visible
+const mes = /^\d{4}-\d{2}$/.test(Astro.url.searchParams.get('mes') ?? '') ? Astro.url.searchParams.get('mes')! : today.slice(0, 7);
+const [y, m] = mes.split('-').map(Number);
+const first = `${mes}-01`;
+const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+const last = `${mes}-${String(daysInMonth).padStart(2, '0')}`;
+const lead = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7; // semana inicia lunes
+const prev = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+const next = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
+const monthName = capitalize(new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${first}T12:00:00Z`)));
+
+const [{ data: requests }, { data: blocks }, { data: upcomingBlocks }] = await Promise.all([
+  db
+    .from('requests')
+    .select('id, customer_name, service_date, time_slot, exact_time, status')
+    .gte('service_date', first)
+    .lte('service_date', last)
+    .neq('status', 'cancelada')
+    .order('exact_time', { nullsFirst: false }),
+  db.from('blocked_slots').select('id, date, time_slot, reason').gte('date', first).lte('date', last),
+  db.from('blocked_slots').select('id, date, time_slot, reason').gte('date', today).order('date').limit(30),
+]);
+
+const slotOrder = (s: string) => TIME_SLOTS.findIndex((t) => t.value === s);
+const days = Array.from({ length: daysInMonth }, (_, i) => {
+  const date = `${mes}-${String(i + 1).padStart(2, '0')}`;
+  return {
+    date,
+    day: i + 1,
+    requests: (requests ?? []).filter((r) => r.service_date === date).sort((a, b) => slotOrder(a.time_slot) - slotOrder(b.time_slot)),
+    blocks: (blocks ?? []).filter((b) => b.date === date),
+  };
+});
+const weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === today.slice(0, 7) ? today : first));
+---
+
+<PanelLayout title="Agenda" active="agenda">
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <h1 class="font-display text-3xl font-bold tracking-tight">Agenda</h1>
+      <p class="mt-1 text-sm text-stone-500">Servicios por día y fechas en las que no trabajas.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href={`?mes=${prev}`} class="grid size-10 place-items-center rounded-full bg-white ring-1 ring-stone-200 hover:bg-stone-50" aria-label="Mes anterior">
+        <Icon name="heroicons:chevron-left" class="size-5" />
+      </a>
+      <span class="min-w-40 text-center font-display text-lg font-bold">{monthName}</span>
+      <a href={`?mes=${next}`} class="grid size-10 place-items-center rounded-full bg-white ring-1 ring-stone-200 hover:bg-stone-50" aria-label="Mes siguiente">
+        <Icon name="heroicons:chevron-right" class="size-5" />
+      </a>
+      {mes !== today.slice(0, 7) && <a href="/panel/agenda" class="btn-ghost !px-4 !py-2">Hoy</a>}
+    </div>
+  </div>
+
+  <!-- Calendario -->
+  <div class="mt-6 overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200/80">
+    <div class="grid grid-cols-7 border-b border-stone-100 text-center text-xs font-semibold tracking-wide text-stone-500 uppercase">
+      {weekdays.map((w) => <div class="py-3">{w}</div>)}
+    </div>
+    <div class="grid grid-cols-7">
+      {Array.from({ length: lead }).map(() => <div class="min-h-16 border-r border-b border-stone-100 bg-stone-50/50 sm:min-h-28" />)}
+      {
+        days.map((d) => {
+          const fullBlock = d.blocks.find((b) => !b.time_slot);
+          const isToday = d.date === today;
+          const past = d.date < today;
+          return (
+            <div
+              class:list={[
+                'relative min-h-16 border-r border-b border-stone-100 p-1.5 sm:min-h-28 sm:p-2',
+                fullBlock && 'bg-[repeating-linear-gradient(135deg,#f5f5f4_0_6px,#fff_6px_12px)]',
+                past && 'opacity-60',
+              ]}
+              title={fullBlock ? `Bloqueado${fullBlock.reason ? `: ${fullBlock.reason}` : ''}` : undefined}
+            >
+              <span
+                class:list={[
+                  'grid size-7 place-items-center rounded-full text-sm font-semibold',
+                  isToday ? 'bg-brand-500 text-white' : 'text-stone-700',
+                ]}
+              >
+                {d.day}
+              </span>
+              {/* Escritorio: chips */}
+              <div class="mt-1 hidden space-y-1 sm:block">
+                {d.requests.slice(0, 3).map((r) => (
+                  <a
+                    href={`/panel/solicitudes/${r.id}`}
+                    class="flex items-center gap-1.5 truncate rounded-lg bg-stone-50 px-1.5 py-1 text-xs font-medium transition hover:bg-stone-100"
+                  >
+                    <span class:list={['size-1.5 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
+                    <span class="truncate">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)} · {r.customer_name.split(' ')[0]}</span>
+                  </a>
+                ))}
+                {d.requests.length > 3 && <p class="px-1.5 text-xs text-stone-500">+{d.requests.length - 3} más</p>}
+                {d.blocks.filter((b) => b.time_slot).map((b) => (
+                  <p class="flex items-center gap-1 truncate px-1.5 text-[11px] text-stone-400">
+                    <Icon name="heroicons:no-symbol" class="size-3 shrink-0" /> {shortSlot(b.time_slot!)}
+                  </p>
+                ))}
+              </div>
+              {/* Móvil: puntos */}
+              <div class="mt-1 flex flex-wrap gap-0.5 px-1 sm:hidden">
+                {d.requests.map((r) => (
+                  <span class:list={['size-1.5 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
+                ))}
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-stone-500">
+    {
+      (['nueva', 'cotizada', 'agendada', 'completada'] as const).map((s) => (
+        <span class="flex items-center gap-1.5">
+          <span class:list={['size-2 rounded-full', STATUSES[s].dot]} /> {STATUSES[s].label}
+        </span>
+      ))
+    }
+    <span class="flex items-center gap-1.5">
+      <span class="size-3 rounded bg-[repeating-linear-gradient(135deg,#e7e5e4_0_3px,#fff_3px_6px)] ring-1 ring-stone-200"></span> Día bloqueado
+    </span>
+  </div>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-2">
+    <!-- Lista de servicios del mes (útil en móvil) -->
+    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <h2 class="font-display text-lg font-bold">Servicios del mes</h2>
+      {
+        agendaList.length ? (
+          <ul class="mt-4 space-y-4">
+            {agendaList.map((d) => (
+              <li>
+                <p class="text-xs font-semibold tracking-wide text-stone-500 uppercase">{fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'short' })}</p>
+                <ul class="mt-2 space-y-1.5">
+                  {d.requests.map((r) => (
+                    <li>
+                      <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 rounded-2xl bg-stone-50 px-3 py-2.5 text-sm transition hover:bg-stone-100">
+                        <span class:list={['size-2 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
+                        <span class="font-medium">{r.customer_name}</span>
+                        <span class="ml-auto text-xs text-stone-500">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="mt-4 rounded-2xl bg-sand/60 p-6 text-center text-sm text-stone-500">No hay servicios pendientes este mes.</p>
+        )
+      }
+    </section>
+
+    <!-- Bloqueos -->
+    <section class="rounded-3xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-6">
+      <h2 class="font-display text-lg font-bold">Bloquear disponibilidad</h2>
+      <p class="mt-1 text-sm text-stone-500">Los días u horarios bloqueados no se pueden elegir en el formulario de la web.</p>
+
+      <form method="post" class="mt-5 grid gap-3 sm:grid-cols-2">
+        <input type="hidden" name="mes" value={mes} />
+        <div>
+          <label for="date" class="field-label">Desde</label>
+          <input id="date" name="date" type="date" min={today} required class="field" />
+        </div>
+        <div>
+          <label for="date_to" class="field-label">Hasta <span class="font-normal text-stone-400">(opcional)</span></label>
+          <input id="date_to" name="date_to" type="date" min={today} class="field" />
+        </div>
+        <div>
+          <label for="time_slot" class="field-label">Horario</label>
+          <select id="time_slot" name="time_slot" class="field">
+            <option value="">Todo el día</option>
+            {TIME_SLOTS.map((t) => <option value={t.value}>{t.value}</option>)}
+          </select>
+        </div>
+        <div>
+          <label for="reason" class="field-label">Motivo <span class="font-normal text-stone-400">(opcional)</span></label>
+          <input id="reason" name="reason" class="field" placeholder="Ej. Mantenimiento" />
+        </div>
+        <button class="btn-dark sm:col-span-2">
+          <Icon name="heroicons:no-symbol" class="size-4" /> Bloquear
+        </button>
+      </form>
+
+      <h3 class="mt-8 text-sm font-semibold">Próximos bloqueos</h3>
+      {
+        upcomingBlocks?.length ? (
+          <ul class="mt-3 divide-y divide-stone-100">
+            {upcomingBlocks.map((b) => (
+              <li class="flex items-center gap-3 py-2.5 text-sm">
+                <Icon name="heroicons:no-symbol" class="size-4 shrink-0 text-stone-400" />
+                <span class="min-w-0 flex-1">
+                  <span class="font-medium">{fmtDate(b.date)}</span>
+                  <span class="text-stone-500"> · {b.time_slot ? shortSlot(b.time_slot) : 'Todo el día'}</span>
+                  {b.reason && <span class="block truncate text-xs text-stone-400">{b.reason}</span>}
+                </span>
+                <form method="post">
+                  <input type="hidden" name="action" value="unblock" />
+                  <input type="hidden" name="id" value={b.id} />
+                  <input type="hidden" name="mes" value={mes} />
+                  <button class="rounded-lg p-2 text-stone-400 transition hover:bg-red-50 hover:text-red-600" aria-label="Quitar bloqueo">
+                    <Icon name="heroicons:x-mark" class="size-4" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="mt-3 text-sm text-stone-400">No hay bloqueos programados.</p>
+        )
+      }
+    </section>
+  </div>
+</PanelLayout>

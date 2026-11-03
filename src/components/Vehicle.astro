@@ -1,0 +1,62 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { Vehicle } from '../lib/settings';
+
+const { vehicle } = Astro.props as { vehicle: Vehicle };
+const perks = [
+  { icon: 'heroicons:squares-2x2', text: 'Cobijas y amarres para proteger tus muebles' },
+  { icon: 'heroicons:user-group', text: 'Ayudantes adicionales si los necesitas' },
+  { icon: 'heroicons:wrench-screwdriver', text: 'Desarme y armado básico de camas y muebles' },
+  { icon: 'heroicons:map', text: 'Viajes dentro de la ciudad y municipios cercanos' },
+];
+---
+
+<section id="vehiculo" class="scroll-mt-20 py-20 sm:py-28">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
+    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-400 to-brand-600 p-8 text-white sm:p-10">
+      <div class="absolute -top-16 -right-16 size-64 rounded-full bg-white/10" aria-hidden="true"></div>
+      <div class="absolute -bottom-24 -left-10 size-72 rounded-full bg-black/5" aria-hidden="true"></div>
+
+      <Icon name="heroicons:truck" class="relative size-14 opacity-90" />
+      <p class="relative mt-6 text-sm font-medium tracking-wide text-white/70 uppercase">Nuestro vehículo</p>
+      <h3 class="relative mt-1 font-display text-3xl font-bold">{vehicle.name}</h3>
+
+      <dl class="relative mt-8 grid grid-cols-2 gap-4">
+        <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
+          <dt class="text-xs text-white/70">Capacidad</dt>
+          <dd class="mt-1 font-semibold">{vehicle.capacity}</dd>
+        </div>
+        <div class="rounded-2xl bg-white/15 p-4 backdrop-blur">
+          <dt class="text-xs text-white/70">Espacio</dt>
+          <dd class="mt-1 font-semibold">{vehicle.size}</dd>
+        </div>
+      </dl>
+
+      <p class="relative mt-8 text-sm font-medium text-white/80">Cabe, por ejemplo:</p>
+      <ul class="relative mt-3 flex flex-wrap gap-2">
+        {vehicle.fits.map((f) => <li class="rounded-full bg-white px-3 py-1 text-sm font-medium text-brand-700">{f}</li>)}
+      </ul>
+    </div>
+
+    <div>
+      <span class="section-eyebrow">El vehículo</span>
+      <h2 class="section-title mt-4">Un solo viaje, todo tuyo.</h2>
+      <p class="mt-4 text-lg text-stone-600">
+        Trabajamos con un vehículo propio y cuidado. Tus cosas no comparten espacio con otros clientes y vamos directo de
+        origen a destino.
+      </p>
+      <ul class="mt-8 space-y-4">
+        {
+          perks.map((p) => (
+            <li class="flex items-start gap-4">
+              <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm ring-1 ring-stone-200">
+                <Icon name={p.icon} class="size-5" />
+              </span>
+              <span class="pt-2 text-stone-700">{p.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>

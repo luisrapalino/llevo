@@ -1,0 +1,49 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const steps = [
+  {
+    icon: 'heroicons:camera',
+    title: 'Cuéntanos qué llevas',
+    text: 'Llena el formulario y sube fotos de tus cosas. Así calculamos espacio y esfuerzo sin adivinar.',
+  },
+  {
+    icon: 'heroicons:chat-bubble-bottom-center-text',
+    title: 'Recibe tu precio',
+    text: 'Te escribimos por WhatsApp con la cotización final. Sin costos ocultos ni cobros extra al llegar.',
+  },
+  {
+    icon: 'heroicons:truck',
+    title: 'Nosotros lo llevamos',
+    text: 'Llegamos puntuales el día y la hora acordados, cargamos con cuidado y entregamos en destino.',
+  },
+];
+---
+
+<section id="como-funciona" class="scroll-mt-20 bg-ink py-20 text-white sm:py-28">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="mx-auto max-w-2xl text-center">
+      <span class="section-eyebrow !bg-white/10 !text-brand-300">Cómo funciona</span>
+      <h2 class="section-title mt-4">Tres pasos y listo.</h2>
+      <p class="mt-4 text-stone-400">Cotizar te toma menos de 2 minutos desde tu celular.</p>
+    </div>
+
+    <ol class="relative mt-16 grid gap-10 md:grid-cols-3 md:gap-6">
+      <div class="absolute top-8 right-[16%] left-[16%] hidden border-t-2 border-dashed border-white/15 md:block" aria-hidden="true"></div>
+      {
+        steps.map((s, i) => (
+          <li class="relative flex flex-col items-center text-center">
+            <span class="relative grid size-16 place-items-center rounded-2xl bg-brand-500 shadow-lg shadow-brand-500/30">
+              <Icon name={s.icon} class="size-7" />
+              <span class="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-white text-xs font-bold text-ink">
+                {i + 1}
+              </span>
+            </span>
+            <h3 class="mt-6 font-display text-xl font-bold">{s.title}</h3>
+            <p class="mt-2 max-w-xs text-sm leading-relaxed text-stone-400">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

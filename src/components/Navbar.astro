@@ -1,0 +1,54 @@
+---
+import { Icon } from 'astro-icon/components';
+import { whatsappLink, type Business } from '../lib/settings';
+import Logo from './Logo.astro';
+
+const { business } = Astro.props as { business: Business };
+
+const links = [
+  { href: '#servicios', label: 'Servicios' },
+  { href: '#como-funciona', label: 'Cómo funciona' },
+  { href: '#vehiculo', label: 'El vehículo' },
+  { href: '#faq', label: 'Preguntas' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-transparent transition-colors" data-navbar>
+  <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <a href="/" class="flex items-center gap-2" aria-label={`${business.name}, inicio`}>
+      <Logo name={business.name} />
+    </a>
+
+    <ul class="hidden items-center gap-1 md:flex">
+      {
+        links.map((l) => (
+          <li>
+            <a href={l.href} class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-white hover:text-ink">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="flex items-center gap-2">
+      <a href={whatsappLink(business.whatsapp)} target="_blank" rel="noopener" class="btn-ghost hidden !px-4 sm:inline-flex">
+        <Icon name="heroicons:chat-bubble-left-right" class="size-4" />
+        WhatsApp
+      </a>
+      <a href="#cotizar" class="btn-primary !px-5 !py-2.5">Cotizar</a>
+    </div>
+  </nav>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-navbar]');
+  const onScroll = () => {
+    const scrolled = window.scrollY > 8;
+    nav?.classList.toggle('bg-cream/80', scrolled);
+    nav?.classList.toggle('backdrop-blur-lg', scrolled);
+    nav?.classList.toggle('border-stone-200/70', scrolled);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+</script>

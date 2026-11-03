@@ -1,0 +1,181 @@
+---
+import { Icon } from 'astro-icon/components';
+import PanelLayout from '../../../layouts/PanelLayout.astro';
+import StatusBadge from '../../../components/panel/StatusBadge.astro';
+import { STATUSES, STATUS_KEYS, type Status } from '../../../lib/constants';
+import { fmtDate, shortSlot, timeAgo } from '../../../lib/format';
+import { formatCOP } from '../../../lib/settings';
+
+const db = Astro.locals.supabase!;
+const PAGE = 20;
+
+const params = Astro.url.searchParams;
+const estado = params.get('estado') as Status | null;
+const q = (params.get('q') ?? '').trim();
+const page = Math.max(1, Number(params.get('p')) || 1);
+
+let query = db
+  .from('requests')
+  .select('id, code, created_at, status, service, load_size, customer_name, customer_phone, service_date, time_slot, origin_address, destination_address, photos, estimated_price, quoted_price', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range((page - 1) * PAGE, page * PAGE - 1);
+
+if (estado && STATUS_KEYS.includes(estado)) query = query.eq('status', estado);
+if (q) {
+  const safe = q.replace(/[%,()*]/g, ' ');
+  query = query.or(`customer_name.ilike.%${safe}%,customer_phone.ilike.%${safe}%,code.ilike.%${safe}%,origin_address.ilike.%${safe}%,destination_address.ilike.%${safe}%`);
+}
+
+const [{ data: rows, count }, statusCounts] = await Promise.all([
+  query,
+  Promise.all(
+    STATUS_KEYS.map(async (s) => {
+      const { count } = await db.from('requests').select('id', { count: 'exact', head: true }).eq('status', s);
+      return [s, count ?? 0] as const;
+    }),
+  ),
+]);
+const counts = Object.fromEntries(statusCounts) as Record<Status, number>;
+const total = Object.values(counts).reduce((a, b) => a + b, 0);
+const pages = Math.max(1, Math.ceil((count ?? 0) / PAGE));
+
+const link = (over: Record<string, string | number | null>) => {
+  const u = new URLSearchParams(params);
+  for (const [k, v] of Object.entries(over)) (v == null || v === '' ? u.delete(k) : u.set(k, String(v)));
+  const s = u.toString();
+  return `/panel/solicitudes${s ? `?${s}` : ''}`;
+};
+---
+
+<PanelLayout title="Solicitudes" active="solicitudes">
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <h1 class="font-display text-3xl font-bold tracking-tight">Solicitudes</h1>
+      <p class="mt-1 text-sm text-stone-500">Todas las cotizaciones que llegan desde la web.</p>
+    </div>
+    <form class="relative w-full sm:w-72">
+      {estado && <input type="hidden" name="estado" value={estado} />}
+      <Icon name="heroicons:magnifying-glass" class="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-stone-400" />
+      <input name="q" value={q} placeholder="Buscar nombre, celular, código…" class="field !rounded-full !pl-10" />
+    </form>
+  </div>
+
+  <!-- Filtros por estado -->
+  <div class="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
+    <a href={link({ estado: null, p: null })} class:list={['chip shrink-0', !estado && '!bg-ink !text-white !ring-ink']}>
+      Todas <span class="opacity-60">{total}</span>
+    </a>
+    {
+      STATUS_KEYS.map((s) => (
+        <a href={link({ estado: s, p: null })} class:list={['chip shrink-0', estado === s && '!bg-ink !text-white !ring-ink']}>
+          <span class:list={['size-2 rounded-full', STATUSES[s].dot]} />
+          {STATUSES[s].label} <span class="opacity-60">{counts[s]}</span>
+        </a>
+      ))
+    }
+  </div>
+
+  {
+    rows?.length ? (
+      <div class="mt-6 overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200/80">
+        <!-- Tabla (escritorio) -->
+        <table class="hidden w-full text-left text-sm md:table">
+          <thead class="border-b border-stone-100 text-xs tracking-wide text-stone-500 uppercase">
+            <tr>
+              <th class="px-5 py-3 font-medium">Cliente</th>
+              <th class="px-5 py-3 font-medium">Servicio</th>
+              <th class="px-5 py-3 font-medium">Fecha</th>
+              <th class="px-5 py-3 font-medium">Precio</th>
+              <th class="px-5 py-3 font-medium">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100">
+            {rows.map((r) => (
+              <tr class="group relative transition hover:bg-stone-50">
+                <td class="px-5 py-4">
+                  <a href={`/panel/solicitudes/${r.id}`} class="font-semibold after:absolute after:inset-0">
+                    {r.customer_name}
+                  </a>
+                  <p class="text-xs text-stone-500">
+                    <span class="font-mono">#{r.code}</span> · {timeAgo(r.created_at)}
+                  </p>
+                </td>
+                <td class="px-5 py-4">
+                  <p class="font-medium">{r.service}</p>
+                  <p class="flex items-center gap-1 text-xs text-stone-500">
+                    {r.load_size}
+                    {r.photos.length > 0 && (
+                      <>
+                        · <Icon name="heroicons:photo" class="size-3.5" /> {r.photos.length}
+                      </>
+                    )}
+                  </p>
+                </td>
+                <td class="px-5 py-4 whitespace-nowrap">
+                  <p class="font-medium">{fmtDate(r.service_date)}</p>
+                  <p class="text-xs text-stone-500">{shortSlot(r.time_slot)}</p>
+                </td>
+                <td class="px-5 py-4 whitespace-nowrap">
+                  {r.quoted_price ? (
+                    <p class="font-semibold">{formatCOP(r.quoted_price)}</p>
+                  ) : (
+                    <p class="text-stone-400">{r.estimated_price ? `~ ${formatCOP(r.estimated_price)}` : '—'}</p>
+                  )}
+                </td>
+                <td class="px-5 py-4">
+                  <StatusBadge status={r.status} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <!-- Tarjetas (móvil) -->
+        <ul class="divide-y divide-stone-100 md:hidden">
+          {rows.map((r) => (
+            <li>
+              <a href={`/panel/solicitudes/${r.id}`} class="block p-4 transition active:bg-stone-50">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate font-semibold">{r.customer_name}</p>
+                    <p class="text-xs text-stone-500">
+                      {r.service} · <span>{fmtDate(r.service_date)}</span>
+                    </p>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </div>
+                <p class="mt-2 truncate text-xs text-stone-500">
+                  {r.origin_address} → {r.destination_address}
+                </p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : (
+      <div class="mt-6 rounded-3xl bg-white p-12 text-center ring-1 ring-stone-200/80">
+        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-sand text-stone-400">
+          <Icon name="heroicons:inbox" class="size-7" />
+        </span>
+        <p class="mt-4 font-semibold">{q ? 'Sin resultados' : 'Aún no hay solicitudes aquí'}</p>
+        <p class="mt-1 text-sm text-stone-500">{q ? 'Prueba con otra búsqueda.' : 'Cuando alguien cotice desde la web, aparecerá en esta lista.'}</p>
+      </div>
+    )
+  }
+
+  {
+    pages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        <a href={link({ p: page - 1 })} class:list={['btn-ghost !py-2', page <= 1 && 'pointer-events-none opacity-40']}>
+          ← Anterior
+        </a>
+        <span class="text-stone-500">
+          Página {page} de {pages}
+        </span>
+        <a href={link({ p: page + 1 })} class:list={['btn-ghost !py-2', page >= pages && 'pointer-events-none opacity-40']}>
+          Siguiente →
+        </a>
+      </nav>
+    )
+  }
+</PanelLayout>
