@@ -35,6 +35,10 @@ Estados de una solicitud: **Nueva → Cotizada → Agendada → Completada** (o 
 4. En **Authentication → Users → Add user**, crea tu usuario con correo y contraseña (marca *Auto Confirm User*).
    **El primer usuario que se crea queda como administrador.**
 
+> **Atajo:** en Vercel puedes instalar la integración **Supabase** (Storage → Connect Database → Supabase).
+> Crea el proyecto y agrega las claves automáticamente; la web reconoce sus nombres
+> (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`). Igual debes correr el SQL del paso 2.
+
 ### 2. Variables de entorno
 Copia `.env.example` a `.env` y llena los valores de **Project Settings → API**:
 

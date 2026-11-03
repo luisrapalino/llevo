@@ -2,9 +2,27 @@ import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AstroCookies } from 'astro';
 
-const url = import.meta.env.PUBLIC_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string | undefined;
-const serviceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined;
+// Acepta los nombres propios del proyecto y los que crea la integración de Supabase en Vercel.
+const pick = (...values: (string | undefined)[]) => values.find((v) => v && v.trim()) || undefined;
+const penv = (typeof process !== 'undefined' ? process.env : {}) as Record<string, string | undefined>;
+
+const url = pick(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL,
+  penv.PUBLIC_SUPABASE_URL,
+  penv.SUPABASE_URL,
+  penv.NEXT_PUBLIC_SUPABASE_URL,
+);
+const anonKey = pick(
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+  import.meta.env.SUPABASE_ANON_KEY,
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  penv.PUBLIC_SUPABASE_ANON_KEY,
+  penv.SUPABASE_ANON_KEY,
+  penv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
+const serviceKey = pick(import.meta.env.SUPABASE_SERVICE_ROLE_KEY, penv.SUPABASE_SERVICE_ROLE_KEY);
 
 export const isSupabaseConfigured = Boolean(url && anonKey && serviceKey);
 
