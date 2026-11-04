@@ -94,3 +94,15 @@ No necesitan claves ni tienen costo. Código en `src/lib/map.ts` y `src/scripts/
 - Al tocar el mapa o arrastrar un pin se llena la dirección aproximada; al escribir aparecen sugerencias de Valledupar.
 - La ubicación de cada punto se guarda con la solicitud y el panel la muestra en un mapa de solo lectura.
 - Los servicios gratuitos piden un uso justo; si el volumen crece mucho, conviene alojar Photon propio.
+
+## App instalable (PWA)
+
+La web se instala como app desde el navegador, sin tiendas de aplicaciones:
+
+- **Llevo** (`/manifest.webmanifest`): para clientes, abre la portada; atajo directo a "Cotizar".
+- **Llevo Panel** (`/panel.webmanifest`): para el equipo, abre el panel; atajos a Solicitudes y Agenda.
+- Íconos en `public/icons/` (azul para clientes, azul noche para el panel; versiones "maskable" para Android).
+- `public/sw.js` acelera la carga y muestra `offline.html` sin conexión. Nunca guarda el panel ni la API.
+- Botón "Instalar": en el pie de la web y en el menú del panel. En Android y computador abre el aviso del
+  navegador; en iPhone explica cómo usar "Compartir → Agregar a inicio".
+- Si cambias archivos del service worker, sube la versión (`VERSION`) en `public/sw.js`.

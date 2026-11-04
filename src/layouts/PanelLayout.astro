@@ -39,9 +39,15 @@ const initials = (profile?.full_name || profile?.email || '?')
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/panel.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/panel-192.png" />
+    <meta name="theme-color" content="#fffaf1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Llevo Panel" />
     <title>{title} · Panel</title>
   </head>
   <body class="min-h-dvh bg-cream">
@@ -56,7 +62,7 @@ const initials = (profile?.full_name || profile?.email || '?')
 
       <!-- Menú lateral -->
       <aside
-        class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-line bg-paper p-4 transition-transform data-[open=true]:translate-x-0 lg:sticky lg:top-0 lg:h-dvh lg:w-auto lg:translate-x-0"
+        class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col overflow-y-auto border-r border-line bg-paper p-4 transition-transform data-[open=true]:translate-x-0 lg:sticky lg:top-0 lg:h-dvh lg:w-auto lg:translate-x-0"
         data-menu
       >
         <div class="flex items-center justify-between px-2 py-2">
@@ -83,6 +89,14 @@ const initials = (profile?.full_name || profile?.email || '?')
           }
         </nav>
 
+        <button
+          type="button"
+          data-install
+          class="mb-3 hidden w-full items-center gap-3 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-3 py-2.5 text-left text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 [&:not(.hidden)]:flex"
+        >
+          <Icon name="heroicons:device-phone-mobile" class="size-5" />
+          <span>Instalar app del panel<span class="block text-xs font-normal text-brand-600">Ábrela desde tu pantalla de inicio</span></span>
+        </button>
         <div class="rounded-2xl bg-sand p-3">
           <a href="/panel/cuenta" class="flex items-center gap-3 rounded-xl p-1 transition hover:bg-paper/60">
             <span class="grid size-10 place-items-center rounded-xl bg-brand-500 text-sm font-medium text-white">{initials}</span>
@@ -135,6 +149,7 @@ const initials = (profile?.full_name || profile?.email || '?')
     <Toaster client:load flash={flash} />
     <script>
       import '../scripts/micro';
+      import '../scripts/pwa';
     </script>
   </body>
 </html>

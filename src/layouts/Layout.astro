@@ -15,7 +15,7 @@ const { business, title = `${business.name} · ${business.tagline}`, description
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#fffaf1" />
     <meta property="og:title" content={title} />
@@ -25,6 +25,11 @@ const { business, title = `${business.name} · ${business.tagline}`, description
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Llevo" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>{title}</title>
     <script is:inline>
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -40,6 +45,7 @@ const { business, title = `${business.name} · ${business.tagline}`, description
     <script>
       import '../scripts/motion';
       import '../scripts/micro';
+      import '../scripts/pwa';
     </script>
   </body>
 </html>
