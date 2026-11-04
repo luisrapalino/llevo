@@ -6,7 +6,7 @@ import { STATUSES, STATUS_KEYS, TIME_SLOTS, type Status } from '../../../lib/con
 import { fmtDate, fmtDateTime, shortSlot } from '../../../lib/format';
 import { formatCOP, getSettings, normalizePhone, whatsappLink } from '../../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../../lib/supabase';
-import { thumbPath } from '../../../lib/thumbs';
+import { photoUrl, thumbPath } from '../../../lib/thumbs';
 
 const db = Astro.locals.supabase!;
 const { id } = Astro.params;
@@ -46,11 +46,8 @@ const [{ data: r }, { data: team }, settings] = await Promise.all([
 ]);
 if (!r) return Astro.redirect('/panel/solicitudes?error=No%20encontramos%20esa%20solicitud');
 
-let photos: { path: string; url: string }[] = [];
-if (r.photos.length) {
-  const { data } = await db.storage.from(PHOTOS_BUCKET).createSignedUrls(r.photos, 3600);
-  photos = (data ?? []).filter((p) => p.signedUrl && !p.error).map((p) => ({ path: p.path!, url: p.signedUrl! }));
-}
+// Direcciones estables: el navegador reutiliza las fotos ya descargadas entre visitas
+const photos: { path: string; url: string }[] = r.photos.map((path: string) => ({ path, url: photoUrl(path) }));
 
 const biz = settings.business;
 const firstName = r.customer_name.split(' ')[0];
