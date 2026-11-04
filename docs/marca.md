@@ -15,8 +15,8 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 | `llevo-logo-tinta.svg` | A una tinta (impresión económica, sellos) |
 | `llevo-logo-recto.svg` | Sin inclinación, para espacios muy estrechos |
 | `llevo-wordmark.svg` | Solo la palabra, cuando el sticker se ve pesado |
-| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin blanco y la cinta (avatares, pestaña del navegador) |
-| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul sobre azul (el Panel, sobre tinta con la etiqueta "Panel") |
+| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin del logo (con su cola corta) en blanco, grande y centrado, y la cinta |
+| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul (con su cola corta) sobre azul (el Panel, sobre tinta con la etiqueta "Panel") |
 | `og-image.png` | Imagen al compartir la web en redes y WhatsApp |
 
 **Reglas**
