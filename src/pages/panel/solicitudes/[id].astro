@@ -424,7 +424,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
   </script>
 
   <!-- Visor de fotos -->
-  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-viewer>
+  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/85" data-viewer>
     <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-2xl object-contain" data-viewer-img />
     <form method="dialog">
       <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg" aria-label="Cerrar">
@@ -496,7 +496,10 @@ const floorText = (floor: string | null, elevator: boolean) =>
       const [lat, lng] = (v ?? '').split(',').map(Number);
       return Number.isFinite(lat) && Number.isFinite(lng) && v ? { lat, lng } : null;
     };
-    import('../../../lib/map').then(async ({ createRouteMap }) => {
+    // El mapa (pesado) se carga cuando termina la transición de entrada, para que no se trabe
+    ((window as unknown as { __vtReady?: Promise<void> }).__vtReady ?? Promise.resolve())
+      .then(() => import('../../../lib/map'))
+      .then(async ({ createRouteMap }) => {
       const route = await createRouteMap(el, { interactive: true, draggable: false });
       const o = parse(el.dataset.origin);
       const d = parse(el.dataset.destination);

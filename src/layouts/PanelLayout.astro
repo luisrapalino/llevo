@@ -76,6 +76,17 @@ const initials = (profile?.full_name || profile?.email || '?')
         window.addEventListener('pageshow', function () {
           if (tagged) { tag(tagged, false); tagged = null; }
         });
+        // Promesa que se cumple cuando termina la transición de entrada (o enseguida si no hay):
+        // lo pesado (como el mapa) espera a esto para no trabar la animación
+        var ready;
+        window.__vtReady = new Promise(function (r) { ready = r; });
+        // Sin soporte de transiciones (p. ej. Firefox): no hay nada que esperar
+        if (!('onpagereveal' in window)) ready();
+        setTimeout(function () { ready(); }, 1200);
+        window.addEventListener('pagereveal', function (e) {
+          if (!e.viewTransition) return ready();
+          e.viewTransition.finished.finally(function () { ready(); });
+        });
         // Vuelta: llegando desde un detalle, la fila de esa solicitud recibe los nombres
         window.addEventListener('pagereveal', function (e) {
           if (!e.viewTransition || !window.navigation || !navigation.activation || !navigation.activation.from) return;
@@ -264,11 +275,15 @@ const initials = (profile?.full_name || profile?.email || '?')
         }),
       );
     </script>
-    <Toaster client:load flash={flash} />
+    <Toaster client:idle flash={flash} />
     <script>
-      import '../scripts/micro';
-      import '../scripts/pwa';
-      import '../scripts/panel-live';
+      // Lo que no hace falta para pintar la página arranca cuando termina la transición de entrada
+      const after = (window as unknown as { __vtReady?: Promise<void> }).__vtReady ?? Promise.resolve();
+      after.then(() => {
+        import('../scripts/micro');
+        import('../scripts/pwa');
+        import('../scripts/panel-live');
+      });
     </script>
   </body>
 </html>
