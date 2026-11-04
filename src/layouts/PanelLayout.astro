@@ -133,5 +133,8 @@ const initials = (profile?.full_name || profile?.email || '?')
       );
     </script>
     <Toaster client:load flash={flash} />
+    <script>
+      import '../scripts/micro';
+    </script>
   </body>
 </html>

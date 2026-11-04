@@ -62,3 +62,23 @@ Animaciones con [GSAP](https://gsap.com) siguiendo las guías oficiales de
 - **Panel:** las cifras del resumen cuentan desde cero.
 - Solo se animan `transform` y opacidad, con curvas suaves (`power3.out`); nada en bucle.
 - Si el sistema tiene **reducir movimiento** activado, todo aparece de inmediato sin animación.
+
+## Microinteracciones (Motion)
+
+Con [Motion](https://motion.dev) (antes Framer Motion), en su versión de JavaScript para no cargar React
+en cada botón. Código en `src/scripts/micro.ts`. GSAP se encarga de las entradas y el scroll; Motion, de
+las respuestas al tocar.
+
+- Botones: se hunden un poco al presionarlos; la flecha se asoma al pasar el mouse.
+- Logo: el sticker se despega un poco al pasar el mouse.
+- WhatsApp: el botón se levanta y se inclina como saludando.
+- Formulario: rebote al elegir una opción, las barras de tamaño crecen, los días responden al tocarlos,
+  las fotos nuevas aparecen con un pequeño rebote y los campos con error hacen una sacudida suave.
+- Preguntas frecuentes: la respuesta aparece suave.
+- Panel: las tarjetas del resumen se levantan y las flechas de los enlaces se asoman.
+- Todo con resortes cortos sobre `transform` y opacidad; con "reducir movimiento" no se ejecuta nada.
+
+## Zona de servicio
+
+Por ahora **solo Valledupar**. La ciudad sale de **Configuración → Negocio → Ciudad** y se muestra en la
+portada, el paso de ruta del formulario, la sección del vehículo y las preguntas frecuentes.

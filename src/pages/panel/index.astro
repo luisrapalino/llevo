@@ -83,7 +83,7 @@ const stats = [
   <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
     {
       stats.map((s) => (
-        <a href={s.href} class="rounded-2xl border border-line bg-paper p-5 transition-colors hover:bg-sand/40">
+        <a href={s.href} data-lift class="rounded-2xl border border-line bg-paper p-5 transition-colors hover:bg-sand/40">
           <p class="text-sm text-ink-2">{s.label}</p>
           <p class="mt-3 text-[28px] leading-none font-medium tracking-[-0.01em] tabular-nums" data-count={s.count} data-money={s.money ? '1' : undefined}>{s.value}</p>
           <p class="mt-3 text-xs text-ink-3 tabular-nums">{s.meta}</p>

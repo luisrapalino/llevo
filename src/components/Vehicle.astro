@@ -1,13 +1,13 @@
 ---
 import { Icon } from 'astro-icon/components';
-import type { Vehicle } from '../lib/settings';
+import { cityName, type Business, type Vehicle } from '../lib/settings';
 
-const { vehicle } = Astro.props as { vehicle: Vehicle };
+const { vehicle, business } = Astro.props as { vehicle: Vehicle; business: Business };
 const perks = [
   { icon: 'heroicons:squares-2x2', text: 'Cobijas y amarres para proteger tus muebles' },
   { icon: 'heroicons:user-group', text: 'Ayudantes adicionales si los necesitas' },
   { icon: 'heroicons:wrench-screwdriver', text: 'Desarme y armado básico de camas y muebles' },
-  { icon: 'heroicons:map', text: 'Viajes dentro de la ciudad y municipios cercanos' },
+  { icon: 'heroicons:map', text: `Por ahora atendemos solo en ${cityName(business)}` },
 ];
 ---
 

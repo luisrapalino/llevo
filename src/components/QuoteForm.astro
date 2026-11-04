@@ -1,7 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { COMMON_ITEMS, FLOORS, LOAD_SIZES, SERVICE_TYPES, TIME_SLOTS } from '../lib/constants';
-import type { Business, Pricing } from '../lib/settings';
+import { cityName, type Business, type Pricing } from '../lib/settings';
 
 interface Props {
   business: Business;
@@ -127,7 +127,7 @@ const floors = FLOORS;
                       <input type="radio" name="tamano" value={l.value} class="sr-only" required checked={i === 0} />
                       <span class="flex items-end gap-1" aria-hidden="true">
                         {[0, 1, 2].map((b) => (
-                          <span class:list={['w-2.5 rounded-sm', b <= i ? 'bg-brand-500' : 'bg-sand', ['h-3', 'h-5', 'h-7'][b]]} />
+                          <span data-bar class:list={['w-2.5 origin-bottom rounded-sm', b <= i ? 'bg-brand-500' : 'bg-sand', ['h-3', 'h-5', 'h-7'][b]]} />
                         ))}
                       </span>
                       <span class="mt-3 font-medium">{l.value}</span>
@@ -145,6 +145,9 @@ const floors = FLOORS;
             <div>
               <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Desde dónde y hasta dónde?</h3>
               <p class="mt-1 text-sm text-ink-2">Incluye barrio o una referencia para llegar más fácil.</p>
+              <p class="mt-3 inline-flex items-center gap-2 rounded-lg bg-butter-soft px-3 py-1.5 text-sm text-ink">
+                <Icon name="heroicons:map-pin" class="size-4 text-ink-2" /> Por ahora solo atendemos en {cityName(business)}
+              </p>
             </div>
 
             {
@@ -177,7 +180,7 @@ const floors = FLOORS;
                       <label for={`${p.key}-ref`} class="field-label">
                         Barrio / referencia <span class="font-normal text-ink-3">(opcional)</span>
                       </label>
-                      <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Laureles, frente al parque" />
+                      <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Novalito, frente al parque" />
                     </div>
                     <div>
                       <label for={`${p.key}-piso`} class="field-label">Piso</label>
@@ -518,6 +521,7 @@ const floors = FLOORS;
     const invalid = fields.find((f) => !f.checkValidity());
     if (invalid) {
       invalid.setAttribute('aria-invalid', 'true');
+      invalid.dispatchEvent(new CustomEvent('llevo:invalid', { bubbles: true }));
       invalid.reportValidity();
       if (!(invalid instanceof HTMLInputElement && (invalid.type === 'radio' || invalid.type === 'checkbox'))) invalid.focus();
       return false;
