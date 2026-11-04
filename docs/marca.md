@@ -5,7 +5,7 @@ Amable y cercana. Un servicio de trasteos que se siente de barrio, cumplido y si
 ## Logo: el sticker
 
 La palabra **llevo** como un sticker pegado con cinta: lo que pones en una caja para saber a dónde va.
-La "o" es un **pin de entrega** y debajo corre una **ruta punteada** que sale de un aro (la recogida): de aquí a allá, igual que en el mapa del formulario.
+La "o" es un **pin de entrega**: su cabeza baja, se dobla hacia la izquierda y se estira en una **estela** del mismo color que recorre la palabra y se desvanece. Pin y ruta son una sola forma: de aquí a allá.
 Los archivos están en `public/brand/` (vectores, sin depender de fuentes instaladas).
 
 | Archivo | Uso |
@@ -15,8 +15,8 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 | `llevo-logo-tinta.svg` | A una tinta (impresión económica, sellos) |
 | `llevo-logo-recto.svg` | Sin inclinación, para espacios muy estrechos |
 | `llevo-wordmark.svg` | Solo la palabra, cuando el sticker se ve pesado |
-| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin blanco y la cinta (avatares, pestaña del navegador) |
-| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul sobre azul (el Panel, sobre tinta con la etiqueta "Panel") |
+| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin del logo (con su cola corta) en blanco, grande y centrado, y la cinta |
+| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul (con su cola corta) sobre azul (el Panel, sobre tinta con la etiqueta "Panel") |
 | `og-image.png` | Imagen al compartir la web en redes y WhatsApp |
 
 **Reglas**
@@ -24,7 +24,7 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 - Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono del pin.
 - No cambies la inclinación (−6°), los colores ni la tipografía. No le agregues sombras, degradados ni contornos.
 - La cinta siempre es amarilla mantequilla y va en la esquina superior izquierda.
-- La ruta y el aro van en mantequilla; el pin, del mismo color que las letras, con el ojal calado.
+- El pin y su estela van del mismo color que las letras, con el ojal calado; la estela siempre se desvanece hacia la izquierda.
 
 ## Paleta: cielo y mantequilla
 
