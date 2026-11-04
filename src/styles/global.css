@@ -142,3 +142,22 @@
 .motion [data-reveal] {
   visibility: hidden;
 }
+
+/* Mapa ampliado a pantalla completa (botón "Ampliar mapa") */
+.llevo-map-full {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 70;
+  width: 100vw !important;
+  height: 100dvh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+}
+/* En el formulario se amplía el bloque completo (selector Recogida/Entrega + mapa) */
+.llevo-map-full > [data-route-map] {
+  flex: 1;
+  height: auto !important;
+}
