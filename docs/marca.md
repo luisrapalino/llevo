@@ -49,3 +49,16 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 
 Cercano y directo, de tú. Frases cortas, sin exclamaciones ni promesas que no podamos cumplir.
 Ejemplo: "Tú lo empacas, nosotros lo llevamos".
+
+## Movimiento (GSAP)
+
+Animaciones con [GSAP](https://gsap.com) siguiendo las guías oficiales de
+[greensock/gsap-skills](https://github.com/greensock/gsap-skills). El código está en `src/scripts/motion.ts`.
+
+- **Una sola entrada al cargar:** el título sube palabra por palabra y la guía de despacho se arma
+  (etiqueta, cinta, ruta, total que cuenta y el sello "Agendado").
+- **Al hacer scroll:** cada bloque aparece una sola vez; en "Cómo funciona" una línea une los pasos.
+- **Formulario:** el paso nuevo entra desde la dirección en la que avanzas; la barra de progreso se anima.
+- **Panel:** las cifras del resumen cuentan desde cero.
+- Solo se animan `transform` y opacidad, con curvas suaves (`power3.out`); nada en bucle.
+- Si el sistema tiene **reducir movimiento** activado, todo aparece de inmediato sin animación.
