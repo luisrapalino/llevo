@@ -115,9 +115,8 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
   };
   const onKey = (e: KeyboardEvent) => e.key === 'Escape' && toggle(false);
 
-  function toggle(on = !open) {
-    if (on === open) return;
-    open = on;
+  /** Cambia el DOM entre recuadro y ventana grande (sin animación). */
+  function apply(on: boolean) {
     if (on) {
       container.before(marker);
       document.body.append(backdrop, container);
@@ -132,10 +131,54 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
     const coop = (map as any).cooperativeGestures;
     if (coop) on ? coop.disable() : coop.enable();
     paint();
-    requestAnimationFrame(() => {
-      map.resize();
-      refit();
+    map.resize();
+  }
+
+  /**
+   * Ampliar / cerrar con transición compartida: el recuadro crece hasta la ventana grande
+   * (y vuelve). El mapa se ve a escala real mientras la caja se abre, como una ventana que se agranda.
+   */
+  async function toggle(on = !open) {
+    if (on === open) return;
+    open = on;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!('startViewTransition' in document) || reduce) {
+      apply(on);
+      requestAnimationFrame(refit);
+      return;
+    }
+    const html = document.documentElement;
+    html.classList.add('vt-mapa', on ? 'vt-mapa-open' : 'vt-mapa-close');
+    // Si se amplía un bloque con el mapa y sus controles (formulario), cada parte viaja por separado:
+    // la tarjeta (fondo), la barra de arriba y el mapa. Así la barra no se recorta ni aparece de golpe.
+    const mapEl = map.getContainer();
+    const named: HTMLElement[] = [];
+    const name = (el: HTMLElement | null | undefined, n: string) => {
+      if (!el) return;
+      el.style.viewTransitionName = n;
+      named.push(el);
+    };
+    if (container !== mapEl) {
+      name(container, 'mapa-caja');
+      const head = Array.from(container.children).find((c) => !c.contains(mapEl)) as HTMLElement | undefined;
+      name(head, 'mapa-head');
+      name(mapEl, 'mapa');
+    } else {
+      name(container, 'mapa');
+    }
+    const t = (document as any).startViewTransition(async () => {
+      apply(on);
+      // esperar a que el mapa se pinte con su nuevo tamaño antes de la foto final
+      await new Promise<void>((r) => {
+        map.once('render', () => r());
+        map.triggerRepaint();
+        setTimeout(r, 250);
+      });
     });
+    await t.finished.catch(() => {});
+    named.forEach((el) => (el.style.viewTransitionName = ''));
+    html.classList.remove('vt-mapa', 'vt-mapa-open', 'vt-mapa-close');
+    refit();
   }
 
   btn.addEventListener('click', () => toggle());

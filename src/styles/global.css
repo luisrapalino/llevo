@@ -233,8 +233,7 @@
 ::view-transition-group(req-name),
 ::view-transition-group(req-status),
 ::view-transition-group(req-photo),
-::view-transition-group(llevo-logo),
-::view-transition-group(foto) {
+::view-transition-group(llevo-logo) {
   animation-duration: 380ms;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -247,12 +246,40 @@
   object-position: left center;
 }
 ::view-transition-old(req-photo),
-::view-transition-new(req-photo),
-::view-transition-old(foto),
-::view-transition-new(foto) {
+::view-transition-new(req-photo) {
   object-fit: cover;
   overflow: clip;
   border-radius: 16px;
+}
+
+/* Visor de fotos: una sola imagen (sin fundido entre dos) que se "descubre" mientras crece.
+   La caja viaja del cuadrito a la foto completa; la imagen se recorta con cover, así al empezar
+   se ve igual que la miniatura y al terminar se ve entera. Curva tipo resorte (rápida y suave al llegar). */
+::view-transition-group(foto) {
+  animation-duration: 440ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  clip-path: inset(0 round 16px);
+}
+::view-transition-image-pair(foto) {
+  isolation: auto;
+}
+::view-transition-old(foto),
+::view-transition-new(foto) {
+  animation: none;
+  mix-blend-mode: normal;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Al abrir se ve solo la foto grande; al cerrar, solo la foto grande encogiéndose */
+html.vt-foto-open::view-transition-old(foto) {
+  opacity: 0;
+}
+html.vt-foto-close::view-transition-new(foto) {
+  opacity: 0;
+}
+html.vt-foto-close::view-transition-group(foto) {
+  animation-duration: 380ms;
 }
 
 /* Visor de fotos (transición dentro de la misma página): solo la foto viaja.
@@ -262,13 +289,64 @@ html.vt-foto *:not([data-viewer-img]):not(.vt-foto-src) {
   view-transition-name: none !important;
 }
 html.vt-foto::view-transition-old(root) {
-  animation: 200ms ease both vt-fade-out;
+  animation: 320ms ease both vt-fade-out;
 }
 html.vt-foto::view-transition-new(root) {
-  animation: 200ms ease both vt-fade-in;
+  animation: 320ms ease both vt-fade-in;
 }
 @keyframes vt-fade-in {
   from {
     opacity: 0;
   }
+}
+
+/* Mapa ampliado (transición dentro de la misma página): solo el mapa viaja, el resto se funde.
+   El mapa se dibuja a escala real (object-fit: none) mientras la caja crece o se encoge. */
+html.vt-mapa *:not(.llevo-map-full):not([style*="mapa"]) {
+  view-transition-name: none !important;
+}
+html.vt-mapa::view-transition-old(root) {
+  animation: 320ms ease both vt-fade-out;
+}
+html.vt-mapa::view-transition-new(root) {
+  animation: 320ms ease both vt-fade-in;
+}
+::view-transition-group(mapa),
+::view-transition-group(mapa-caja),
+::view-transition-group(mapa-head) {
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-group(mapa) {
+  clip-path: inset(0 round 16px);
+}
+/* La tarjeta (fondo y borde) crece con esquinas redondeadas */
+::view-transition-group(mapa-caja) {
+  clip-path: inset(0 round 20px);
+}
+/* La barra Recogida/Entrega viaja entera, pegada a la esquina superior izquierda (sin estirarse) */
+::view-transition-old(mapa-head),
+::view-transition-new(mapa-head) {
+  height: 100%;
+  width: 100%;
+  object-fit: none;
+  object-position: left top;
+}
+::view-transition-image-pair(mapa) {
+  isolation: auto;
+}
+::view-transition-old(mapa),
+::view-transition-new(mapa) {
+  animation: none;
+  mix-blend-mode: normal;
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: center;
+}
+html.vt-mapa-open::view-transition-old(mapa) {
+  opacity: 0;
+}
+html.vt-mapa-close::view-transition-new(mapa) {
+  opacity: 0;
 }

@@ -457,7 +457,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     }
     showX(false);
     const html = document.documentElement;
-    html.classList.add('vt-foto');
+    html.classList.add('vt-foto', 'vt-foto-open');
     thumb.classList.add('vt-foto-src');
     thumb.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(async () => {
@@ -468,7 +468,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     await t.finished.catch(() => {});
     img.style.viewTransitionName = '';
     thumb.classList.remove('vt-foto-src');
-    html.classList.remove('vt-foto');
+    html.classList.remove('vt-foto', 'vt-foto-open');
     showX(true);
   }
 
@@ -479,7 +479,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     await new Promise((r) => setTimeout(r, 120)); // que la X alcance a irse
     const html = document.documentElement;
     const thumb = current;
-    html.classList.add('vt-foto');
+    html.classList.add('vt-foto', 'vt-foto-close');
     thumb.classList.add('vt-foto-src');
     img.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(() => {
@@ -490,7 +490,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     await t.finished.catch(() => {});
     thumb.style.viewTransitionName = '';
     thumb.classList.remove('vt-foto-src');
-    html.classList.remove('vt-foto');
+    html.classList.remove('vt-foto', 'vt-foto-close');
   }
 
   document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));
