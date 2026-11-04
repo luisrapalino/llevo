@@ -421,7 +421,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
   </script>
 
   <!-- Visor de fotos -->
-  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/85" data-viewer>
+  <dialog class="llevo-overlay-dialog m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0" data-viewer>
     <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-2xl object-contain" data-viewer-img />
     <form method="dialog">
       <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg transition-[opacity,scale] duration-200 ease-out data-[hide=true]:scale-75 data-[hide=true]:opacity-0" aria-label="Cerrar" data-viewer-close>
@@ -453,6 +453,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     };
     if (!canAnimate()) {
       showX(true);
+      thumb.style.visibility = 'hidden'; // su lugar queda como hueco mientras la foto está abierta
       return show();
     }
     showX(false);
@@ -462,6 +463,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     thumb.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(async () => {
       thumb.style.viewTransitionName = '';
+      thumb.style.visibility = 'hidden'; // la foto "sale" de su cuadrito: queda el hueco
       img.style.viewTransitionName = 'foto';
       await show();
     });
@@ -474,7 +476,11 @@ const floorText = (floor: string | null, elevator: boolean) =>
 
   async function closePhoto() {
     if (!viewer?.open || !img) return;
-    if (!canAnimate() || !current) return viewer.close();
+    if (!canAnimate() || !current) {
+      viewer.close();
+      if (current) current.style.visibility = '';
+      return;
+    }
     showX(false);
     await new Promise((r) => setTimeout(r, 120)); // que la X alcance a irse
     const html = document.documentElement;
@@ -485,6 +491,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
     const t = document.startViewTransition(() => {
       img.style.viewTransitionName = '';
       viewer.close();
+      thumb.style.visibility = ''; // la foto vuelve a ocupar su lugar
       thumb.style.viewTransitionName = 'foto';
     });
     await t.finished.catch(() => {});
@@ -495,6 +502,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
 
   document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));
   viewer?.addEventListener('click', (e) => e.target === viewer && closePhoto());
+  viewer?.addEventListener('close', () => {
+    if (current && !document.documentElement.classList.contains('vt-foto')) current.style.visibility = '';
+  });
   viewer?.addEventListener('cancel', (e) => {
     e.preventDefault(); // Esc: cerrar con la misma animación
     closePhoto();

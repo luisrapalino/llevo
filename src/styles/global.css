@@ -167,8 +167,19 @@
   position: fixed;
   inset: 0;
   z-index: 69;
-  background: rgba(20, 33, 61, 0.4);
-  backdrop-filter: blur(2px);
+}
+/* Un solo estilo para todos los fondos detrás de ventanas: tinte tinta + desenfoque suave.
+   (Mapa ampliado, menú "Más" del panel y visor de fotos, que usa un tinte más oscuro.) */
+.llevo-map-backdrop,
+.llevo-overlay {
+  background: rgb(20 33 61 / 0.45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+dialog.llevo-overlay-dialog::backdrop {
+  background: rgb(20 33 61 / 0.8);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 /* En el formulario se amplía el bloque completo (selector Recogida/Entrega + mapa) */
 .llevo-map-full > [data-route-map] {
