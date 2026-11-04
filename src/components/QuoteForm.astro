@@ -39,17 +39,6 @@ const floors = FLOORS;
       <aside class="hidden lg:block">
         <div class="sticky top-24">
         <div class="relative" data-stepper-wrap>
-        <!-- Ruta entre los pasos: punteada lo que falta, azul lo recorrido (se dibuja al avanzar) -->
-        <svg class="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden="true" data-stepper-route>
-          <defs>
-            <linearGradient id="ruta-pasos" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1" data-route-grad>
-              <stop offset="0" stop-color="#2F5BEA" stop-opacity="0.35" />
-              <stop offset="0.35" stop-color="#2F5BEA" />
-            </linearGradient>
-          </defs>
-          <path data-route-base fill="none" stroke="#D9D2C4" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="0 9" />
-          <path data-route-done fill="none" stroke="url(#ruta-pasos)" stroke-width="4" stroke-linecap="round" />
-        </svg>
         <ol class="relative space-y-1" data-stepper>
           {
             steps.map((s, i) => (
@@ -86,14 +75,13 @@ const floors = FLOORS;
       <!-- Formulario -->
       <div data-form-card class="rounded-[20px] bg-cream p-5 border border-line sm:p-8">
         <!-- Progreso (móvil) -->
-        <div class="mb-6 lg:hidden">
+        <div class="mb-6 lg:hidden" data-mobile-progress>
           <div class="flex items-center justify-between text-sm">
             <span class="font-medium" data-mobile-title>{steps[0].title}</span>
             <span class="text-ink-2">Paso <span data-mobile-step>1</span> de {steps.length}</span>
           </div>
-          <div class="mt-2 h-2 overflow-hidden rounded-full bg-sand">
-            <div class="h-full w-full origin-left rounded-full bg-brand-500" style={`transform:scaleX(${1 / steps.length})`} data-progress></div>
-          </div>
+          <!-- Ruta de pasos (móvil): el pin avanza por la curva -->
+          <div class="mt-1 h-12" data-mobile-route></div>
         </div>
 
         <form
@@ -488,9 +476,7 @@ const floors = FLOORS;
 
         <!-- Éxito -->
         <div class="hidden py-8 text-center" data-success>
-          <span class="mx-auto grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-600">
-            <Icon name="heroicons:check-badge" class="size-10" />
-          </span>
+          <div class="mx-auto h-24 w-60" data-success-route></div>
           <h3 class="mt-6 text-3xl font-medium tracking-[-0.02em]">Solicitud enviada</h3>
           <p class="mt-2 hidden text-sm text-ink-2" data-success-code-wrap>
             Código de tu solicitud: <span class="rounded-lg bg-sand px-2 py-0.5 font-mono font-medium text-ink" data-success-code></span>
@@ -518,6 +504,7 @@ const floors = FLOORS;
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   import type { Pricing } from '../lib/settings';
   import { chimeSuccess } from '../lib/sounds';
+  import { stepRoute } from '../scripts/step-route';
 
   const MAX_FILES = 10;
   const MAX_DIM = 1600;
@@ -529,7 +516,7 @@ const floors = FLOORS;
   const nextBtn = form.querySelector<HTMLButtonElement>('[data-next]')!;
   const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]')!;
   const submitLabel = form.querySelector<HTMLSpanElement>('[data-submit-label]')!;
-  const progress = document.querySelector<HTMLElement>('[data-progress]')!;
+  const mobileProgress = document.querySelector<HTMLElement>('[data-mobile-progress]')!;
   const mobileStep = document.querySelector<HTMLElement>('[data-mobile-step]')!;
   const mobileTitle = document.querySelector<HTMLElement>('[data-mobile-title]')!;
   const formError = form.querySelector<HTMLElement>('[data-form-error]')!;
@@ -547,7 +534,6 @@ const floors = FLOORS;
     const last = current === stepsEls.length - 1;
     nextBtn.classList.toggle('hidden', last);
     submitBtn.classList.toggle('hidden', !last);
-    gsap.to(progress, { scaleX: (current + 1) / stepsEls.length, duration: reduceMotion() ? 0 : 0.45, ease: 'power3.out' });
     mobileStep.textContent = String(current + 1);
     mobileTitle.textContent = stepTitles[current] || '';
 
@@ -571,61 +557,67 @@ const floors = FLOORS;
     drawRoute();
   }
 
-  /* ---------- Ruta entre los pasos (stepper de escritorio) ---------- */
-  const routeWrap = document.querySelector<HTMLElement>('[data-stepper-wrap]');
-  const routeBase = document.querySelector<SVGPathElement>('[data-route-base]');
-  const routeDone = document.querySelector<SVGPathElement>('[data-route-done]');
-  const routeGrad = document.querySelector<SVGLinearGradientElement>('[data-route-grad]');
-  let routeStops: number[] = []; // largo de la ruta hasta cada paso
-  let routeShown = 0;
+  /* ---------- Ruta entre los pasos, con el pin del logo ---------- */
+  const relTo = (wrap: HTMLElement, el: Element): [number, number] => {
+    const a = wrap.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return [r.left + r.width / 2 - a.left, r.top + r.height / 2 - a.top];
+  };
+  const deskWrap = document.querySelector<HTMLElement>('[data-stepper-wrap]');
+  const deskRoute = deskWrap
+    ? stepRoute({
+        wrap: deskWrap,
+        points: () => stepLinks.map((b) => relTo(deskWrap, b.querySelector('.step-dot')!)),
+        bend: 48,
+        gap: 24,
+        pinSize: 26,
+        reduce: reduceMotion,
+        // el paso al que llega da un pequeño salto
+        onLand: (i) => gsap.fromTo(stepLinks[i]?.querySelector('.step-dot') ?? [], { scale: 0.88 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }),
+      })
+    : null;
+  const mobileWrap = document.querySelector<HTMLElement>('[data-mobile-route]');
+  const mobileRoute = mobileWrap
+    ? stepRoute({
+        wrap: mobileWrap,
+        points: () => {
+          const W = mobileWrap.clientWidth, n = stepLinks.length || stepsEls.length;
+          return Array.from({ length: n }, (_, i) => [8 + ((W - 16) * i) / (n - 1), 36] as [number, number]);
+        },
+        bend: 7,
+        dots: true,
+        pinSize: 24,
+        duration: 0.8,
+        reduce: reduceMotion,
+      })
+    : null;
+  const drawRoute = () => {
+    deskRoute?.go(current);
+    mobileRoute?.go(current);
+  };
 
-  /** Arma una curva en S suave que pasa por el centro de cada ícono, alternando hacia un lado y otro. */
-  function buildRoute() {
-    if (!routeWrap || !routeBase || !routeDone || !routeWrap.offsetParent) return false;
-    const box = routeWrap.getBoundingClientRect();
-    const pts = stepLinks.map((b) => {
-      const r = b.querySelector('.step-dot')!.getBoundingClientRect();
-      return [r.left + r.width / 2 - box.left, r.top + r.height / 2 - box.top];
-    });
-    let d = `M${pts[0][0]} ${pts[0][1]}`;
-    const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    routeStops = [0];
-    pts.slice(1).forEach(([x, y], i) => {
-      const [x0, y0] = pts[i];
-      const bend = (i % 2 === 0 ? 1 : -1) * 48;
-      const h = (y - y0) / 3;
-      d += ` C${x0 + bend} ${y0 + h} ${x - bend} ${y - h} ${x} ${y}`;
-      tmp.setAttribute('d', d);
-      routeStops.push(tmp.getTotalLength());
-    });
-    routeBase.setAttribute('d', d);
-    routeDone.setAttribute('d', d);
-    const total = routeStops[routeStops.length - 1] || 1;
-    routeDone.style.strokeDasharray = `${total} ${total}`;
-    routeGrad?.setAttribute('y2', String(pts[pts.length - 1][1]));
-    return true;
-  }
-
-  /** Dibuja (o recoge) la parte recorrida hasta el paso actual. */
-  function drawRoute(instant = false) {
-    if (!routeDone || !routeStops.length) return;
-    const total = routeStops[routeStops.length - 1] || 1;
-    const target = routeStops[current] ?? 0;
-    const state = { v: routeShown };
-    gsap.to(state, {
-      v: target,
-      duration: instant || reduceMotion() ? 0 : 0.9,
-      ease: 'power2.inOut',
-      overwrite: true,
-      onUpdate: () => {
-        routeShown = state.v;
-        routeDone.style.strokeDashoffset = String(total - state.v);
+  /** Pantalla de éxito: la ruta se recorre completa y el pin aterriza en el destino. */
+  const successWrap = success.querySelector<HTMLElement>('[data-success-route]');
+  let successRoute: ReturnType<typeof stepRoute> | null = null;
+  function arrive() {
+    if (!successWrap) return;
+    successRoute ??= stepRoute({
+      wrap: successWrap,
+      points: () => {
+        const W = successWrap.clientWidth, H = successWrap.clientHeight;
+        return [[10, H - 18], [W * 0.36, H - 30], [W * 0.66, H - 14], [W - 14, H - 26]];
       },
+      bend: 14,
+      dots: true,
+      pinSize: 46,
+      duration: 1.5,
+      reduce: reduceMotion,
+      onLand: () => gsap.fromTo(successWrap, { scale: 0.97 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' }),
     });
-  }
-
-  if (routeWrap) {
-    new ResizeObserver(() => buildRoute() && drawRoute(true)).observe(routeWrap);
+    requestAnimationFrame(() => {
+      successRoute!.build();
+      successRoute!.go(0, { instant: true });
+      successRoute!.go(3);
+    });
   }
 
   function validateStep(i: number) {
@@ -935,10 +927,11 @@ const floors = FLOORS;
       });
       form.classList.add('hidden');
       document.querySelector('[data-stepper]')?.closest('aside')?.classList.add('lg:invisible');
-      progress.parentElement!.parentElement!.classList.add('hidden');
+      mobileProgress.classList.add('hidden');
       success.classList.remove('hidden');
+      arrive();
       if (!reduceMotion()) {
-        gsap.from(success.firstElementChild, { scale: 0.6, autoAlpha: 0, duration: 0.45, ease: 'back.out(2)' });
+        gsap.from(success.firstElementChild, { autoAlpha: 0, duration: 0.3 });
         gsap.from(Array.from(success.children).slice(1), { autoAlpha: 0, y: 10, stagger: 0.06, delay: 0.1, duration: 0.4, ease: 'power3.out' });
       }
     } catch (err) {
@@ -966,7 +959,7 @@ const floors = FLOORS;
     form.classList.remove('hidden');
     success.classList.add('hidden');
     document.querySelector('[data-stepper]')?.closest('aside')?.classList.remove('lg:invisible');
-    progress.parentElement!.parentElement!.classList.remove('hidden');
+    mobileProgress.classList.remove('hidden');
     render();
   });
 
