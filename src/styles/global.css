@@ -175,3 +175,9 @@
   flex: 1;
   height: auto !important;
 }
+
+/* El mapa mantiene sus capas dentro de sí (controles, aviso de "dos dedos"):
+   así no se sobreponen a las barras fijas del panel ni al nav */
+.maplibregl-map {
+  isolation: isolate;
+}

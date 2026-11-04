@@ -343,20 +343,19 @@ const floorText = (floor: string | null, elevator: boolean) =>
     </aside>
   </div>
 
-  <!-- Acciones fijas (celular): llamar, escribir o ir a gestionar sin buscar al final de la página -->
-  <div class="h-16 sm:hidden" aria-hidden="true"></div>
-  <div class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-cream/95 px-3 py-2.5 backdrop-blur sm:hidden">
-    <div class="grid grid-cols-3 gap-2">
-      <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="btn-ghost !h-11 !px-2 !text-sm">
-        <Icon name="heroicons:phone" class="size-4" /> Llamar
-      </a>
-      <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="btn !h-11 !bg-[#25D366] !px-2 !text-sm text-white">
-        <Icon name="heroicons:chat-bubble-left-right" class="size-4" /> WhatsApp
-      </a>
-      <a href="#gestion" class="btn-dark !h-11 !px-2 !text-sm">
-        <Icon name="heroicons:adjustments-horizontal" class="size-4" /> Gestionar
-      </a>
-    </div>
+  <!-- Acciones rápidas (celular): una pastilla flotante pequeña, no una barra completa -->
+  <div
+    class="fixed right-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-1.5 rounded-full border border-line bg-paper/95 p-1.5 shadow-[0_8px_24px_rgba(20,33,61,0.18)] backdrop-blur sm:hidden"
+  >
+    <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="grid size-10 place-items-center rounded-full bg-sand text-ink" aria-label="Llamar" title="Llamar">
+      <Icon name="heroicons:phone" class="size-5" />
+    </a>
+    <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="grid size-10 place-items-center rounded-full bg-[#25D366] text-white" aria-label="WhatsApp" title="WhatsApp">
+      <Icon name="heroicons:chat-bubble-left-right" class="size-5" />
+    </a>
+    <a href="#gestion" class="flex h-10 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-semibold text-white" aria-label="Gestionar">
+      <Icon name="heroicons:pencil-square" class="size-5" /> Gestionar
+    </a>
   </div>
 
   <!-- Visor de fotos -->
