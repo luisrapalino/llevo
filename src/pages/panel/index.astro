@@ -56,7 +56,7 @@ const monthRevenue = sum(revenue.data);
 const prevMonthRevenue = sum(prevRevenue.data);
 const revenueDelta = monthRevenue - prevMonthRevenue;
 
-const thumbs = await thumbUrls(db, latest.data ?? []);
+const thumbs = thumbUrls(latest.data ?? []);
 
 const stats = [
   { label: 'Nuevas', count: byStatus.nueva, value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
@@ -188,7 +188,15 @@ const stats = [
   import { gsap } from 'gsap';
 
   // Las cifras del resumen cuentan desde cero al cargar (sin animación si se pidió reducir movimiento)
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  // Solo la primera vez de la sesión: al volver al Inicio las cifras ya están, sin "recargar"
+  let seen = false;
+  try {
+    seen = sessionStorage.getItem('llevo:cifras') === '1';
+    sessionStorage.setItem('llevo:cifras', '1');
+  } catch {
+    /* sin almacenamiento: se anima */
+  }
+  if (!seen && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
       const target = Number(el.dataset.count) || 0;

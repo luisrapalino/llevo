@@ -6,7 +6,7 @@ import { STATUSES, STATUS_KEYS, TIME_SLOTS, type Status } from '../../../lib/con
 import { fmtDate, fmtDateTime, shortSlot } from '../../../lib/format';
 import { formatCOP, getSettings, normalizePhone, whatsappLink } from '../../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../../lib/supabase';
-import { thumbPath } from '../../../lib/thumbs';
+import { photoUrl, thumbPath } from '../../../lib/thumbs';
 
 const db = Astro.locals.supabase!;
 const { id } = Astro.params;
@@ -46,11 +46,8 @@ const [{ data: r }, { data: team }, settings] = await Promise.all([
 ]);
 if (!r) return Astro.redirect('/panel/solicitudes?error=No%20encontramos%20esa%20solicitud');
 
-let photos: { path: string; url: string }[] = [];
-if (r.photos.length) {
-  const { data } = await db.storage.from(PHOTOS_BUCKET).createSignedUrls(r.photos, 3600);
-  photos = (data ?? []).filter((p) => p.signedUrl && !p.error).map((p) => ({ path: p.path!, url: p.signedUrl! }));
-}
+// Direcciones estables: el navegador reutiliza las fotos ya descargadas entre visitas
+const photos: { path: string; url: string }[] = r.photos.map((path: string) => ({ path, url: photoUrl(path) }));
 
 const biz = settings.business;
 const firstName = r.customer_name.split(' ')[0];
@@ -427,7 +424,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
   <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/85" data-viewer>
     <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-2xl object-contain" data-viewer-img />
     <form method="dialog">
-      <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg" aria-label="Cerrar">
+      <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg transition-[opacity,scale] duration-200 ease-out data-[hide=true]:scale-75 data-[hide=true]:opacity-0" aria-label="Cerrar" data-viewer-close>
         <Icon name="heroicons:x-mark" class="size-5" />
       </button>
     </form>
@@ -441,6 +438,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
   const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canAnimate = () => 'startViewTransition' in document && !reduce();
   let current: HTMLImageElement | null = null;
+  // La X aparece cuando la foto ya terminó de crecer, y se va antes de que se encoja
+  const closeBtn = viewer?.querySelector<HTMLElement>('[data-viewer-close]');
+  const showX = (on: boolean) => closeBtn?.setAttribute('data-hide', String(!on));
 
   async function openPhoto(btn: HTMLButtonElement) {
     if (!viewer || !img) return;
@@ -451,7 +451,14 @@ const floorText = (floor: string | null, elevator: boolean) =>
       await img.decode().catch(() => {});
       viewer.showModal();
     };
-    if (!canAnimate()) return show();
+    if (!canAnimate()) {
+      showX(true);
+      return show();
+    }
+    showX(false);
+    const html = document.documentElement;
+    html.classList.add('vt-foto');
+    thumb.classList.add('vt-foto-src');
     thumb.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(async () => {
       thumb.style.viewTransitionName = '';
@@ -460,13 +467,21 @@ const floorText = (floor: string | null, elevator: boolean) =>
     });
     await t.finished.catch(() => {});
     img.style.viewTransitionName = '';
+    thumb.classList.remove('vt-foto-src');
+    html.classList.remove('vt-foto');
+    showX(true);
   }
 
   async function closePhoto() {
     if (!viewer?.open || !img) return;
     if (!canAnimate() || !current) return viewer.close();
-    img.style.viewTransitionName = 'foto';
+    showX(false);
+    await new Promise((r) => setTimeout(r, 120)); // que la X alcance a irse
+    const html = document.documentElement;
     const thumb = current;
+    html.classList.add('vt-foto');
+    thumb.classList.add('vt-foto-src');
+    img.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(() => {
       img.style.viewTransitionName = '';
       viewer.close();
@@ -474,6 +489,8 @@ const floorText = (floor: string | null, elevator: boolean) =>
     });
     await t.finished.catch(() => {});
     thumb.style.viewTransitionName = '';
+    thumb.classList.remove('vt-foto-src');
+    html.classList.remove('vt-foto');
   }
 
   document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));

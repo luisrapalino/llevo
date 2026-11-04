@@ -38,7 +38,7 @@ const [{ data: rows, count }, statusCounts] = await Promise.all([
   ),
 ]);
 const counts = Object.fromEntries(statusCounts) as Record<Status, number>;
-const thumbs = await thumbUrls(db, rows ?? []);
+const thumbs = thumbUrls(rows ?? []);
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
 const pages = Math.max(1, Math.ceil((count ?? 0) / PAGE));
 

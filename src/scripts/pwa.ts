@@ -12,11 +12,13 @@ const standalone = () =>
 const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  const register = () =>
     navigator.serviceWorker.register('/sw.js').catch(() => {
       /* sin service worker la web funciona igual */
     });
-  });
+  // En el panel este script se carga tarde (después de la transición): si la página ya cargó, registrar ya
+  if (document.readyState === 'complete') register();
+  else window.addEventListener('load', register);
 }
 
 const buttons = () => Array.from(document.querySelectorAll<HTMLElement>('[data-install]'));

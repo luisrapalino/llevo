@@ -254,3 +254,21 @@
   overflow: clip;
   border-radius: 16px;
 }
+
+/* Visor de fotos (transición dentro de la misma página): solo la foto viaja.
+   Sin esto heredaba la entrada de "página nueva" y lo fijo (barra lateral, encabezado, miniatura)
+   quedaba por encima del fondo oscuro. */
+html.vt-foto *:not([data-viewer-img]):not(.vt-foto-src) {
+  view-transition-name: none !important;
+}
+html.vt-foto::view-transition-old(root) {
+  animation: 200ms ease both vt-fade-out;
+}
+html.vt-foto::view-transition-new(root) {
+  animation: 200ms ease both vt-fade-in;
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}

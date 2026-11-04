@@ -28,6 +28,16 @@ const nav = [
 const tabs = nav.filter((n) => ['inicio', 'solicitudes', 'agenda'].includes(n.key));
 const moreActive = !!active && !tabs.some((t) => t.key === active);
 
+// Contador de solicitudes nuevas pintado desde el servidor (antes aparecía tarde y "saltaba")
+let nuevas = 0;
+try {
+  const { count } = (await Astro.locals.supabase?.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'nueva')) ?? {};
+  nuevas = count ?? 0;
+} catch {
+  /* sin conexión: lo completa panel-live */
+}
+const badge = nuevas > 99 ? '99+' : String(nuevas);
+
 const ok = Astro.url.searchParams.get('ok');
 const error = Astro.url.searchParams.get('error');
 const flash = error ? { type: 'error' as const, message: error } : ok ? { type: 'success' as const, message: ok } : null;
@@ -53,6 +63,16 @@ const initials = (profile?.full_name || profile?.email || '?')
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Llevo Panel" />
     <title>{title} · Panel</title>
+    <script type="speculationrules" is:inline>
+      {
+        "prefetch": [
+          {
+            "where": { "and": [{ "href_matches": "/panel/*" }, { "not": { "href_matches": "/panel/salir" } }] },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
     <script is:inline>
       // Transición compartida lista ⇄ detalle: solo la fila tocada recibe los nombres (deben ser únicos por página)
       (function () {
@@ -138,8 +158,10 @@ const initials = (profile?.full_name || profile?.email || '?')
                   <span
                     data-nav-count
                     aria-label="solicitudes nuevas"
-                    class="ml-auto hidden min-w-6 rounded-full bg-butter px-1.5 py-0.5 text-center text-xs font-bold text-ink tabular-nums"
-                  />
+                    class:list={['ml-auto min-w-6 rounded-full bg-butter px-1.5 py-0.5 text-center text-xs font-bold text-ink tabular-nums', !nuevas && 'hidden']}
+                  >
+                    {badge}
+                  </span>
                 )}
               </a>
             ))
@@ -218,8 +240,10 @@ const initials = (profile?.full_name || profile?.email || '?')
                   {t.key === 'solicitudes' && (
                     <span
                       data-nav-count
-                      class="absolute top-1 left-1/2 ml-2 hidden min-w-5 rounded-full bg-butter px-1 text-center text-[10px] leading-5 font-bold text-ink tabular-nums"
-                    />
+                      class:list={['absolute top-1 left-1/2 ml-2 min-w-5 rounded-full bg-butter px-1 text-center text-[10px] leading-5 font-bold text-ink tabular-nums', !nuevas && 'hidden']}
+                    >
+                      {badge}
+                    </span>
                   )}
                 </a>
               </li>
