@@ -449,6 +449,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
       viewer.showModal();
     };
     if (!canAnimate()) return show();
+    const html = document.documentElement;
+    html.classList.add('vt-foto');
+    thumb.classList.add('vt-foto-src');
     thumb.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(async () => {
       thumb.style.viewTransitionName = '';
@@ -457,13 +460,18 @@ const floorText = (floor: string | null, elevator: boolean) =>
     });
     await t.finished.catch(() => {});
     img.style.viewTransitionName = '';
+    thumb.classList.remove('vt-foto-src');
+    html.classList.remove('vt-foto');
   }
 
   async function closePhoto() {
     if (!viewer?.open || !img) return;
     if (!canAnimate() || !current) return viewer.close();
-    img.style.viewTransitionName = 'foto';
+    const html = document.documentElement;
     const thumb = current;
+    html.classList.add('vt-foto');
+    thumb.classList.add('vt-foto-src');
+    img.style.viewTransitionName = 'foto';
     const t = document.startViewTransition(() => {
       img.style.viewTransitionName = '';
       viewer.close();
@@ -471,6 +479,8 @@ const floorText = (floor: string | null, elevator: boolean) =>
     });
     await t.finished.catch(() => {});
     thumb.style.viewTransitionName = '';
+    thumb.classList.remove('vt-foto-src');
+    html.classList.remove('vt-foto');
   }
 
   document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));
