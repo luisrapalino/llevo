@@ -5,6 +5,8 @@ import StatusBadge from '../../../components/panel/StatusBadge.astro';
 import { STATUSES, STATUS_KEYS, type Status } from '../../../lib/constants';
 import { fmtDate, shortSlot, timeAgo } from '../../../lib/format';
 import { formatCOP } from '../../../lib/settings';
+import { thumbUrls } from '../../../lib/thumbs';
+import RequestThumb from '../../../components/panel/RequestThumb.astro';
 
 const db = Astro.locals.supabase!;
 const PAGE = 20;
@@ -36,6 +38,7 @@ const [{ data: rows, count }, statusCounts] = await Promise.all([
   ),
 ]);
 const counts = Object.fromEntries(statusCounts) as Record<Status, number>;
+const thumbs = await thumbUrls(db, rows ?? []);
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
 const pages = Math.max(1, Math.ceil((count ?? 0) / PAGE));
 
@@ -91,14 +94,19 @@ const link = (over: Record<string, string | number | null>) => {
           </thead>
           <tbody class="divide-y divide-line">
             {rows.map((r) => (
-              <tr class="group relative transition hover:bg-sand/60">
+              <tr class="group relative transition hover:bg-sand/60" data-vt-row={r.id}>
                 <td class="px-5 py-4">
-                  <a href={`/panel/solicitudes/${r.id}`} class="font-medium after:absolute after:inset-0">
-                    {r.customer_name}
-                  </a>
-                  <p class="text-xs text-ink-2">
-                    <span class="font-mono">#{r.code}</span> · {timeAgo(r.created_at)}
-                  </p>
+                  <div class="flex items-center gap-3">
+                    <RequestThumb url={thumbs[r.id]} service={r.service} class="size-10" />
+                    <div class="min-w-0">
+                      <a href={`/panel/solicitudes/${r.id}`} class="font-medium after:absolute after:inset-0" data-vt="name">
+                        {r.customer_name}
+                      </a>
+                      <p class="text-xs text-ink-2">
+                        <span class="font-mono">#{r.code}</span> · {timeAgo(r.created_at)}
+                      </p>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-5 py-4">
                   <p class="font-medium">{r.service}</p>
@@ -123,7 +131,7 @@ const link = (over: Record<string, string | number | null>) => {
                   )}
                 </td>
                 <td class="px-5 py-4">
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} data-vt="status" />
                 </td>
               </tr>
             ))}
@@ -134,19 +142,22 @@ const link = (over: Record<string, string | number | null>) => {
         <ul class="divide-y divide-line md:hidden">
           {rows.map((r) => (
             <li>
-              <a href={`/panel/solicitudes/${r.id}`} class="block p-4 transition active:bg-sand/60">
+              <a href={`/panel/solicitudes/${r.id}`} class="flex gap-3 p-3.5 transition active:bg-sand/60" data-vt-row={r.id}>
+                <RequestThumb url={thumbs[r.id]} service={r.service} />
+                <div class="min-w-0 flex-1">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <p class="truncate font-medium">{r.customer_name}</p>
+                    <p class="truncate font-medium" data-vt="name">{r.customer_name}</p>
                     <p class="text-xs text-ink-2">
                       {r.service} · <span>{fmtDate(r.service_date)}</span>
                     </p>
                   </div>
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} data-vt="status" />
                 </div>
-                <p class="mt-2 truncate text-xs text-ink-2">
+                <p class="mt-1.5 truncate text-xs text-ink-2">
                   {r.origin_address} <Icon name="heroicons:arrow-long-right" class="inline size-3.5 align-[-2px]" /> {r.destination_address}
                 </p>
+                </div>
               </a>
             </li>
           ))}

@@ -181,3 +181,76 @@
 .maplibregl-map {
   isolation: isolate;
 }
+
+/* ---------- Transiciones entre páginas (View Transitions nativas, sin JavaScript extra) ----------
+   Chrome, Edge, Brave y Safari reciente las animan; en los demás la página cambia como siempre. */
+@view-transition {
+  navigation: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+/* El contenido sale rápido y el nuevo entra con un pequeño deslizamiento */
+::view-transition-old(root) {
+  animation: 150ms ease-in both vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both vt-rise-in;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Lo fijo no se mueve: encabezado, pestañas y barra lateral del panel */
+::view-transition-group(panel-top),
+::view-transition-group(panel-tabs),
+::view-transition-group(panel-side) {
+  animation: none;
+}
+::view-transition-old(panel-top),
+::view-transition-old(panel-tabs),
+::view-transition-old(panel-side) {
+  display: none;
+}
+::view-transition-new(panel-top),
+::view-transition-new(panel-tabs),
+::view-transition-new(panel-side) {
+  animation: none;
+}
+
+/* Elementos compartidos (fila de la lista ⇄ detalle, logo, foto) */
+::view-transition-group(req-name),
+::view-transition-group(req-status),
+::view-transition-group(req-photo),
+::view-transition-group(llevo-logo),
+::view-transition-group(foto) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* El texto cambia de tamaño: mejor fundir que estirar las letras */
+::view-transition-old(req-name),
+::view-transition-new(req-name) {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+::view-transition-old(req-photo),
+::view-transition-new(req-photo),
+::view-transition-old(foto),
+::view-transition-new(foto) {
+  object-fit: cover;
+  overflow: clip;
+  border-radius: 16px;
+}

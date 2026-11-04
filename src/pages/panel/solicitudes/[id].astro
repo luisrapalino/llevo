@@ -6,6 +6,7 @@ import { STATUSES, STATUS_KEYS, TIME_SLOTS, type Status } from '../../../lib/con
 import { fmtDate, fmtDateTime, shortSlot } from '../../../lib/format';
 import { formatCOP, getSettings, normalizePhone, whatsappLink } from '../../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../../lib/supabase';
+import { thumbPath } from '../../../lib/thumbs';
 
 const db = Astro.locals.supabase!;
 const { id } = Astro.params;
@@ -19,7 +20,7 @@ if (Astro.request.method === 'POST') {
     const { data: row } = await db.from('requests').select('photos').eq('id', id!).single();
     const { error } = await db.from('requests').delete().eq('id', id!);
     if (error) return Astro.redirect(`${self}?error=${encodeURIComponent('No se pudo eliminar.')}`);
-    if (row?.photos?.length) await createAdminClient()?.storage.from(PHOTOS_BUCKET).remove(row.photos);
+    if (row?.photos?.length) await createAdminClient()?.storage.from(PHOTOS_BUCKET).remove([...row.photos, thumbPath(id!)]);
     return Astro.redirect('/panel/solicitudes?ok=Solicitud%20eliminada');
   }
 
@@ -96,8 +97,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
   <div class="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
     <div>
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">{r.customer_name}</h1>
-        <StatusBadge status={r.status} />
+        <!-- Elementos compartidos con la fila de la lista (transición entre páginas) -->
+        <h1 class="text-2xl font-medium tracking-[-0.02em] [view-transition-name:req-name] sm:text-3xl">{r.customer_name}</h1>
+        <StatusBadge status={r.status} style="view-transition-name: req-status" />
       </div>
       <p class="mt-1 text-sm text-ink-2">
         <span class="font-mono">#{r.code}</span> · {r.service} · recibida {fmtDateTime(r.created_at)}
@@ -181,7 +183,12 @@ const floorText = (floor: string | null, elevator: boolean) =>
             <ul class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {photos.map((p, i) => (
                 <li>
-                  <button type="button" data-photo={p.url} class="group block aspect-square w-full overflow-hidden rounded-2xl bg-sand border border-line">
+                  <button
+                    type="button"
+                    data-photo={p.url}
+                    class="group block aspect-square w-full overflow-hidden rounded-2xl bg-sand border border-line"
+                    style={i === 0 ? 'view-transition-name: req-photo' : undefined}
+                  >
                     <img src={p.url} alt={`Foto ${i + 1}`} loading="lazy" class="size-full object-cover transition" />
                   </button>
                 </li>
@@ -428,16 +435,57 @@ const floorText = (floor: string | null, elevator: boolean) =>
 </PanelLayout>
 
 <script>
+  // Visor de fotos: la miniatura crece hasta la foto grande y al cerrar vuelve a su lugar
   const viewer = document.querySelector<HTMLDialogElement>('[data-viewer]');
   const img = document.querySelector<HTMLImageElement>('[data-viewer-img]');
-  document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) =>
-    b.addEventListener('click', () => {
-      if (!viewer || !img) return;
-      img.src = b.dataset.photo!;
+  const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canAnimate = () => 'startViewTransition' in document && !reduce();
+  let current: HTMLImageElement | null = null;
+
+  async function openPhoto(btn: HTMLButtonElement) {
+    if (!viewer || !img) return;
+    const thumb = btn.querySelector('img')!;
+    current = thumb;
+    const show = async () => {
+      img.src = btn.dataset.photo!;
+      await img.decode().catch(() => {});
       viewer.showModal();
-    }),
-  );
-  viewer?.addEventListener('click', (e) => e.target === viewer && viewer.close());
+    };
+    if (!canAnimate()) return show();
+    thumb.style.viewTransitionName = 'foto';
+    const t = document.startViewTransition(async () => {
+      thumb.style.viewTransitionName = '';
+      img.style.viewTransitionName = 'foto';
+      await show();
+    });
+    await t.finished.catch(() => {});
+    img.style.viewTransitionName = '';
+  }
+
+  async function closePhoto() {
+    if (!viewer?.open || !img) return;
+    if (!canAnimate() || !current) return viewer.close();
+    img.style.viewTransitionName = 'foto';
+    const thumb = current;
+    const t = document.startViewTransition(() => {
+      img.style.viewTransitionName = '';
+      viewer.close();
+      thumb.style.viewTransitionName = 'foto';
+    });
+    await t.finished.catch(() => {});
+    thumb.style.viewTransitionName = '';
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));
+  viewer?.addEventListener('click', (e) => e.target === viewer && closePhoto());
+  viewer?.addEventListener('cancel', (e) => {
+    e.preventDefault(); // Esc: cerrar con la misma animación
+    closePhoto();
+  });
+  viewer?.querySelector('form[method="dialog"]')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    closePhoto();
+  });
 </script>
 
 <script>

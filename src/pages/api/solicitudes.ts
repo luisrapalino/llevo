@@ -4,6 +4,7 @@ import { estimate } from '../../lib/pricing';
 import { getSettings } from '../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../lib/supabase';
 import { sendPush } from '../../lib/push';
+import { thumbPath } from '../../lib/thumbs';
 import { shortSlot } from '../../lib/format';
 
 export const prerender = false;
@@ -131,6 +132,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
   if (paths.length) await admin.from('requests').update({ photos: paths }).eq('id', created.id);
+  // Miniatura de la primera foto para las listas del panel (la arma el navegador)
+  let thumb: string | null = null;
+  if (paths.length) {
+    const { data } = await admin.storage.from(PHOTOS_BUCKET).createSignedUploadUrl(thumbPath(created.id));
+    thumb = data?.signedUrl ?? null;
+  }
 
   // Aviso al equipo (si alguien activó las notificaciones). No bloquea si falla.
   const { count: pendientes } = await admin.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'nueva');
@@ -143,5 +150,5 @@ export const POST: APIRoute = async ({ request }) => {
     count: pendientes ?? undefined,
   });
 
-  return json({ code: created.code, uploads });
+  return json({ code: created.code, uploads, thumb });
 };
