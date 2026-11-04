@@ -5,22 +5,23 @@ import type { Service } from '../lib/settings';
 const { services } = Astro.props as { services: Service[] };
 ---
 
-<section id="servicios" class="scroll-mt-20 border-t border-line py-20 sm:py-28">
-  <div class="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+<section id="servicios" class="scroll-mt-20 border-t border-line py-14 sm:py-28">
+  <div class="mx-auto grid max-w-6xl gap-7 px-4 sm:gap-12 sm:px-6 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
     <div data-reveal>
       <p class="section-eyebrow">Servicios</p>
       <h2 class="section-title mt-3">Lo que necesites mover, lo movemos</h2>
       <p class="mt-4 max-w-sm text-ink-2">Servicio con un solo vehículo: tu carga viaja sola, sin mezclarse con la de nadie más.</p>
     </div>
 
-    <ul class="grid gap-x-10 sm:grid-cols-2">
+    <!-- Celular: cuadrícula 2 × 2 compacta; desde sm: lista con línea arriba -->
+    <ul class="grid grid-cols-2 gap-2.5 sm:gap-x-10 sm:gap-y-0">
       {
         services.map((s) => (
-          <li class="flex gap-4 border-t border-line py-6" data-reveal>
-            <Icon name={s.icon} class="mt-0.5 size-5 shrink-0 text-ink-3" />
+          <li class="flex flex-col gap-2 rounded-2xl border border-line bg-paper p-3.5 sm:flex-row sm:gap-4 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:py-6" data-reveal>
+            <Icon name={s.icon} class="size-5 shrink-0 text-brand-500 sm:mt-0.5 sm:text-ink-3" />
             <div>
-              <h3 class="font-medium">{s.title}</h3>
-              <p class="mt-1.5 text-[15px] leading-relaxed text-ink-2">{s.text}</p>
+              <h3 class="text-[15px] leading-snug font-medium sm:text-base">{s.title}</h3>
+              <p class="mt-1 line-clamp-3 text-[13px] leading-snug text-ink-2 sm:mt-1.5 sm:line-clamp-none sm:text-[15px] sm:leading-relaxed">{s.text}</p>
             </div>
           </li>
         ))

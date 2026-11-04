@@ -66,8 +66,8 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
 <PanelLayout title="Agenda" active="agenda">
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">Agenda</h1>
-      <p class="mt-1 text-sm text-ink-2">Servicios por día y fechas en las que no trabajas.</p>
+      <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">Agenda</h1>
+      <p class="mt-1 hidden text-sm text-ink-2 sm:block">Servicios por día y fechas en las que no trabajas.</p>
     </div>
     <div class="flex items-center gap-2">
       <a href={`?mes=${prev}`} class="grid size-10 place-items-center rounded-full bg-paper border border-line hover:bg-sand/60" aria-label="Mes anterior">
@@ -81,8 +81,70 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
     </div>
   </div>
 
-  <!-- Calendario -->
-  <div class="mt-6 overflow-hidden rounded-2xl bg-paper border border-line">
+  <!-- Celular: tira de días que se desliza + servicios del día elegido -->
+  <div class="mt-4 sm:hidden" data-agenda-day>
+    <div class="-mx-3 flex snap-x gap-2 overflow-x-auto px-3 pb-2 [scrollbar-width:none]" data-strip>
+      {
+        days.map((d) => {
+          const fullBlock = d.blocks.some((b) => !b.time_slot);
+          return (
+            <button
+              type="button"
+              data-day={d.date}
+              class:list={[
+                'flex w-12 shrink-0 snap-start flex-col items-center gap-0.5 rounded-2xl border border-line bg-paper py-2 text-ink-2 transition-colors aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white',
+                fullBlock && 'bg-[repeating-linear-gradient(135deg,#f5f5f4_0_5px,#fff_5px_10px)]',
+                d.date < today && 'opacity-60',
+              ]}
+            >
+              <span class="text-[10px] font-semibold uppercase">{fmtDate(d.date, { weekday: 'short' }).replace('.', '')}</span>
+              <span class:list={['text-lg leading-6 font-semibold', d.date === today && 'text-brand-500 [[aria-pressed=true]_&]:text-white']}>{d.day}</span>
+              <span class="flex h-1.5 gap-0.5">
+                {d.requests.slice(0, 3).map((r) => (
+                  <span class:list={['size-1.5 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
+                ))}
+              </span>
+            </button>
+          );
+        })
+      }
+    </div>
+    {
+      days.map((d) => (
+        <section class="mt-2 hidden rounded-2xl border border-line bg-paper p-4" data-day-panel={d.date}>
+          <p class="text-sm font-medium first-letter:uppercase">{fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          {d.blocks.map((b) => (
+            <p class="mt-2 flex items-center gap-2 rounded-xl bg-sand/60 px-3 py-2 text-xs text-ink-2">
+              <Icon name="heroicons:no-symbol" class="size-4 shrink-0" /> Bloqueado · {b.time_slot ? shortSlot(b.time_slot) : 'todo el día'}
+              {b.reason && <span class="truncate text-ink-3">· {b.reason}</span>}
+            </p>
+          ))}
+          {d.requests.length ? (
+            <ul class="mt-2 divide-y divide-line">
+              {d.requests.map((r) => (
+                <li>
+                  <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 py-2.5 text-sm">
+                    <span class:list={['size-2 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
+                    <span class="min-w-0 flex-1 truncate font-medium">{r.customer_name}</span>
+                    <span class="text-xs text-ink-2">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
+                    <Icon name="heroicons:chevron-right" class="size-4 text-ink-3" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            !d.blocks.length && <p class="mt-2 text-sm text-ink-3">Sin servicios este día.</p>
+          )}
+        </section>
+      ))
+    }
+    <button type="button" class="mt-3 flex w-full items-center justify-center gap-1.5 text-sm font-semibold text-brand-600" data-toggle-month>
+      <Icon name="heroicons:calendar-days" class="size-4" /> <span>Ver mes completo</span>
+    </button>
+  </div>
+
+  <!-- Calendario (en el celular, oculto hasta tocar "Ver mes completo") -->
+  <div class="mt-3 hidden overflow-hidden rounded-2xl bg-paper border border-line sm:mt-6 sm:block" data-month>
     <div class="grid grid-cols-7 border-b border-line text-center text-xs font-medium text-ink-3">
       {weekdays.map((w) => <div class="py-3">{w}</div>)}
     </div>
@@ -141,7 +203,7 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
     </div>
   </div>
 
-  <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-2">
+  <div class="mt-4 hidden flex-wrap gap-x-5 gap-y-2 text-xs text-ink-2 sm:flex" data-month-legend>
     {
       (['nueva', 'cotizada', 'agendada', 'completada'] as const).map((s) => (
         <span class="flex items-center gap-1.5">
@@ -154,9 +216,9 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
     </span>
   </div>
 
-  <div class="mt-8 grid gap-6 lg:grid-cols-2">
+  <div class="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-2">
     <!-- Lista de servicios del mes (útil en móvil) -->
-    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+    <section class="rounded-2xl bg-paper p-4 border border-line sm:p-6">
       <h2 class="text-lg font-medium">Servicios del mes</h2>
       {
         agendaList.length ? (
@@ -185,9 +247,14 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
     </section>
 
     <!-- Bloqueos -->
-    <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
-      <h2 class="text-lg font-medium">Bloquear disponibilidad</h2>
-      <p class="mt-1 text-sm text-ink-2">Los días u horarios bloqueados no se pueden elegir en el formulario de la web.</p>
+    <details class="group rounded-2xl bg-paper p-4 border border-line sm:p-6" data-block-form>
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <span>
+          <span class="block text-lg font-medium">Bloquear disponibilidad</span>
+          <span class="mt-1 block text-sm text-ink-2">Los días u horarios bloqueados no se pueden elegir en el formulario de la web.</span>
+        </span>
+        <Icon name="heroicons:chevron-down" class="size-5 shrink-0 text-ink-3 transition-transform group-open:rotate-180 sm:hidden" />
+      </summary>
 
       <form method="post" class="mt-5 grid gap-3 sm:grid-cols-2">
         <input type="hidden" name="mes" value={mes} />
@@ -242,6 +309,44 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
           <p class="mt-3 text-sm text-ink-3">No hay bloqueos programados.</p>
         )
       }
-    </section>
+    </details>
   </div>
 </PanelLayout>
+
+<script>
+  // Tira de días: muestra los servicios del día elegido (hoy, o el primero con servicios)
+  const wrap = document.querySelector<HTMLElement>('[data-agenda-day]');
+  if (wrap) {
+    const btns = Array.from(wrap.querySelectorAll<HTMLButtonElement>('[data-day]'));
+    const panels = Array.from(wrap.querySelectorAll<HTMLElement>('[data-day-panel]'));
+    const pick = (date: string, scroll = true) => {
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.day === date)));
+      panels.forEach((p) => p.classList.toggle('hidden', p.dataset.dayPanel !== date));
+      const btn = btns.find((b) => b.dataset.day === date);
+      if (btn && scroll) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' as ScrollBehavior });
+    };
+    btns.forEach((b) => b.addEventListener('click', () => pick(b.dataset.day!, false)));
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+    const start = btns.find((b) => b.dataset.day === today) ?? btns.find((b) => b.querySelector('.rounded-full')) ?? btns[0];
+    if (start) pick(start.dataset.day!);
+
+    const month = document.querySelector<HTMLElement>('[data-month]')!;
+    const legend = document.querySelector<HTMLElement>('[data-month-legend]')!;
+    const toggle = wrap.querySelector<HTMLButtonElement>('[data-toggle-month]')!;
+    toggle.addEventListener('click', () => {
+      const show = month.classList.toggle('hidden') === false;
+      legend.classList.toggle('hidden', !show);
+      legend.classList.toggle('flex', show);
+      toggle.querySelector('span')!.textContent = show ? 'Ocultar mes' : 'Ver mes completo';
+    });
+  }
+  // "Bloquear disponibilidad": plegado en el celular, siempre abierto en pantallas grandes
+  const block = document.querySelector<HTMLDetailsElement>('[data-block-form]');
+  if (block) {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => (block.open = mq.matches || block.open);
+    sync();
+    mq.addEventListener('change', sync);
+    block.querySelector('summary')!.addEventListener('click', (e) => mq.matches && e.preventDefault());
+  }
+</script>
