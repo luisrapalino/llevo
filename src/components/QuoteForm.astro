@@ -888,7 +888,6 @@ const floors = FLOORS;
     submitBtn.disabled = true;
     submitLabel.textContent = 'Enviando…';
 
-    let json_code = '';
     try {
       if (form.dataset.api) {
         data.set('fotos_tipos', JSON.stringify(photos.map((p) => p.type || 'image/jpeg')));
@@ -908,7 +907,6 @@ const floors = FLOORS;
         }
 
         codeEl.textContent = json.code;
-        json_code = json.code;
         codeWrap.classList.remove('hidden');
         successText.textContent = failed
           ? `Recibimos tu solicitud, pero ${failed} foto(s) no se pudieron subir. Envíalas por WhatsApp citando tu código.`
@@ -923,14 +921,14 @@ const floors = FLOORS;
         window.open(successWa.href, '_blank', 'noopener');
       }
       chimeSuccess();
-      toast.success('Solicitud enviada', {
-        description: json_code ? `Código ${json_code}. Te escribimos por WhatsApp muy pronto.` : 'Termina de enviarla en WhatsApp.',
-      });
+      // Sin toast: la pantalla de éxito ya lo dice (y en el celular el aviso tapaba la animación)
       form.classList.add('hidden');
       document.querySelector('[data-stepper]')?.closest('aside')?.classList.add('lg:hidden');
       formCard.classList.add('lg:col-span-2', 'lg:mx-auto', 'lg:w-full', 'lg:max-w-3xl');
       mobileProgress.classList.add('hidden');
       success.classList.remove('hidden');
+      // El formulario largo se oculta y la página se acorta: llevar la vista a la tarjeta de éxito
+      window.scrollTo({ top: formCard.getBoundingClientRect().top + window.scrollY - 90, behavior: reduceMotion() ? 'auto' : 'smooth' });
       arrive();
       if (!reduceMotion()) {
         gsap.from(success.firstElementChild, { autoAlpha: 0, duration: 0.3 });
