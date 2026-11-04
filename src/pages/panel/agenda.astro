@@ -123,9 +123,9 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
             <ul class="mt-2 divide-y divide-line">
               {d.requests.map((r) => (
                 <li>
-                  <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 py-2.5 text-sm">
+                  <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 py-2.5 text-sm" data-vt-row={r.id}>
                     <span class:list={['size-2 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
-                    <span class="min-w-0 flex-1 truncate font-medium">{r.customer_name}</span>
+                    <span class="min-w-0 flex-1 truncate font-medium" data-vt="name">{r.customer_name}</span>
                     <span class="text-xs text-ink-2">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
                     <Icon name="heroicons:chevron-right" class="size-4 text-ink-3" />
                   </a>
@@ -229,9 +229,9 @@ const agendaList = days.filter((d) => d.requests.length && d.date >= (mes === to
                 <ul class="mt-2 space-y-1.5">
                   {d.requests.map((r) => (
                     <li>
-                      <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 rounded-2xl bg-sand/60 px-3 py-2.5 text-sm transition hover:bg-sand">
+                      <a href={`/panel/solicitudes/${r.id}`} class="flex items-center gap-3 rounded-2xl bg-sand/60 px-3 py-2.5 text-sm transition hover:bg-sand" data-vt-row={r.id}>
                         <span class:list={['size-2 shrink-0 rounded-full', STATUSES[r.status as keyof typeof STATUSES].dot]} />
-                        <span class="font-medium">{r.customer_name}</span>
+                        <span class="font-medium" data-vt="name">{r.customer_name}</span>
                         <span class="ml-auto text-xs text-ink-2">{r.exact_time ? r.exact_time.slice(0, 5) : shortSlot(r.time_slot)}</span>
                       </a>
                     </li>

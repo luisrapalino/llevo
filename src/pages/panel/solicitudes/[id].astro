@@ -6,6 +6,7 @@ import { STATUSES, STATUS_KEYS, TIME_SLOTS, type Status } from '../../../lib/con
 import { fmtDate, fmtDateTime, shortSlot } from '../../../lib/format';
 import { formatCOP, getSettings, normalizePhone, whatsappLink } from '../../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../../lib/supabase';
+import { thumbPath } from '../../../lib/thumbs';
 
 const db = Astro.locals.supabase!;
 const { id } = Astro.params;
@@ -19,7 +20,7 @@ if (Astro.request.method === 'POST') {
     const { data: row } = await db.from('requests').select('photos').eq('id', id!).single();
     const { error } = await db.from('requests').delete().eq('id', id!);
     if (error) return Astro.redirect(`${self}?error=${encodeURIComponent('No se pudo eliminar.')}`);
-    if (row?.photos?.length) await createAdminClient()?.storage.from(PHOTOS_BUCKET).remove(row.photos);
+    if (row?.photos?.length) await createAdminClient()?.storage.from(PHOTOS_BUCKET).remove([...row.photos, thumbPath(id!)]);
     return Astro.redirect('/panel/solicitudes?ok=Solicitud%20eliminada');
   }
 
@@ -96,8 +97,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
   <div class="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
     <div>
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">{r.customer_name}</h1>
-        <StatusBadge status={r.status} />
+        <!-- Elementos compartidos con la fila de la lista (transición entre páginas) -->
+        <h1 class="text-2xl font-medium tracking-[-0.02em] [view-transition-name:req-name] sm:text-3xl">{r.customer_name}</h1>
+        <StatusBadge status={r.status} style="view-transition-name: req-status" />
       </div>
       <p class="mt-1 text-sm text-ink-2">
         <span class="font-mono">#{r.code}</span> · {r.service} · recibida {fmtDateTime(r.created_at)}
@@ -181,7 +183,12 @@ const floorText = (floor: string | null, elevator: boolean) =>
             <ul class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {photos.map((p, i) => (
                 <li>
-                  <button type="button" data-photo={p.url} class="group block aspect-square w-full overflow-hidden rounded-2xl bg-sand border border-line">
+                  <button
+                    type="button"
+                    data-photo={p.url}
+                    class="group block aspect-square w-full overflow-hidden rounded-2xl bg-sand border border-line"
+                    style={i === 0 ? 'view-transition-name: req-photo' : undefined}
+                  >
                     <img src={p.url} alt={`Foto ${i + 1}`} loading="lazy" class="size-full object-cover transition" />
                   </button>
                 </li>
@@ -343,24 +350,81 @@ const floorText = (floor: string | null, elevator: boolean) =>
     </aside>
   </div>
 
-  <!-- Acciones fijas (celular): llamar, escribir o ir a gestionar sin buscar al final de la página -->
-  <div class="h-16 sm:hidden" aria-hidden="true"></div>
-  <div class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-cream/95 px-3 py-2.5 backdrop-blur sm:hidden">
-    <div class="grid grid-cols-3 gap-2">
-      <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="btn-ghost !h-11 !px-2 !text-sm">
-        <Icon name="heroicons:phone" class="size-4" /> Llamar
+  <!-- Acciones rápidas (celular): un botón redondo que despliega la pastilla con animación -->
+  <div class="fixed right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 sm:hidden" data-quick>
+    <div
+      class="hidden origin-right items-center gap-1.5 rounded-full border border-line bg-paper/95 p-1.5 shadow-[0_8px_24px_rgba(20,33,61,0.18)] backdrop-blur"
+      id="acciones-rapidas"
+      data-quick-menu
+    >
+      <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="grid size-10 place-items-center rounded-full bg-sand text-ink" aria-label="Llamar" title="Llamar" data-quick-item>
+        <Icon name="heroicons:phone" class="size-5" />
       </a>
-      <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="btn !h-11 !bg-[#25D366] !px-2 !text-sm text-white">
-        <Icon name="heroicons:chat-bubble-left-right" class="size-4" /> WhatsApp
+      <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="grid size-10 place-items-center rounded-full bg-[#25D366] text-white" aria-label="WhatsApp" title="WhatsApp" data-quick-item>
+        <Icon name="heroicons:chat-bubble-left-right" class="size-5" />
       </a>
-      <a href="#gestion" class="btn-dark !h-11 !px-2 !text-sm">
-        <Icon name="heroicons:adjustments-horizontal" class="size-4" /> Gestionar
+      <a href="#gestion" class="flex h-10 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-semibold text-white" data-quick-item>
+        <Icon name="heroicons:pencil-square" class="size-5" /> Gestionar
       </a>
     </div>
+    <button
+      type="button"
+      class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-500 text-white shadow-[0_8px_24px_rgba(47,91,234,0.35)]"
+      aria-expanded="false"
+      aria-controls="acciones-rapidas"
+      aria-label="Acciones rápidas"
+      data-quick-toggle
+    >
+      <Icon name="heroicons:plus" class="size-6" data-quick-icon />
+    </button>
   </div>
 
+  <script>
+    import { animate } from 'motion';
+    // Acciones rápidas: el botón despliega la pastilla (resorte) y la vuelve a guardar
+    const quick = document.querySelector<HTMLElement>('[data-quick]');
+    if (quick) {
+      const btn = quick.querySelector<HTMLButtonElement>('[data-quick-toggle]')!;
+      const menu = quick.querySelector<HTMLElement>('[data-quick-menu]')!;
+      const icon = quick.querySelector<SVGElement>('[data-quick-icon]')!;
+      const items = Array.from(menu.querySelectorAll<HTMLElement>('[data-quick-item]'));
+      const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const spring = { type: 'spring', stiffness: 520, damping: 32 } as const;
+      let open = false;
+
+      const set = (on: boolean) => {
+        if (on === open) return;
+        open = on;
+        btn.setAttribute('aria-expanded', String(on));
+        const d = reduce() ? { duration: 0 } : spring;
+        animate(icon, { rotate: on ? 135 : 0 }, d);
+        if (on) {
+          menu.classList.replace('hidden', 'flex');
+          animate(menu, { opacity: [0, 1], scaleX: [0.4, 1], x: [16, 0] }, d);
+          // los botones aparecen de derecha a izquierda, uno tras otro
+          items.forEach((el, i) =>
+            animate(el, { opacity: [0, 1], scale: [0.6, 1] }, reduce() ? { duration: 0 } : { ...spring, delay: (items.length - 1 - i) * 0.04 }),
+          );
+        } else {
+          animate(menu, { opacity: 0, scaleX: 0.4, x: 16 }, reduce() ? { duration: 0 } : { duration: 0.16, ease: 'easeIn' }).then(() => {
+            if (!open) menu.classList.replace('flex', 'hidden');
+          });
+        }
+      };
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        set(!open);
+      });
+      // Se guarda al tocar fuera, al elegir una acción o con Esc
+      document.addEventListener('click', (e) => open && !quick.contains(e.target as Node) && set(false));
+      items.forEach((el) => el.addEventListener('click', () => set(false)));
+      document.addEventListener('keydown', (e) => e.key === 'Escape' && set(false));
+    }
+  </script>
+
   <!-- Visor de fotos -->
-  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-viewer>
+  <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/85" data-viewer>
     <img alt="Foto ampliada" class="max-h-[85dvh] max-w-[95vw] rounded-2xl object-contain" data-viewer-img />
     <form method="dialog">
       <button class="absolute -top-3 -right-3 grid size-10 place-items-center rounded-full bg-paper text-ink shadow-lg" aria-label="Cerrar">
@@ -371,16 +435,57 @@ const floorText = (floor: string | null, elevator: boolean) =>
 </PanelLayout>
 
 <script>
+  // Visor de fotos: la miniatura crece hasta la foto grande y al cerrar vuelve a su lugar
   const viewer = document.querySelector<HTMLDialogElement>('[data-viewer]');
   const img = document.querySelector<HTMLImageElement>('[data-viewer-img]');
-  document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) =>
-    b.addEventListener('click', () => {
-      if (!viewer || !img) return;
-      img.src = b.dataset.photo!;
+  const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canAnimate = () => 'startViewTransition' in document && !reduce();
+  let current: HTMLImageElement | null = null;
+
+  async function openPhoto(btn: HTMLButtonElement) {
+    if (!viewer || !img) return;
+    const thumb = btn.querySelector('img')!;
+    current = thumb;
+    const show = async () => {
+      img.src = btn.dataset.photo!;
+      await img.decode().catch(() => {});
       viewer.showModal();
-    }),
-  );
-  viewer?.addEventListener('click', (e) => e.target === viewer && viewer.close());
+    };
+    if (!canAnimate()) return show();
+    thumb.style.viewTransitionName = 'foto';
+    const t = document.startViewTransition(async () => {
+      thumb.style.viewTransitionName = '';
+      img.style.viewTransitionName = 'foto';
+      await show();
+    });
+    await t.finished.catch(() => {});
+    img.style.viewTransitionName = '';
+  }
+
+  async function closePhoto() {
+    if (!viewer?.open || !img) return;
+    if (!canAnimate() || !current) return viewer.close();
+    img.style.viewTransitionName = 'foto';
+    const thumb = current;
+    const t = document.startViewTransition(() => {
+      img.style.viewTransitionName = '';
+      viewer.close();
+      thumb.style.viewTransitionName = 'foto';
+    });
+    await t.finished.catch(() => {});
+    thumb.style.viewTransitionName = '';
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-photo]').forEach((b) => b.addEventListener('click', () => openPhoto(b)));
+  viewer?.addEventListener('click', (e) => e.target === viewer && closePhoto());
+  viewer?.addEventListener('cancel', (e) => {
+    e.preventDefault(); // Esc: cerrar con la misma animación
+    closePhoto();
+  });
+  viewer?.querySelector('form[method="dialog"]')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    closePhoto();
+  });
 </script>
 
 <script>
@@ -391,7 +496,10 @@ const floorText = (floor: string | null, elevator: boolean) =>
       const [lat, lng] = (v ?? '').split(',').map(Number);
       return Number.isFinite(lat) && Number.isFinite(lng) && v ? { lat, lng } : null;
     };
-    import('../../../lib/map').then(async ({ createRouteMap }) => {
+    // El mapa (pesado) se carga cuando termina la transición de entrada, para que no se trabe
+    ((window as unknown as { __vtReady?: Promise<void> }).__vtReady ?? Promise.resolve())
+      .then(() => import('../../../lib/map'))
+      .then(async ({ createRouteMap }) => {
       const route = await createRouteMap(el, { interactive: true, draggable: false });
       const o = parse(el.dataset.origin);
       const d = parse(el.dataset.destination);

@@ -1,0 +1,26 @@
+---
+/**
+ * Miniatura de una solicitud en las listas: la primera foto o, si no hay fotos, el ícono del servicio.
+ * `data-vt="photo"` permite que viaje hasta la galería del detalle (transición compartida).
+ */
+import { Icon } from 'astro-icon/components';
+import { SERVICE_TYPES } from '../../lib/constants';
+
+interface Props {
+  url?: string;
+  service: string;
+  class?: string;
+}
+const { url, service, class: cls = 'size-12' } = Astro.props;
+const icon = SERVICE_TYPES.find((s) => s.value === service)?.icon ?? 'heroicons:archive-box';
+---
+
+{
+  url ? (
+    <img src={url} alt="" loading="lazy" decoding="async" data-vt="photo" class:list={['shrink-0 rounded-xl border border-line bg-sand object-cover', cls]} />
+  ) : (
+    <span class:list={['grid shrink-0 place-items-center rounded-xl bg-sand text-ink-3', cls]} aria-hidden="true">
+      <Icon name={icon} class="size-5" />
+    </span>
+  )
+}

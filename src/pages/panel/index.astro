@@ -2,6 +2,8 @@
 import { Icon } from 'astro-icon/components';
 import PanelLayout from '../../layouts/PanelLayout.astro';
 import StatusBadge from '../../components/panel/StatusBadge.astro';
+import RequestThumb from '../../components/panel/RequestThumb.astro';
+import { thumbUrls } from '../../lib/thumbs';
 import { STATUSES, STATUS_KEYS, type Status } from '../../lib/constants';
 import { addDays, fmtDate, shortSlot, timeAgo, todayISO } from '../../lib/format';
 import { formatCOP } from '../../lib/settings';
@@ -54,6 +56,8 @@ const monthRevenue = sum(revenue.data);
 const prevMonthRevenue = sum(prevRevenue.data);
 const revenueDelta = monthRevenue - prevMonthRevenue;
 
+const thumbs = await thumbUrls(db, latest.data ?? []);
+
 const stats = [
   { label: 'Nuevas', count: byStatus.nueva, value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
   { label: 'Por confirmar', count: byStatus.cotizada, value: String(byStatus.cotizada), meta: 'Cotizadas, esperando respuesta', href: '/panel/solicitudes?estado=cotizada' },
@@ -103,18 +107,18 @@ const stats = [
           <ul class="mt-4 divide-y divide-line">
             {upcoming.data.map((r) => (
               <li>
-                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60">
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60" data-vt-row={r.id}>
                   <span class="flex w-12 shrink-0 flex-col items-center rounded-xl bg-sand py-1.5">
                     <span class="text-[11px] text-ink-3">{fmtDate(r.service_date, { weekday: 'short' }).replace('.', '')}</span>
                     <span class="text-lg leading-none font-medium">{r.service_date.slice(8, 10)}</span>
                   </span>
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate font-medium">{r.customer_name}</span>
+                    <span class="block truncate font-medium" data-vt="name">{r.customer_name}</span>
                     <span class="block truncate text-xs text-ink-2">
                       {shortSlot(r.time_slot)} · {r.origin_address} <Icon name="heroicons:arrow-long-right" class="inline size-3.5 align-[-2px]" /> {r.destination_address}
                     </span>
                   </span>
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} data-vt="status" />
                 </a>
               </li>
             ))}
@@ -135,12 +139,10 @@ const stats = [
           <ul class="mt-4 divide-y divide-line">
             {latest.data.map((r) => (
               <li>
-                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60">
-                  <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-600">
-                    <Icon name="heroicons:inbox-arrow-down" class="size-5" />
-                  </span>
+                <a href={`/panel/solicitudes/${r.id}`} class="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-sand/60" data-vt-row={r.id}>
+                  <RequestThumb url={thumbs[r.id]} service={r.service} class="size-11" />
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate font-medium">{r.customer_name}</span>
+                    <span class="block truncate font-medium" data-vt="name">{r.customer_name}</span>
                     <span class="block truncate text-xs text-ink-2">
                       {r.service} · {timeAgo(r.created_at)}
                       {r.photos.length > 0 && ` · ${r.photos.length} foto(s)`}
