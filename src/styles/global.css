@@ -45,6 +45,12 @@
 }
 
 @layer base {
+  /* Un fieldset no se encoge por defecto (min-inline-size: min-content): con filas que hacen scroll
+     (los días del formulario) empujaba todo el paso y aparecía scroll horizontal en el celular. */
+  fieldset {
+    min-inline-size: 0;
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
@@ -135,4 +141,23 @@
 .motion [data-guide],
 .motion [data-reveal] {
   visibility: hidden;
+}
+
+/* Mapa ampliado a pantalla completa (botón "Ampliar mapa") */
+.llevo-map-full {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 70;
+  width: 100vw !important;
+  height: 100dvh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+}
+/* En el formulario se amplía el bloque completo (selector Recogida/Entrega + mapa) */
+.llevo-map-full > [data-route-map] {
+  flex: 1;
+  height: auto !important;
 }

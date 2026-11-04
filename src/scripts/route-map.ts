@@ -68,7 +68,7 @@ if (wrap && container) {
   async function init() {
     try {
       mapLib = await import('../lib/map');
-      route = await mapLib.createRouteMap(container!);
+      route = await mapLib.createRouteMap(container!, { expandEl: wrap! });
       wrap!.querySelector('[data-map-loading]')?.remove();
       route.map.on('click', (e) => place(active, { lng: e.lngLat.lng, lat: e.lngLat.lat }));
       route.onChange((kind, p) => place(kind, p, { fly: false }));

@@ -86,6 +86,58 @@ function pin(kind: 'origen' | 'destino') {
   return el;
 }
 
+const ICON_EXPAND = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 9V5.25A1.5 1.5 0 015.25 3.75H9M15 3.75h3.75a1.5 1.5 0 011.5 1.5V9M20.25 15v3.75a1.5 1.5 0 01-1.5 1.5H15M9 20.25H5.25a1.5 1.5 0 01-1.5-1.5V15"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>';
+
+/**
+ * Botón "Ampliar": abre el mapa a pantalla completa (se mueve y acerca con un dedo) y lo devuelve a su lugar.
+ * El mapa se mueve al <body> mientras está ampliado, así ningún contenedor con transform o overflow lo recorta.
+ */
+function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
+  // `container` es lo que se amplía: el mapa solo, o el mapa con sus controles (formulario)
+  const box = document.createElement('div');
+  box.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  box.append(btn);
+  const marker = document.createComment('mapa');
+  let open = false;
+
+  const paint = () => {
+    btn.innerHTML = open ? ICON_CLOSE : ICON_EXPAND;
+    btn.title = open ? 'Cerrar mapa' : 'Ampliar mapa';
+    btn.setAttribute('aria-label', btn.title);
+    btn.style.cssText = 'display:grid;place-items:center;color:#14213D';
+  };
+  const onKey = (e: KeyboardEvent) => e.key === 'Escape' && toggle(false);
+
+  function toggle(on = !open) {
+    if (on === open) return;
+    open = on;
+    if (on) {
+      container.before(marker);
+      document.body.append(container);
+      document.addEventListener('keydown', onKey);
+    } else {
+      marker.replaceWith(container);
+      document.removeEventListener('keydown', onKey);
+    }
+    container.classList.toggle('llevo-map-full', on);
+    document.documentElement.classList.toggle('overflow-hidden', on);
+    const coop = (map as any).cooperativeGestures;
+    if (coop) on ? coop.disable() : coop.enable();
+    paint();
+    requestAnimationFrame(() => {
+      map.resize();
+      refit();
+    });
+  }
+
+  btn.addEventListener('click', () => toggle());
+  paint();
+  return { onAdd: () => box, onRemove: () => box.remove() };
+}
+
 export interface RouteMap {
   map: MLMap;
   set(kind: 'origen' | 'destino', p: LngLat, opts?: { fly?: boolean }): void;
@@ -94,7 +146,10 @@ export interface RouteMap {
 }
 
 /** Crea el mapa en un contenedor. `interactive=false` para vistas de solo lectura (panel). */
-export async function createRouteMap(container: HTMLElement, { interactive = true, draggable = true } = {}): Promise<RouteMap> {
+export async function createRouteMap(
+  container: HTMLElement,
+  { interactive = true, draggable = true, expandEl }: { interactive?: boolean; draggable?: boolean; expandEl?: HTMLElement } = {},
+): Promise<RouteMap> {
   const ml = await lib();
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [w, s, e, n] = SERVICE_AREA.bbox;
@@ -121,6 +176,7 @@ export async function createRouteMap(container: HTMLElement, { interactive = tru
     },
   });
   if (interactive) map.addControl(new ml.NavigationControl({ showCompass: false }), 'bottom-right');
+  if (interactive) map.addControl(expandControl(map, expandEl ?? container, () => fit()), 'top-right');
 
   const points: Record<'origen' | 'destino', LngLat | null> = { origen: null, destino: null };
   const markers: Partial<Record<'origen' | 'destino', Marker>> = {};
