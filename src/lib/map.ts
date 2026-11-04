@@ -149,7 +149,23 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
     }
     const html = document.documentElement;
     html.classList.add('vt-mapa', on ? 'vt-mapa-open' : 'vt-mapa-close');
-    container.style.viewTransitionName = 'mapa';
+    // Si se amplía un bloque con el mapa y sus controles (formulario), cada parte viaja por separado:
+    // la tarjeta (fondo), la barra de arriba y el mapa. Así la barra no se recorta ni aparece de golpe.
+    const mapEl = map.getContainer();
+    const named: HTMLElement[] = [];
+    const name = (el: HTMLElement | null | undefined, n: string) => {
+      if (!el) return;
+      el.style.viewTransitionName = n;
+      named.push(el);
+    };
+    if (container !== mapEl) {
+      name(container, 'mapa-caja');
+      const head = Array.from(container.children).find((c) => !c.contains(mapEl)) as HTMLElement | undefined;
+      name(head, 'mapa-head');
+      name(mapEl, 'mapa');
+    } else {
+      name(container, 'mapa');
+    }
     const t = (document as any).startViewTransition(async () => {
       apply(on);
       // esperar a que el mapa se pinte con su nuevo tamaño antes de la foto final
@@ -160,7 +176,7 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
       });
     });
     await t.finished.catch(() => {});
-    container.style.viewTransitionName = '';
+    named.forEach((el) => (el.style.viewTransitionName = ''));
     html.classList.remove('vt-mapa', 'vt-mapa-open', 'vt-mapa-close');
     refit();
   }

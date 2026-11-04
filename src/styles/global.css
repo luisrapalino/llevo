@@ -311,10 +311,26 @@ html.vt-mapa::view-transition-old(root) {
 html.vt-mapa::view-transition-new(root) {
   animation: 320ms ease both vt-fade-in;
 }
-::view-transition-group(mapa) {
+::view-transition-group(mapa),
+::view-transition-group(mapa-caja),
+::view-transition-group(mapa-head) {
   animation-duration: 460ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-group(mapa) {
+  clip-path: inset(0 round 16px);
+}
+/* La tarjeta (fondo y borde) crece con esquinas redondeadas */
+::view-transition-group(mapa-caja) {
   clip-path: inset(0 round 20px);
+}
+/* La barra Recogida/Entrega viaja entera, pegada a la esquina superior izquierda (sin estirarse) */
+::view-transition-old(mapa-head),
+::view-transition-new(mapa-head) {
+  height: 100%;
+  width: 100%;
+  object-fit: none;
+  object-position: left top;
 }
 ::view-transition-image-pair(mapa) {
   isolation: auto;
