@@ -90,7 +90,8 @@ const ICON_EXPAND = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none"
 const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>';
 
 /**
- * Botón "Ampliar": abre el mapa a pantalla completa (se mueve y acerca con un dedo) y lo devuelve a su lugar.
+ * Botón "Ampliar": abre el mapa en una ventana grande bajo la barra del logo (se mueve y acerca con un dedo);
+ * se cierra con la X, con Esc o tocando fuera.
  * El mapa se mueve al <body> mientras está ampliado, así ningún contenedor con transform o overflow lo recorta.
  */
 function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
@@ -101,6 +102,9 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
   btn.type = 'button';
   box.append(btn);
   const marker = document.createComment('mapa');
+  const backdrop = document.createElement('div');
+  backdrop.className = 'llevo-map-backdrop';
+  backdrop.addEventListener('click', () => toggle(false));
   let open = false;
 
   const paint = () => {
@@ -116,10 +120,11 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
     open = on;
     if (on) {
       container.before(marker);
-      document.body.append(container);
+      document.body.append(backdrop, container);
       document.addEventListener('keydown', onKey);
     } else {
       marker.replaceWith(container);
+      backdrop.remove();
       document.removeEventListener('keydown', onKey);
     }
     container.classList.toggle('llevo-map-full', on);
