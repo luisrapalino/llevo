@@ -343,20 +343,78 @@ const floorText = (floor: string | null, elevator: boolean) =>
     </aside>
   </div>
 
-  <!-- Acciones rápidas (celular): una pastilla flotante pequeña, no una barra completa -->
-  <div
-    class="fixed right-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-1.5 rounded-full border border-line bg-paper/95 p-1.5 shadow-[0_8px_24px_rgba(20,33,61,0.18)] backdrop-blur sm:hidden"
-  >
-    <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="grid size-10 place-items-center rounded-full bg-sand text-ink" aria-label="Llamar" title="Llamar">
-      <Icon name="heroicons:phone" class="size-5" />
-    </a>
-    <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="grid size-10 place-items-center rounded-full bg-[#25D366] text-white" aria-label="WhatsApp" title="WhatsApp">
-      <Icon name="heroicons:chat-bubble-left-right" class="size-5" />
-    </a>
-    <a href="#gestion" class="flex h-10 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-semibold text-white" aria-label="Gestionar">
-      <Icon name="heroicons:pencil-square" class="size-5" /> Gestionar
-    </a>
+  <!-- Acciones rápidas (celular): un botón redondo que despliega la pastilla con animación -->
+  <div class="fixed right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 sm:hidden" data-quick>
+    <div
+      class="hidden origin-right items-center gap-1.5 rounded-full border border-line bg-paper/95 p-1.5 shadow-[0_8px_24px_rgba(20,33,61,0.18)] backdrop-blur"
+      id="acciones-rapidas"
+      data-quick-menu
+    >
+      <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="grid size-10 place-items-center rounded-full bg-sand text-ink" aria-label="Llamar" title="Llamar" data-quick-item>
+        <Icon name="heroicons:phone" class="size-5" />
+      </a>
+      <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="grid size-10 place-items-center rounded-full bg-[#25D366] text-white" aria-label="WhatsApp" title="WhatsApp" data-quick-item>
+        <Icon name="heroicons:chat-bubble-left-right" class="size-5" />
+      </a>
+      <a href="#gestion" class="flex h-10 items-center gap-1.5 rounded-full bg-ink pr-4 pl-3 text-sm font-semibold text-white" data-quick-item>
+        <Icon name="heroicons:pencil-square" class="size-5" /> Gestionar
+      </a>
+    </div>
+    <button
+      type="button"
+      class="grid size-12 shrink-0 place-items-center rounded-full bg-brand-500 text-white shadow-[0_8px_24px_rgba(47,91,234,0.35)]"
+      aria-expanded="false"
+      aria-controls="acciones-rapidas"
+      aria-label="Acciones rápidas"
+      data-quick-toggle
+    >
+      <Icon name="heroicons:plus" class="size-6" data-quick-icon />
+    </button>
   </div>
+
+  <script>
+    import { animate } from 'motion';
+    // Acciones rápidas: el botón despliega la pastilla (resorte) y la vuelve a guardar
+    const quick = document.querySelector<HTMLElement>('[data-quick]');
+    if (quick) {
+      const btn = quick.querySelector<HTMLButtonElement>('[data-quick-toggle]')!;
+      const menu = quick.querySelector<HTMLElement>('[data-quick-menu]')!;
+      const icon = quick.querySelector<SVGElement>('[data-quick-icon]')!;
+      const items = Array.from(menu.querySelectorAll<HTMLElement>('[data-quick-item]'));
+      const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const spring = { type: 'spring', stiffness: 520, damping: 32 } as const;
+      let open = false;
+
+      const set = (on: boolean) => {
+        if (on === open) return;
+        open = on;
+        btn.setAttribute('aria-expanded', String(on));
+        const d = reduce() ? { duration: 0 } : spring;
+        animate(icon, { rotate: on ? 135 : 0 }, d);
+        if (on) {
+          menu.classList.replace('hidden', 'flex');
+          animate(menu, { opacity: [0, 1], scaleX: [0.4, 1], x: [16, 0] }, d);
+          // los botones aparecen de derecha a izquierda, uno tras otro
+          items.forEach((el, i) =>
+            animate(el, { opacity: [0, 1], scale: [0.6, 1] }, reduce() ? { duration: 0 } : { ...spring, delay: (items.length - 1 - i) * 0.04 }),
+          );
+        } else {
+          animate(menu, { opacity: 0, scaleX: 0.4, x: 16 }, reduce() ? { duration: 0 } : { duration: 0.16, ease: 'easeIn' }).then(() => {
+            if (!open) menu.classList.replace('flex', 'hidden');
+          });
+        }
+      };
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        set(!open);
+      });
+      // Se guarda al tocar fuera, al elegir una acción o con Esc
+      document.addEventListener('click', (e) => open && !quick.contains(e.target as Node) && set(false));
+      items.forEach((el) => el.addEventListener('click', () => set(false)));
+      document.addEventListener('keydown', (e) => e.key === 'Escape' && set(false));
+    }
+  </script>
 
   <!-- Visor de fotos -->
   <dialog class="m-auto max-h-[90dvh] max-w-[95vw] overflow-visible rounded-2xl bg-transparent p-0 backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-viewer>
