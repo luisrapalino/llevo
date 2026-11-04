@@ -5,6 +5,7 @@ Amable y cercana. Un servicio de trasteos que se siente de barrio, cumplido y si
 ## Logo: el sticker
 
 La palabra **llevo** como un sticker pegado con cinta: lo que pones en una caja para saber a dónde va.
+La "o" es un **pin de entrega** y debajo corre una **ruta punteada** que sale de un aro (la recogida): de aquí a allá, igual que en el mapa del formulario.
 Los archivos están en `public/brand/` (vectores, sin depender de fuentes instaladas).
 
 | Archivo | Uso |
@@ -14,15 +15,17 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 | `llevo-logo-tinta.svg` | A una tinta (impresión económica, sellos) |
 | `llevo-logo-recto.svg` | Sin inclinación, para espacios muy estrechos |
 | `llevo-wordmark.svg` | Solo la palabra, cuando el sticker se ve pesado |
-| `llevo-icono.svg` / `favicon.svg` | Ícono con "ll" (favicon, avatares) |
+| `llevo-icono.svg` | Ícono: aro, ruta y pin sobre el sticker (avatares, redes) |
+| `favicon.svg` | Solo el pin sobre el sticker, para tamaños muy pequeños (16–32 px) |
 | `llevo-icono-app.svg`, `apple-touch-icon.png` | Ícono de app sobre azul |
 | `og-image.png` | Imagen al compartir la web en redes y WhatsApp |
 
 **Reglas**
 - Espacio libre alrededor: al menos la altura de la letra "o".
-- Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono "ll".
+- Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono del pin.
 - No cambies la inclinación (−6°), los colores ni la tipografía. No le agregues sombras, degradados ni contornos.
 - La cinta siempre es amarilla mantequilla y va en la esquina superior izquierda.
+- La ruta y el aro van en mantequilla; el pin, del mismo color que las letras, con el ojal calado.
 
 ## Paleta: cielo y mantequilla
 
