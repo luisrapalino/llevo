@@ -20,20 +20,20 @@ export default function Toaster({ flash }: Props) {
       closeButton
       style={
         {
-          '--normal-bg': '#fdfbf7',
-          '--normal-text': '#1f1b16',
-          '--normal-border': 'rgb(31 27 22 / 0.14)',
+          '--normal-bg': '#ffffff',
+          '--normal-text': '#14213d',
+          '--normal-border': 'rgb(20 33 61 / 0.14)',
           '--border-radius': '12px',
-          fontFamily: "'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif",
+          fontFamily: "'Nunito Variable', ui-sans-serif, system-ui, sans-serif",
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: '!shadow-[0_8px_24px_rgba(31,27,22,0.10)] !text-[15px]',
-          description: '!text-[#5e554a]',
+          toast: '!shadow-[0_8px_24px_rgba(20,33,61,0.10)] !text-[15px]',
+          description: '!text-[#4a5470]',
           success: '[&_[data-icon]]:!text-[#16a34a]',
           error: '[&_[data-icon]]:!text-[#dc2626]',
-          actionButton: '!bg-[#1f1b16] !text-white !rounded-lg',
+          actionButton: '!bg-[#14213d] !text-white !rounded-lg',
         },
       }}
     />

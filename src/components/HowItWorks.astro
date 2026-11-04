@@ -15,23 +15,23 @@ const steps = [
 ];
 ---
 
-<section id="como-funciona" class="scroll-mt-20 bg-ink py-20 text-[#efe9de] sm:py-28">
+<section id="como-funciona" class="scroll-mt-20 bg-ink py-20 text-[#f2f5ff] sm:py-28">
   <div class="mx-auto max-w-6xl px-4 sm:px-6">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <div>
         <p class="text-sm font-medium text-brand-300">Cómo funciona</p>
         <h2 class="section-title mt-3">Tres pasos y listo</h2>
       </div>
-      <p class="text-[#aaa398]">Cotizar te toma menos de 2 minutos desde tu celular.</p>
+      <p class="text-[#b4bdd4]">Cotizar te toma menos de 2 minutos desde tu celular.</p>
     </div>
 
     <ol class="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
       {
         steps.map((s, i) => (
           <li class="border-t border-white/10 pt-6">
-            <span class="font-mono text-sm text-[#8a847a] tabular-nums">0{i + 1}</span>
+            <span class="font-mono text-sm text-[#8c96b0] tabular-nums">0{i + 1}</span>
             <h3 class="mt-4 text-lg font-medium">{s.title}</h3>
-            <p class="mt-2 text-[15px] leading-relaxed text-[#aaa398]">{s.text}</p>
+            <p class="mt-2 text-[15px] leading-relaxed text-[#b4bdd4]">{s.text}</p>
           </li>
         ))
       }

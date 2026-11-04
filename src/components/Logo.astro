@@ -1,17 +1,19 @@
 ---
+/**
+ * Logo de Llevo: la palabra como un sticker pegado con cinta.
+ * variant "color" (azul) para fondos claros, "inverso" (blanco) para fondos azules u oscuros.
+ */
 interface Props {
-  name: string;
+  height?: number;
+  variant?: 'color' | 'inverso';
+  label?: string;
 }
-const { name } = Astro.props;
+const { height = 36, variant = 'color', label } = Astro.props;
+const src = variant === 'inverso' ? '/brand/llevo-logo-inverso.svg' : '/brand/llevo-logo.svg';
+const width = Math.round((height * 637) / 349);
 ---
 
-<span class="flex items-center gap-2">
-  <span class="grid size-8 place-items-center rounded-lg bg-brand-500 text-white">
-    <svg viewBox="0 0 24 24" fill="none" class="size-[18px]" aria-hidden="true">
-      <path d="M3 7.5h10.5v9H3zM13.5 10.5h4l3 3v3h-7z" fill="currentColor"></path>
-      <circle cx="7" cy="17.5" r="1.8" fill="currentColor" stroke="#c2410c" stroke-width="1.2"></circle>
-      <circle cx="17" cy="17.5" r="1.8" fill="currentColor" stroke="#c2410c" stroke-width="1.2"></circle>
-    </svg>
-  </span>
-  <span class="text-[17px] font-semibold tracking-[-0.01em]">{name}</span>
+<span class="inline-flex items-center gap-2">
+  <img src={src} alt="Llevo" width={width} height={height} class="block" loading="eager" decoding="async" />
+  {label && <span class="font-display text-lg font-semibold text-ink-2">{label}</span>}
 </span>

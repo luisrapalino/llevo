@@ -17,11 +17,14 @@ const { business, title = `${business.name} · ${business.tagline}`, description
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#fbf8f3" />
+    <meta name="theme-color" content="#fffaf1" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL('/og-image.png', Astro.url)} />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>{title}</title>
   </head>
   <body class="min-h-dvh">
