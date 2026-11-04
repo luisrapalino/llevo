@@ -132,6 +132,20 @@ async function paintPush() {
   return state;
 }
 
+/** Brave bloquea por defecto el servicio de avisos push (usa el de Google y viene apagado). */
+async function isBrave() {
+  try {
+    return !!(await (navigator as unknown as { brave?: { isBrave?: () => Promise<boolean> } }).brave?.isBrave?.());
+  } catch {
+    return false;
+  }
+}
+const BRAVE_HELP = {
+  description:
+    'En Brave abre Configuración → Privacidad y seguridad y activa "Usar los servicios de Google para la mensajería push". Luego desactiva y vuelve a activar los avisos aquí. En Chrome funcionan sin cambiar nada.',
+  duration: 20000,
+};
+
 async function enablePush() {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
@@ -142,7 +156,16 @@ async function enablePush() {
   if (!keyRes.ok) throw new Error('Sin clave');
   const { publicKey } = await keyRes.json();
   const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
+  let sub: PushSubscription;
+  try {
+    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
+  } catch (err) {
+    if (await isBrave()) {
+      toast.error('Brave tiene bloqueados los avisos', BRAVE_HELP);
+      return;
+    }
+    throw err;
+  }
   const save = await fetch('/api/push/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -152,7 +175,24 @@ async function enablePush() {
     await sub.unsubscribe();
     throw new Error('No se guardó');
   }
-  await fetch('/api/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ test: true }) });
+  const test = await fetch('/api/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ test: true }) })
+    .then((r) => r.json())
+    .catch(() => ({ sent: 0 }));
+  if (!test.sent) {
+    toast.warning('Los avisos quedaron activados, pero la prueba no salió', {
+      description: 'Revisa tu conexión y vuelve a intentarlo en un momento.',
+      duration: 10000,
+    });
+    return;
+  }
+  if (await isBrave()) {
+    // En Brave la suscripción puede funcionar y aun así no llegar nada con la app cerrada
+    toast('Avisos activados (Brave)', {
+      description: `Si no te llega la notificación de prueba en unos segundos: ${BRAVE_HELP.description}`,
+      duration: 20000,
+    });
+    return;
+  }
   toast.success('Avisos activados', { description: 'Te llegará una notificación cada vez que entre una solicitud, aunque el panel esté cerrado.' });
 }
 

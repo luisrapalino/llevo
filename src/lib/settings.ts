@@ -156,8 +156,18 @@ export async function getSettings(client: SupabaseClient | null): Promise<Settin
   return s;
 }
 
+/** Número para WhatsApp en formato internacional: a un celular local de 10 dígitos le agrega el indicativo. */
+export const waNumber = (phone: string, countryCode = '57') => {
+  const digits = phone.replace(/\D/g, '');
+  return !phone.trim().startsWith('+') && digits.length <= 10 ? `${countryCode}${digits.replace(/^0+/, '')}` : digits;
+};
+
+/**
+ * Enlace para abrir un chat de WhatsApp con un mensaje.
+ * Se usa api.whatsapp.com (no wa.me): la redirección de wa.me daña los emojis (🚚 llegaba como "�").
+ */
 export const whatsappLink = (phone: string, text = '¡Hola! Quiero cotizar un trasteo 🚚') =>
-  `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+  `https://api.whatsapp.com/send?phone=${waNumber(phone)}&text=${encodeURIComponent(text)}`;
 
 /** Convierte un celular local (ej. 300 123 4567) a formato internacional para wa.me */
 export function normalizePhone(phone: string, countryCode: string) {
