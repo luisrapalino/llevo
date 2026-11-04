@@ -54,14 +54,14 @@ export type SettingsKey = keyof Settings;
 export const DEFAULT_SETTINGS: Settings = {
   business: {
     name: 'Llevo',
-    tagline: 'Trasteos y acarreos sin complicaciones',
+    tagline: 'Trasteos y acarreos en Valledupar',
     description:
-      'Trasteos, mudanzas pequeñas y acarreos en tu ciudad. Cuéntanos qué llevas, sube fotos y recibe tu cotización por WhatsApp.',
+      'Trasteos, mudanzas pequeñas y acarreos en Valledupar. Cuéntanos qué llevas, sube fotos y recibe tu cotización por WhatsApp.',
     whatsapp: '573000000000',
     countryCode: '57',
     phoneDisplay: '+57 300 000 0000',
     email: 'hola@llevo.co',
-    city: 'Tu ciudad',
+    city: 'Valledupar, Cesar',
     hours: 'Lun a Sáb · 6:00 a.m. – 8:00 p.m.',
     heroBadge: 'Disponible esta semana',
   },
@@ -97,6 +97,10 @@ export const DEFAULT_SETTINGS: Settings = {
     {
       q: '¿Cómo calculan el precio?',
       a: 'Depende de la distancia, el volumen de la carga, los pisos (y si hay ascensor) y si necesitas ayudantes. Con las fotos que subes te damos un precio cerrado antes de confirmar.',
+    },
+    {
+      q: '¿En qué ciudades trabajan?',
+      a: 'Por ahora solo en Valledupar, en cualquier barrio de la ciudad. Pronto llegaremos a más lugares.',
     },
     {
       q: '¿Con cuánta anticipación debo reservar?',
@@ -164,3 +168,6 @@ export function normalizePhone(phone: string, countryCode: string) {
 
 export const formatCOP = (n: number | null | undefined) =>
   n == null ? '—' : new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+/** Nombre corto de la ciudad (sin el departamento), por ejemplo "Valledupar". */
+export const cityName = (b: Business) => (b.city || 'Valledupar').split(',')[0].trim();

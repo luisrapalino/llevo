@@ -1,7 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { COMMON_ITEMS, FLOORS, LOAD_SIZES, SERVICE_TYPES, TIME_SLOTS } from '../lib/constants';
-import type { Business, Pricing } from '../lib/settings';
+import { cityName, type Business, type Pricing } from '../lib/settings';
 
 interface Props {
   business: Business;
@@ -127,7 +127,7 @@ const floors = FLOORS;
                       <input type="radio" name="tamano" value={l.value} class="sr-only" required checked={i === 0} />
                       <span class="flex items-end gap-1" aria-hidden="true">
                         {[0, 1, 2].map((b) => (
-                          <span class:list={['w-2.5 rounded-sm', b <= i ? 'bg-brand-500' : 'bg-sand', ['h-3', 'h-5', 'h-7'][b]]} />
+                          <span data-bar class:list={['w-2.5 origin-bottom rounded-sm', b <= i ? 'bg-brand-500' : 'bg-sand', ['h-3', 'h-5', 'h-7'][b]]} />
                         ))}
                       </span>
                       <span class="mt-3 font-medium">{l.value}</span>
@@ -145,18 +145,41 @@ const floors = FLOORS;
             <div>
               <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Desde dónde y hasta dónde?</h3>
               <p class="mt-1 text-sm text-ink-2">Incluye barrio o una referencia para llegar más fácil.</p>
+              <p class="mt-3 inline-flex items-center gap-2 rounded-lg bg-butter-soft px-3 py-1.5 text-sm text-ink">
+                <Icon name="heroicons:map-pin" class="size-4 text-ink-2" /> Por ahora solo atendemos en {cityName(business)}
+              </p>
+            </div>
+
+            <div class="overflow-hidden rounded-2xl border border-line bg-paper" data-route-map-wrap>
+              <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div class="inline-flex rounded-xl bg-sand p-1" role="group" aria-label="Punto que vas a marcar en el mapa">
+                  <button type="button" data-map-target="origen" aria-pressed="true" class="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold text-ink-2 transition-colors aria-pressed:bg-paper aria-pressed:text-ink aria-pressed:shadow-[0_1px_2px_rgba(20,33,61,0.08)]">
+                    <span class="size-2.5 rounded-full border-2 border-ink bg-paper" aria-hidden="true"></span> Recogida
+                  </button>
+                  <button type="button" data-map-target="destino" aria-pressed="false" class="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold text-ink-2 transition-colors aria-pressed:bg-paper aria-pressed:text-ink aria-pressed:shadow-[0_1px_2px_rgba(20,33,61,0.08)]">
+                    <span class="size-2.5 rounded-full bg-brand-500" aria-hidden="true"></span> Entrega
+                  </button>
+                </div>
+                <p class="text-xs text-ink-3" data-map-hint>Toca el mapa para marcar la recogida, o escribe la dirección abajo</p>
+              </div>
+              <div class="relative h-64 border-t border-line bg-cream sm:h-80" data-route-map>
+                <div class="absolute inset-0 grid place-items-center text-sm text-ink-3" data-map-loading>Cargando mapa…</div>
+              </div>
+              <p class="hidden items-center gap-2 border-t border-line px-4 py-2.5 text-sm text-ink-2" data-map-distance>
+                <Icon name="heroicons:arrows-right-left" class="size-4 text-ink-3" /> <span></span>
+              </p>
             </div>
 
             {
               [
-                { key: 'origen', label: 'Recogida', icon: 'heroicons:map-pin-solid', tone: 'bg-brand-100 text-ink-3' },
-                { key: 'destino', label: 'Entrega', icon: 'heroicons:flag-solid', tone: 'bg-ink text-white' },
+                { key: 'origen', label: 'Recogida', icon: '', tone: 'bg-sand' },
+                { key: 'destino', label: 'Entrega', icon: 'heroicons:flag-solid', tone: 'bg-brand-500 text-white' },
               ].map((p) => (
                 <div class="rounded-2xl bg-paper p-5 border border-line">
                   <div class="flex items-center justify-between gap-3">
                     <p class="flex items-center gap-3 font-medium">
                       <span class:list={['grid size-8 place-items-center rounded-full', p.tone]}>
-                        <Icon name={p.icon} class="size-4" />
+                        {p.icon ? <Icon name={p.icon} class="size-4" /> : <span class="size-3.5 rounded-full border-[3px] border-ink bg-paper" />}
                       </span>
                       {p.label}
                     </p>
@@ -171,13 +194,33 @@ const floors = FLOORS;
                   <div class="mt-4 grid gap-4 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                       <label for={`${p.key}-dir`} class="field-label">Dirección</label>
-                      <input id={`${p.key}-dir`} name={`${p.key}_direccion`} class="field" required autocomplete={p.key === 'origen' ? 'street-address' : 'off'} placeholder="Ej. Calle 45 #12-30, Apto 502" />
+                      <div class="relative">
+                        <input
+                          id={`${p.key}-dir`}
+                          name={`${p.key}_direccion`}
+                          class="field"
+                          required
+                          autocomplete="off"
+                          data-place={p.key}
+                          role="combobox"
+                          aria-expanded="false"
+                          aria-autocomplete="list"
+                          aria-controls={`${p.key}-sugerencias`}
+                          placeholder="Ej. Calle 16 #9-45, apto 302"
+                        />
+                        <ul
+                          id={`${p.key}-sugerencias`}
+                          role="listbox"
+                          class="absolute inset-x-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xl border border-line bg-paper py-1 shadow-[0_8px_24px_rgba(20,33,61,0.10)]"
+                          data-suggest={p.key}
+                        ></ul>
+                      </div>
                     </div>
                     <div class="sm:col-span-2">
                       <label for={`${p.key}-ref`} class="field-label">
                         Barrio / referencia <span class="font-normal text-ink-3">(opcional)</span>
                       </label>
-                      <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Laureles, frente al parque" />
+                      <input id={`${p.key}-ref`} name={`${p.key}_referencia`} class="field" placeholder="Ej. Barrio Novalito, frente al parque" />
                     </div>
                     <div>
                       <label for={`${p.key}-piso`} class="field-label">Piso</label>
@@ -201,6 +244,7 @@ const floors = FLOORS;
               ))
             }
             <input type="hidden" name="origen_ubicacion" data-geo-value />
+            <input type="hidden" name="destino_ubicacion" data-dest-value />
           </fieldset>
 
           <!-- PASO 3 · Carga -->
@@ -460,6 +504,7 @@ const floors = FLOORS;
 
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   import type { Pricing } from '../lib/settings';
+  import { chimeSuccess } from '../lib/sounds';
 
   const MAX_FILES = 10;
   const MAX_DIM = 1600;
@@ -518,6 +563,7 @@ const floors = FLOORS;
     const invalid = fields.find((f) => !f.checkValidity());
     if (invalid) {
       invalid.setAttribute('aria-invalid', 'true');
+      invalid.dispatchEvent(new CustomEvent('llevo:invalid', { bubbles: true }));
       invalid.reportValidity();
       if (!(invalid instanceof HTMLInputElement && (invalid.type === 'radio' || invalid.type === 'checkbox'))) invalid.focus();
       return false;
@@ -640,6 +686,7 @@ const floors = FLOORS;
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         geoValue.value = `https://maps.google.com/?q=${coords.latitude.toFixed(6)},${coords.longitude.toFixed(6)}`;
+        window.dispatchEvent(new CustomEvent('llevo:geo', { detail: { lat: coords.latitude, lng: coords.longitude } }));
         geoLabel.textContent = 'Ubicación agregada';
         toast.success('Ubicación agregada', { description: 'La usaremos como referencia para la recogida.' });
       },
@@ -740,6 +787,7 @@ const floors = FLOORS;
       `📍 Recogida: ${g('origen_direccion')}${g('origen_referencia') ? ` (${g('origen_referencia')})` : ''} — ${piso('origen')}`,
       g('origen_ubicacion') ? `   ${g('origen_ubicacion')}` : '',
       `🏁 Entrega: ${g('destino_direccion')}${g('destino_referencia') ? ` (${g('destino_referencia')})` : ''} — ${piso('destino')}`,
+      g('destino_ubicacion') ? `   ${g('destino_ubicacion')}` : '',
       `📅 ${g('fecha')} · ${g('franja')}${g('hora') ? ` · ${g('hora')}` : ''}${g('flexible') ? ' (flexible)' : ''}`,
       '',
       `📝 ${g('descripcion')}`,
@@ -810,6 +858,7 @@ const floors = FLOORS;
           : 'Abrimos WhatsApp con tu solicitud lista. Solo tienes que enviar el mensaje.';
         window.open(successWa.href, '_blank', 'noopener');
       }
+      chimeSuccess();
       toast.success('Solicitud enviada', {
         description: json_code ? `Código ${json_code}. Te escribimos por WhatsApp muy pronto.` : 'Termina de enviarla en WhatsApp.',
       });
@@ -853,4 +902,8 @@ const floors = FLOORS;
   const codeWrap0 = success.querySelector<HTMLElement>('[data-success-code-wrap]')!;
   applyDate();
   render();
+</script>
+
+<script>
+  import '../scripts/route-map';
 </script>

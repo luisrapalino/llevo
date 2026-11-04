@@ -1,0 +1,23 @@
+{
+  "id": "/",
+  "name": "Llevo · Trasteos en Valledupar",
+  "short_name": "Llevo",
+  "description": "Trasteos, mudanzas pequeñas y acarreos en Valledupar. Cotiza gratis por WhatsApp.",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "start_url": "/?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFAF1",
+  "theme_color": "#FFFAF1",
+  "categories": ["business", "lifestyle", "utilities"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Cotizar un trasteo", "short_name": "Cotizar", "url": "/?app=1#cotizar", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

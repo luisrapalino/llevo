@@ -1,6 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { whatsappLink, type Business } from '../lib/settings';
+import { cityName, whatsappLink, type Business } from '../lib/settings';
 import DispatchLabel from './DispatchLabel.astro';
 
 const { business } = Astro.props as { business: Business };
@@ -10,7 +10,7 @@ const { business } = Astro.props as { business: Business };
   <div>
     <p class="flex items-center gap-2 text-sm text-ink-2" data-hero-fade>
       <span class="size-2 rounded-full bg-[#16a34a]" aria-hidden="true"></span>
-      {business.heroBadge} · Respuesta en minutos
+      {business.heroBadge} en {cityName(business)} · Respuesta en minutos
     </p>
 
     <h1 data-hero-title class="mt-6 font-display text-[40px] leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl lg:text-[68px]">
@@ -18,7 +18,7 @@ const { business } = Astro.props as { business: Business };
     </h1>
 
     <p data-hero-fade class="mt-6 max-w-[36rem] text-lg leading-[1.6] text-pretty text-ink-2 sm:text-[19px]">
-      Trasteos, mudanzas pequeñas y acarreos de un lugar a otro. Sube fotos de lo que vas a mover, elige día y hora, y te
+      Trasteos, mudanzas pequeñas y acarreos en {cityName(business)}. Sube fotos de lo que vas a mover, elige día y hora, y te
       enviamos el precio por WhatsApp.
     </p>
 

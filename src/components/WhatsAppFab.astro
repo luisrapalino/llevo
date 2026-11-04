@@ -5,11 +5,13 @@ const { phone } = Astro.props as { phone: string };
 ---
 
 <a
+  data-fab
   href={whatsappLink(phone)}
   target="_blank"
   rel="noopener"
   aria-label="Escríbenos por WhatsApp"
-  class="fixed right-4 bottom-4 z-40 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(31,27,22,0.16)] transition-[background-color,transform] hover:bg-[#1fb757] active:scale-[0.97] sm:right-6 sm:bottom-6"
+  style="bottom: max(1rem, env(safe-area-inset-bottom))"
+  class="fixed right-4 z-40 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(31,27,22,0.16)] transition-colors hover:bg-[#1fb757] sm:right-6 sm:bottom-6"
 >
   <svg viewBox="0 0 24 24" class="size-7" fill="currentColor" aria-hidden="true">
     <path

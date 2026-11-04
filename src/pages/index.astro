@@ -34,7 +34,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-re
     <Services services={settings.services} />
     <HowItWorks />
     <QuoteForm business={settings.business} pricing={settings.pricing} blocked={blocked ?? []} apiEnabled={isSupabaseConfigured} />
-    <Vehicle vehicle={settings.vehicle} />
+    <Vehicle vehicle={settings.vehicle} business={settings.business} />
     <Faq faqs={settings.faqs} />
   </main>
   <Footer business={settings.business} />

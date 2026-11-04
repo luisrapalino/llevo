@@ -5,6 +5,7 @@ Amable y cercana. Un servicio de trasteos que se siente de barrio, cumplido y si
 ## Logo: el sticker
 
 La palabra **llevo** como un sticker pegado con cinta: lo que pones en una caja para saber a dónde va.
+La "o" es un **pin de entrega** y debajo corre una **ruta punteada** que sale de un aro (la recogida): de aquí a allá, igual que en el mapa del formulario.
 Los archivos están en `public/brand/` (vectores, sin depender de fuentes instaladas).
 
 | Archivo | Uso |
@@ -14,15 +15,16 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 | `llevo-logo-tinta.svg` | A una tinta (impresión económica, sellos) |
 | `llevo-logo-recto.svg` | Sin inclinación, para espacios muy estrechos |
 | `llevo-wordmark.svg` | Solo la palabra, cuando el sticker se ve pesado |
-| `llevo-icono.svg` / `favicon.svg` | Ícono con "ll" (favicon, avatares) |
-| `llevo-icono-app.svg`, `apple-touch-icon.png` | Ícono de app sobre azul |
+| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin blanco y la cinta (avatares, pestaña del navegador) |
+| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul sobre azul (el Panel, sobre tinta con la etiqueta "Panel") |
 | `og-image.png` | Imagen al compartir la web en redes y WhatsApp |
 
 **Reglas**
 - Espacio libre alrededor: al menos la altura de la letra "o".
-- Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono "ll".
+- Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono del pin.
 - No cambies la inclinación (−6°), los colores ni la tipografía. No le agregues sombras, degradados ni contornos.
 - La cinta siempre es amarilla mantequilla y va en la esquina superior izquierda.
+- La ruta y el aro van en mantequilla; el pin, del mismo color que las letras, con el ojal calado.
 
 ## Paleta: cielo y mantequilla
 
@@ -62,3 +64,55 @@ Animaciones con [GSAP](https://gsap.com) siguiendo las guías oficiales de
 - **Panel:** las cifras del resumen cuentan desde cero.
 - Solo se animan `transform` y opacidad, con curvas suaves (`power3.out`); nada en bucle.
 - Si el sistema tiene **reducir movimiento** activado, todo aparece de inmediato sin animación.
+
+## Microinteracciones (Motion)
+
+Con [Motion](https://motion.dev) (antes Framer Motion), en su versión de JavaScript para no cargar React
+en cada botón. Código en `src/scripts/micro.ts`. GSAP se encarga de las entradas y el scroll; Motion, de
+las respuestas al tocar.
+
+- Botones: se hunden un poco al presionarlos; la flecha se asoma al pasar el mouse.
+- Logo: el sticker se despega un poco al pasar el mouse.
+- WhatsApp: el botón se levanta y se inclina como saludando.
+- Formulario: rebote al elegir una opción, las barras de tamaño crecen, los días responden al tocarlos,
+  las fotos nuevas aparecen con un pequeño rebote y los campos con error hacen una sacudida suave.
+- Preguntas frecuentes: la respuesta aparece suave.
+- Panel: las tarjetas del resumen se levantan y las flechas de los enlaces se asoman.
+- Todo con resortes cortos sobre `transform` y opacidad; con "reducir movimiento" no se ejecuta nada.
+
+## Zona de servicio
+
+Por ahora **solo Valledupar**. La ciudad sale de **Configuración → Negocio → Ciudad** y se muestra en la
+portada, el paso de ruta del formulario, la sección del vehículo y las preguntas frecuentes.
+
+## Mapa
+
+[MapLibre](https://maplibre.org) con los mapas gratuitos de [OpenFreeMap](https://openfreemap.org) (estilo Positron,
+teñido con la paleta) y la búsqueda de direcciones de [Photon](https://photon.komoot.io) (OpenStreetMap).
+No necesitan claves ni tienen costo. Código en `src/lib/map.ts` y `src/scripts/route-map.ts`.
+
+- Pines propios: un aro para la recogida y una bandera azul para la entrega, unidos por la línea de ruta punteada.
+- El mapa se limita a Valledupar y solo se descarga cuando el cliente llega al paso de ruta.
+- Al tocar el mapa o arrastrar un pin se llena la dirección aproximada; al escribir aparecen sugerencias de Valledupar.
+- La ubicación de cada punto se guarda con la solicitud y el panel la muestra en un mapa de solo lectura.
+- Los servicios gratuitos piden un uso justo; si el volumen crece mucho, conviene alojar Photon propio.
+
+## App instalable (PWA)
+
+La web se instala como app desde el navegador, sin tiendas de aplicaciones:
+
+- **Llevo** (`/manifest.webmanifest`): para clientes, abre la portada; atajo directo a "Cotizar".
+- **Llevo Panel** (`/panel.webmanifest`): para el equipo, abre el panel; atajos a Solicitudes y Agenda.
+- Íconos en `public/icons/` (azul para clientes, azul noche para el panel; versiones "maskable" para Android).
+- `public/sw.js` acelera la carga y muestra `offline.html` sin conexión. Nunca guarda el panel ni la API.
+- Botón "Instalar": en el pie de la web y en el menú del panel. En Android y computador abre el aviso del
+  navegador; en iPhone explica cómo usar "Compartir → Agregar a inicio".
+- Si cambias archivos del service worker, sube la versión (`VERSION`) en `public/sw.js`.
+
+## Notificaciones y sonidos
+
+- **Push al equipo**: cuando entra una solicitud, cada persona del panel que activó los avisos recibe una notificación ("Nueva solicitud · Servicio", con nombre, día y franja). Al tocarla se abre esa solicitud. Se activan por dispositivo con el botón **Avisos** del menú del panel; al activarlos llega una notificación de prueba.
+- **iPhone**: los avisos solo funcionan con el panel instalado como app (Safari → Compartir → Agregar a inicio, y activarlos desde la app).
+- **Panel abierto**: cada 30 s revisa si hay solicitudes nuevas; muestra un aviso con el botón "Ver", suena una campanita y actualiza el contador amarillo de "Solicitudes" y el número del ícono de la app.
+- **Sonidos** (Web Audio, sin archivos): campanita de dos notas en el panel (se apaga con el botón **Sonido**, se recuerda por dispositivo) y un arpegio corto y alegre cuando el cliente envía su solicitud. Volumen bajo, nada estridente.
+- Las claves de envío (VAPID) se crean solas la primera vez y se guardan en Supabase, en una tabla que solo lee el servidor. No hay que configurar nada en Vercel.

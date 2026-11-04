@@ -3,6 +3,8 @@ import { CONTACT_PREFS, EXTRAS, FLOORS, HELPERS, LOAD_SIZES, SERVICE_TYPES, TIME
 import { estimate } from '../../lib/pricing';
 import { getSettings } from '../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../lib/supabase';
+import { sendPush } from '../../lib/push';
+import { shortSlot } from '../../lib/format';
 
 export const prerender = false;
 
@@ -15,6 +17,8 @@ const EXT: Record<string, string> = {
   'image/heif': 'heif',
   'image/gif': 'gif',
 };
+
+const mapLink = (v: string) => (/^https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+$/.test(v) ? v : null);
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -84,12 +88,11 @@ export const POST: APIRoute = async ({ request }) => {
     origin_reference: str('origen_referencia') || null,
     origin_floor: oneOf(str('origen_piso'), FLOORS, 'Primer piso'),
     origin_elevator: str('origen_ascensor') === 'Sí',
-    origin_location: /^https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+$/.test(str('origen_ubicacion'))
-      ? str('origen_ubicacion')
-      : null,
+    origin_location: mapLink(str('origen_ubicacion')),
     destination_address: destination,
     destination_reference: str('destino_referencia') || null,
     destination_floor: oneOf(str('destino_piso'), FLOORS, 'Primer piso'),
+    destination_location: mapLink(str('destino_ubicacion')),
     destination_elevator: str('destino_ascensor') === 'Sí',
     description,
     items: form.getAll('objetos').map(String).slice(0, 30),
@@ -128,6 +131,17 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
   if (paths.length) await admin.from('requests').update({ photos: paths }).eq('id', created.id);
+
+  // Aviso al equipo (si alguien activó las notificaciones). No bloquea si falla.
+  const { count: pendientes } = await admin.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'nueva');
+  const fecha = new Intl.DateTimeFormat('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  await sendPush(admin, {
+    title: `Nueva solicitud · ${record.service}`,
+    body: `${name} · ${fecha}, ${shortSlot(record.time_slot).toLowerCase()} · ${record.load_size.toLowerCase()}`,
+    url: `/panel/solicitudes/${created.id}`,
+    tag: created.id,
+    count: pendientes ?? undefined,
+  });
 
   return json({ code: created.code, uploads });
 };
