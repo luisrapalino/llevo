@@ -16,6 +16,8 @@ const EXT: Record<string, string> = {
   'image/gif': 'gif',
 };
 
+const mapLink = (v: string) => (/^https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+$/.test(v) ? v : null);
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -84,12 +86,11 @@ export const POST: APIRoute = async ({ request }) => {
     origin_reference: str('origen_referencia') || null,
     origin_floor: oneOf(str('origen_piso'), FLOORS, 'Primer piso'),
     origin_elevator: str('origen_ascensor') === 'Sí',
-    origin_location: /^https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+$/.test(str('origen_ubicacion'))
-      ? str('origen_ubicacion')
-      : null,
+    origin_location: mapLink(str('origen_ubicacion')),
     destination_address: destination,
     destination_reference: str('destino_referencia') || null,
     destination_floor: oneOf(str('destino_piso'), FLOORS, 'Primer piso'),
+    destination_location: mapLink(str('destino_ubicacion')),
     destination_elevator: str('destino_ascensor') === 'Sí',
     description,
     items: form.getAll('objetos').map(String).slice(0, 30),

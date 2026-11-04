@@ -80,7 +80,10 @@ const messages = [
   },
 ];
 
-const mapsDir = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(r.origin_address + ' ' + (r.origin_reference ?? ''))}&destination=${encodeURIComponent(r.destination_address + ' ' + (r.destination_reference ?? ''))}&travelmode=driving`;
+const coords = (link?: string | null) => /q=(-?[\d.]+,-?[\d.]+)/.exec(link ?? '')?.[1] ?? null;
+const originCoords = coords(r.origin_location);
+const destinationCoords = coords(r.destination_location);
+const mapsDir = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originCoords ?? `${r.origin_address} ${r.origin_reference ?? ''}, Valledupar`)}&destination=${encodeURIComponent(destinationCoords ?? `${r.destination_address} ${r.destination_reference ?? ''}, Valledupar`)}&travelmode=driving`;
 const floorText = (floor: string | null, elevator: boolean) =>
   !floor || floor === 'Primer piso' ? 'Primer piso' : `Piso ${floor} · ${elevator ? 'con ascensor' : 'sin ascensor'}`;
 ---
@@ -123,9 +126,9 @@ const floorText = (floor: string | null, elevator: boolean) =>
         </div>
         <div class="mt-5 grid grid-cols-[auto_1fr] gap-x-4">
           <div class="flex flex-col items-center">
-            <span class="grid size-8 place-items-center rounded-full bg-brand-100 text-brand-600"><Icon name="heroicons:map-pin-solid" class="size-4" /></span>
+            <span class="grid size-8 place-items-center rounded-full bg-sand"><span class="size-3.5 rounded-full border-[3px] border-ink bg-paper"></span></span>
             <span class="my-1 w-px flex-1 border-l-2 border-dashed border-line"></span>
-            <span class="grid size-8 place-items-center rounded-full bg-ink text-white"><Icon name="heroicons:flag-solid" class="size-4" /></span>
+            <span class="grid size-8 place-items-center rounded-full bg-brand-500 text-white"><Icon name="heroicons:flag-solid" class="size-4" /></span>
           </div>
           <div class="space-y-6">
             <div>
@@ -136,7 +139,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
               {
                 r.origin_location && (
                   <a href={r.origin_location} target="_blank" rel="noopener" class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-600">
-                    <Icon name="heroicons:map-pin" class="size-3.5" /> Ubicación GPS del cliente
+                    <Icon name="heroicons:map-pin" class="size-3.5" /> Ubicación marcada por el cliente
                   </a>
                 )
               }
@@ -146,9 +149,26 @@ const floorText = (floor: string | null, elevator: boolean) =>
               <p class="font-medium">{r.destination_address}</p>
               {r.destination_reference && <p class="text-sm text-ink-2">{r.destination_reference}</p>}
               <p class="text-xs text-ink-2">{floorText(r.destination_floor, r.destination_elevator)}</p>
+              {
+                r.destination_location && (
+                  <a href={r.destination_location} target="_blank" rel="noopener" class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-600">
+                    <Icon name="heroicons:map-pin" class="size-3.5" /> Ubicación marcada en el mapa
+                  </a>
+                )
+              }
             </div>
           </div>
         </div>
+        {
+          (originCoords || destinationCoords) && (
+            <div
+              class="mt-5 h-64 overflow-hidden rounded-xl border border-line bg-cream"
+              data-panel-map
+              data-origin={originCoords ?? ''}
+              data-destination={destinationCoords ?? ''}
+            />
+          )
+        }
       </section>
 
       <!-- Carga -->
@@ -345,4 +365,22 @@ const floorText = (floor: string | null, elevator: boolean) =>
     }),
   );
   viewer?.addEventListener('click', (e) => e.target === viewer && viewer.close());
+</script>
+
+<script>
+  // Mapa de solo lectura con los puntos que marcó el cliente
+  const el = document.querySelector<HTMLElement>('[data-panel-map]');
+  if (el) {
+    const parse = (v?: string) => {
+      const [lat, lng] = (v ?? '').split(',').map(Number);
+      return Number.isFinite(lat) && Number.isFinite(lng) && v ? { lat, lng } : null;
+    };
+    import('../../../lib/map').then(async ({ createRouteMap }) => {
+      const route = await createRouteMap(el, { interactive: true, draggable: false });
+      const o = parse(el.dataset.origin);
+      const d = parse(el.dataset.destination);
+      if (o) route.set('origen', o, { fly: !d });
+      if (d) route.set('destino', d);
+    });
+  }
 </script>

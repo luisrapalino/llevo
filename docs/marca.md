@@ -82,3 +82,15 @@ las respuestas al tocar.
 
 Por ahora **solo Valledupar**. La ciudad sale de **Configuración → Negocio → Ciudad** y se muestra en la
 portada, el paso de ruta del formulario, la sección del vehículo y las preguntas frecuentes.
+
+## Mapa
+
+[MapLibre](https://maplibre.org) con los mapas gratuitos de [OpenFreeMap](https://openfreemap.org) (estilo Positron,
+teñido con la paleta) y la búsqueda de direcciones de [Photon](https://photon.komoot.io) (OpenStreetMap).
+No necesitan claves ni tienen costo. Código en `src/lib/map.ts` y `src/scripts/route-map.ts`.
+
+- Pines propios: un aro para la recogida y una bandera azul para la entrega, unidos por la línea de ruta punteada.
+- El mapa se limita a Valledupar y solo se descarga cuando el cliente llega al paso de ruta.
+- Al tocar el mapa o arrastrar un pin se llena la dirección aproximada; al escribir aparecen sugerencias de Valledupar.
+- La ubicación de cada punto se guarda con la solicitud y el panel la muestra en un mapa de solo lectura.
+- Los servicios gratuitos piden un uso justo; si el volumen crece mucho, conviene alojar Photon propio.
