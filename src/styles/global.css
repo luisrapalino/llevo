@@ -299,3 +299,38 @@ html.vt-foto::view-transition-new(root) {
     opacity: 0;
   }
 }
+
+/* Mapa ampliado (transición dentro de la misma página): solo el mapa viaja, el resto se funde.
+   El mapa se dibuja a escala real (object-fit: none) mientras la caja crece o se encoge. */
+html.vt-mapa *:not(.llevo-map-full):not([style*="mapa"]) {
+  view-transition-name: none !important;
+}
+html.vt-mapa::view-transition-old(root) {
+  animation: 320ms ease both vt-fade-out;
+}
+html.vt-mapa::view-transition-new(root) {
+  animation: 320ms ease both vt-fade-in;
+}
+::view-transition-group(mapa) {
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  clip-path: inset(0 round 20px);
+}
+::view-transition-image-pair(mapa) {
+  isolation: auto;
+}
+::view-transition-old(mapa),
+::view-transition-new(mapa) {
+  animation: none;
+  mix-blend-mode: normal;
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: center;
+}
+html.vt-mapa-open::view-transition-old(mapa) {
+  opacity: 0;
+}
+html.vt-mapa-close::view-transition-new(mapa) {
+  opacity: 0;
+}
