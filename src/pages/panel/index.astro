@@ -55,11 +55,13 @@ const prevMonthRevenue = sum(prevRevenue.data);
 const revenueDelta = monthRevenue - prevMonthRevenue;
 
 const stats = [
-  { label: 'Nuevas', value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
-  { label: 'Por confirmar', value: String(byStatus.cotizada), meta: 'Cotizadas, esperando respuesta', href: '/panel/solicitudes?estado=cotizada' },
-  { label: 'Agendadas', value: String(byStatus.agendada), meta: 'Servicios pendientes', href: '/panel/solicitudes?estado=agendada' },
+  { label: 'Nuevas', count: byStatus.nueva, value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
+  { label: 'Por confirmar', count: byStatus.cotizada, value: String(byStatus.cotizada), meta: 'Cotizadas, esperando respuesta', href: '/panel/solicitudes?estado=cotizada' },
+  { label: 'Agendadas', count: byStatus.agendada, value: String(byStatus.agendada), meta: 'Servicios pendientes', href: '/panel/solicitudes?estado=agendada' },
   {
     label: 'Ingresos del mes',
+    count: monthRevenue,
+    money: true,
     value: formatCOP(monthRevenue),
     meta: `${revenueDelta >= 0 ? '+' : '−'}${formatCOP(Math.abs(revenueDelta))} vs mes anterior`,
     href: '/panel/solicitudes?estado=completada',
@@ -83,7 +85,7 @@ const stats = [
       stats.map((s) => (
         <a href={s.href} class="rounded-2xl border border-line bg-paper p-5 transition-colors hover:bg-sand/40">
           <p class="text-sm text-ink-2">{s.label}</p>
-          <p class="mt-3 text-[28px] leading-none font-medium tracking-[-0.01em] tabular-nums">{s.value}</p>
+          <p class="mt-3 text-[28px] leading-none font-medium tracking-[-0.01em] tabular-nums" data-count={s.count} data-money={s.money ? '1' : undefined}>{s.value}</p>
           <p class="mt-3 text-xs text-ink-3 tabular-nums">{s.meta}</p>
         </a>
       ))
@@ -179,3 +181,26 @@ const stats = [
     </ul>
   </section>
 </PanelLayout>
+
+<script>
+  import { gsap } from 'gsap';
+
+  // Las cifras del resumen cuentan desde cero al cargar (sin animación si se pidió reducir movimiento)
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+      const target = Number(el.dataset.count) || 0;
+      if (!target) return;
+      const isMoney = el.dataset.money === '1';
+      const counter = { v: 0 };
+      gsap.to(counter, {
+        v: target,
+        duration: 0.9,
+        ease: 'power2.out',
+        onUpdate: () => {
+          el.textContent = isMoney ? money.format(Math.round(counter.v)) : String(Math.round(counter.v));
+        },
+      });
+    });
+  }
+</script>

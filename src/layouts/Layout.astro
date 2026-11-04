@@ -26,9 +26,19 @@ const { business, title = `${business.name} · ${business.tagline}`, description
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>{title}</title>
+    <script is:inline>
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('motion');
+        // Seguridad: si el script de animación no carga, el contenido aparece igual.
+        setTimeout(function () { document.documentElement.classList.remove('motion'); }, 4000);
+      }
+    </script>
   </head>
   <body class="min-h-dvh">
     <slot />
     <Toaster client:load />
+    <script>
+      import '../scripts/motion';
+    </script>
   </body>
 </html>

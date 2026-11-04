@@ -7,7 +7,7 @@ const { services } = Astro.props as { services: Service[] };
 
 <section id="servicios" class="scroll-mt-20 border-t border-line py-20 sm:py-28">
   <div class="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-    <div>
+    <div data-reveal>
       <p class="section-eyebrow">Servicios</p>
       <h2 class="section-title mt-3">Lo que necesites mover, lo movemos</h2>
       <p class="mt-4 max-w-sm text-ink-2">Servicio con un solo vehículo: tu carga viaja sola, sin mezclarse con la de nadie más.</p>
@@ -16,7 +16,7 @@ const { services } = Astro.props as { services: Service[] };
     <ul class="grid gap-x-10 sm:grid-cols-2">
       {
         services.map((s) => (
-          <li class="flex gap-4 border-t border-line py-6">
+          <li class="flex gap-4 border-t border-line py-6" data-reveal>
             <Icon name={s.icon} class="mt-0.5 size-5 shrink-0 text-ink-3" />
             <div>
               <h3 class="font-medium">{s.title}</h3>

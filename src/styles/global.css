@@ -128,3 +128,11 @@
 @utility route-line {
   @apply w-px flex-1 bg-[repeating-linear-gradient(to_bottom,var(--color-ink-3)_0_3px,transparent_3px_7px)] opacity-60;
 }
+
+/* Mientras GSAP prepara las entradas, los elementos animados no parpadean (ver Layout.astro) */
+.motion [data-hero-title],
+.motion [data-hero-fade],
+.motion [data-guide],
+.motion [data-reveal] {
+  visibility: hidden;
+}

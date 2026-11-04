@@ -8,7 +8,7 @@ const { faqs } = Astro.props as { faqs: Faq[] };
 
 <section id="faq" class="scroll-mt-20 border-t border-line py-20 sm:py-28">
   <div class="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.4fr]">
-    <div>
+    <div data-reveal>
       <p class="section-eyebrow">Preguntas frecuentes</p>
       <h2 class="section-title mt-3">Antes de reservar</h2>
       <p class="mt-4 max-w-sm text-ink-2">Si no encuentras tu respuesta, escríbenos por WhatsApp.</p>
@@ -17,7 +17,7 @@ const { faqs } = Astro.props as { faqs: Faq[] };
     <div class="divide-y divide-line border-y border-line">
       {
         faqs.map((f) => (
-          <details class="group py-5 [&_summary::-webkit-details-marker]:hidden" name="faq">
+          <details data-reveal class="group py-5 [&_summary::-webkit-details-marker]:hidden" name="faq">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium">
               {f.q}
               <Icon name="heroicons:plus" class="size-[18px] shrink-0 text-ink-3 transition-transform duration-200 group-open:rotate-45" />
