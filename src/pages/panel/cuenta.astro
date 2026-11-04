@@ -25,14 +25,14 @@ if (Astro.request.method === 'POST') {
   <p class="mt-1 text-sm text-ink-2">{me.email} · {me.role === 'admin' ? 'Administrador' : 'Equipo'}</p>
 
   <div class="mt-8 grid max-w-3xl gap-6 md:grid-cols-2">
-    <form method="post" class="space-y-4 rounded-2xl bg-paper p-6 border border-line">
+    <form method="post" class="space-y-4 rounded-2xl bg-paper p-4 border border-line sm:p-6">
       <input type="hidden" name="action" value="name" />
       <h2 class="flex items-center gap-2 text-lg font-medium"><Icon name="heroicons:user" class="size-5 text-brand-600" /> Tu nombre</h2>
       <input name="full_name" class="field" value={me.full_name} required />
       <button class="btn-dark w-full">Guardar</button>
     </form>
 
-    <form method="post" class="space-y-4 rounded-2xl bg-paper p-6 border border-line">
+    <form method="post" class="space-y-4 rounded-2xl bg-paper p-4 border border-line sm:p-6">
       <input type="hidden" name="action" value="password" />
       <h2 class="flex items-center gap-2 text-lg font-medium"><Icon name="heroicons:key" class="size-5 text-brand-600" /> Cambiar contraseña</h2>
       <input name="password" type="password" minlength="8" required class="field" placeholder="Nueva contraseña" autocomplete="new-password" />

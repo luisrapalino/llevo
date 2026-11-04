@@ -96,14 +96,14 @@ const floorText = (floor: string | null, elevator: boolean) =>
   <div class="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
     <div>
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">{r.customer_name}</h1>
+        <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">{r.customer_name}</h1>
         <StatusBadge status={r.status} />
       </div>
       <p class="mt-1 text-sm text-ink-2">
         <span class="font-mono">#{r.code}</span> · {r.service} · recibida {fmtDateTime(r.created_at)}
       </p>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="hidden flex-wrap gap-2 sm:flex">
       <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="btn-ghost !py-2.5">
         <Icon name="heroicons:phone" class="size-4" /> Llamar
       </a>
@@ -113,11 +113,11 @@ const floorText = (floor: string | null, elevator: boolean) =>
     </div>
   </div>
 
-  <div class="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
+  <div class="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-[1fr_360px]">
     <!-- Columna principal -->
-    <div class="space-y-6">
+    <div class="space-y-4 sm:space-y-6">
       <!-- Ruta -->
-      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <section class="rounded-2xl bg-paper p-4 border border-line sm:p-6">
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-medium">Ruta</h2>
           <a href={mapsDir} target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
@@ -172,7 +172,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
       </section>
 
       <!-- Carga -->
-      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <section class="rounded-2xl bg-paper p-4 border border-line sm:p-6">
         <h2 class="text-lg font-medium">Carga</h2>
         <p class="mt-1 text-sm text-ink-2">{r.load_size}</p>
 
@@ -224,7 +224,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
       </section>
 
       <!-- Cliente -->
-      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <section class="rounded-2xl bg-paper p-4 border border-line sm:p-6">
         <h2 class="text-lg font-medium">Cliente</h2>
         <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
           <div><dt class="text-xs text-ink-2">Celular</dt><dd class="font-medium">{r.customer_phone}</dd></div>
@@ -244,8 +244,8 @@ const floorText = (floor: string | null, elevator: boolean) =>
     </div>
 
     <!-- Columna lateral: gestión -->
-    <aside class="space-y-6">
-      <form method="post" class="space-y-5 rounded-2xl bg-paper p-5 border border-line sm:p-6 lg:sticky lg:top-6">
+    <aside class="space-y-4 sm:space-y-6">
+      <form method="post" id="gestion" class="scroll-mt-20 space-y-5 rounded-2xl bg-paper p-4 border border-line sm:p-6 lg:sticky lg:top-6">
         <input type="hidden" name="action" value="update" />
         <h2 class="text-lg font-medium">Gestión</h2>
 
@@ -313,7 +313,7 @@ const floorText = (floor: string | null, elevator: boolean) =>
         <p class="text-center text-xs text-ink-3">Última actualización {fmtDateTime(r.updated_at)}</p>
       </form>
 
-      <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
+      <section class="rounded-2xl bg-paper p-4 border border-line sm:p-6">
         <h2 class="text-lg font-medium">Mensajes rápidos</h2>
         <p class="mt-1 text-xs text-ink-2">Abren WhatsApp con el mensaje listo para el cliente.</p>
         <div class="mt-4 space-y-2">
@@ -341,6 +341,22 @@ const floorText = (floor: string | null, elevator: boolean) =>
         </button>
       </form>
     </aside>
+  </div>
+
+  <!-- Acciones fijas (celular): llamar, escribir o ir a gestionar sin buscar al final de la página -->
+  <div class="h-16 sm:hidden" aria-hidden="true"></div>
+  <div class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-cream/95 px-3 py-2.5 backdrop-blur sm:hidden">
+    <div class="grid grid-cols-3 gap-2">
+      <a href={`tel:${r.customer_phone.replace(/[^\d+]/g, '')}`} class="btn-ghost !h-11 !px-2 !text-sm">
+        <Icon name="heroicons:phone" class="size-4" /> Llamar
+      </a>
+      <a href={whatsappLink(customerWa, `¡Hola ${firstName}! Te saluda ${biz.name}.`)} target="_blank" rel="noopener" class="btn !h-11 !bg-[#25D366] !px-2 !text-sm text-white">
+        <Icon name="heroicons:chat-bubble-left-right" class="size-4" /> WhatsApp
+      </a>
+      <a href="#gestion" class="btn-dark !h-11 !px-2 !text-sm">
+        <Icon name="heroicons:adjustments-horizontal" class="size-4" /> Gestionar
+      </a>
+    </div>
   </div>
 
   <!-- Visor de fotos -->

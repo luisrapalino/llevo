@@ -25,14 +25,14 @@ const steps = [
       <p class="text-[#b4bdd4]">Cotizar te toma menos de 2 minutos desde tu celular.</p>
     </div>
 
-    <ol class="relative mt-14 grid gap-10 md:grid-cols-3 md:gap-8" data-steps>
+    <ol class="relative mt-8 grid gap-0 md:mt-14 md:grid-cols-3 md:gap-8" data-steps>
       <span class="absolute top-0 left-0 hidden h-px w-full origin-left bg-brand-400 md:block" aria-hidden="true" data-steps-line></span>
       {
         steps.map((s, i) => (
-          <li class="border-t border-white/10 pt-6" data-reveal>
-            <span class="font-mono text-sm text-[#8c96b0] tabular-nums">0{i + 1}</span>
-            <h3 class="mt-4 text-lg font-medium">{s.title}</h3>
-            <p class="mt-2 text-[15px] leading-relaxed text-[#b4bdd4]">{s.text}</p>
+          <li class="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-white/10 py-4 md:block md:pt-6 md:pb-0" data-reveal>
+            <span class="row-span-2 grid size-9 place-items-center rounded-full bg-white/10 font-mono text-sm text-[#c8d0e4] tabular-nums md:inline md:size-auto md:rounded-none md:bg-transparent md:text-[#8c96b0]">0{i + 1}</span>
+            <h3 class="self-center text-base font-medium md:mt-4 md:text-lg">{s.title}</h3>
+            <p class="mt-1 text-sm leading-relaxed text-[#b4bdd4] md:mt-2 md:text-[15px]">{s.text}</p>
           </li>
         ))
       }
