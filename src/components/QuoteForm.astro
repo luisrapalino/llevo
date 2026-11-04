@@ -38,7 +38,19 @@ const floors = FLOORS;
       <!-- Stepper lateral (desktop) -->
       <aside class="hidden lg:block">
         <div class="sticky top-24">
-        <ol class="space-y-1" data-stepper>
+        <div class="relative" data-stepper-wrap>
+        <!-- Ruta entre los pasos: punteada lo que falta, azul lo recorrido (se dibuja al avanzar) -->
+        <svg class="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden="true" data-stepper-route>
+          <defs>
+            <linearGradient id="ruta-pasos" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1" data-route-grad>
+              <stop offset="0" stop-color="#2F5BEA" stop-opacity="0.35" />
+              <stop offset="0.35" stop-color="#2F5BEA" />
+            </linearGradient>
+          </defs>
+          <path data-route-base fill="none" stroke="#D9D2C4" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="0 9" />
+          <path data-route-done fill="none" stroke="url(#ruta-pasos)" stroke-width="4" stroke-linecap="round" />
+        </svg>
+        <ol class="relative space-y-1" data-stepper>
           {
             steps.map((s, i) => (
               <li>
@@ -60,6 +72,7 @@ const floors = FLOORS;
             ))
           }
         </ol>
+        </div>
 
         <div class="mt-8 rounded-2xl bg-paper/70 p-4 text-sm text-ink-2 border border-line">
           <p class="flex items-center gap-2 font-medium text-ink">
@@ -555,6 +568,64 @@ const floors = FLOORS;
       btn.disabled = i > maxReached;
       btn.toggleAttribute('aria-current', i === current);
     });
+    drawRoute();
+  }
+
+  /* ---------- Ruta entre los pasos (stepper de escritorio) ---------- */
+  const routeWrap = document.querySelector<HTMLElement>('[data-stepper-wrap]');
+  const routeBase = document.querySelector<SVGPathElement>('[data-route-base]');
+  const routeDone = document.querySelector<SVGPathElement>('[data-route-done]');
+  const routeGrad = document.querySelector<SVGLinearGradientElement>('[data-route-grad]');
+  let routeStops: number[] = []; // largo de la ruta hasta cada paso
+  let routeShown = 0;
+
+  /** Arma una curva en S suave que pasa por el centro de cada ícono, alternando hacia un lado y otro. */
+  function buildRoute() {
+    if (!routeWrap || !routeBase || !routeDone || !routeWrap.offsetParent) return false;
+    const box = routeWrap.getBoundingClientRect();
+    const pts = stepLinks.map((b) => {
+      const r = b.querySelector('.step-dot')!.getBoundingClientRect();
+      return [r.left + r.width / 2 - box.left, r.top + r.height / 2 - box.top];
+    });
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    routeStops = [0];
+    pts.slice(1).forEach(([x, y], i) => {
+      const [x0, y0] = pts[i];
+      const bend = (i % 2 === 0 ? 1 : -1) * 48;
+      const h = (y - y0) / 3;
+      d += ` C${x0 + bend} ${y0 + h} ${x - bend} ${y - h} ${x} ${y}`;
+      tmp.setAttribute('d', d);
+      routeStops.push(tmp.getTotalLength());
+    });
+    routeBase.setAttribute('d', d);
+    routeDone.setAttribute('d', d);
+    const total = routeStops[routeStops.length - 1] || 1;
+    routeDone.style.strokeDasharray = `${total} ${total}`;
+    routeGrad?.setAttribute('y2', String(pts[pts.length - 1][1]));
+    return true;
+  }
+
+  /** Dibuja (o recoge) la parte recorrida hasta el paso actual. */
+  function drawRoute(instant = false) {
+    if (!routeDone || !routeStops.length) return;
+    const total = routeStops[routeStops.length - 1] || 1;
+    const target = routeStops[current] ?? 0;
+    const state = { v: routeShown };
+    gsap.to(state, {
+      v: target,
+      duration: instant || reduceMotion() ? 0 : 0.9,
+      ease: 'power2.inOut',
+      overwrite: true,
+      onUpdate: () => {
+        routeShown = state.v;
+        routeDone.style.strokeDashoffset = String(total - state.v);
+      },
+    });
+  }
+
+  if (routeWrap) {
+    new ResizeObserver(() => buildRoute() && drawRoute(true)).observe(routeWrap);
   }
 
   function validateStep(i: number) {
