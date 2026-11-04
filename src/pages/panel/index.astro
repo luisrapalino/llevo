@@ -94,7 +94,7 @@ const stats = [
     <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-medium">Próximos 7 días</h2>
-        <a href="/panel/agenda" class="text-sm font-medium text-brand-600 hover:text-brand-700">Agenda →</a>
+        <a href="/panel/agenda" class="inline-flex items-center gap-1 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600">Agenda <Icon name="heroicons:arrow-right" class="size-4" /></a>
       </div>
       {
         upcoming.data?.length ? (
@@ -109,7 +109,7 @@ const stats = [
                   <span class="min-w-0 flex-1">
                     <span class="block truncate font-medium">{r.customer_name}</span>
                     <span class="block truncate text-xs text-ink-2">
-                      {shortSlot(r.time_slot)} · {r.origin_address} → {r.destination_address}
+                      {shortSlot(r.time_slot)} · {r.origin_address} <Icon name="heroicons:arrow-long-right" class="inline size-3.5 align-[-2px]" /> {r.destination_address}
                     </span>
                   </span>
                   <StatusBadge status={r.status} />
@@ -126,7 +126,7 @@ const stats = [
     <section class="rounded-2xl bg-paper p-5 border border-line sm:p-6">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-medium">Solicitudes nuevas</h2>
-        <a href="/panel/solicitudes?estado=nueva" class="text-sm font-medium text-brand-600 hover:text-brand-700">Ver todas →</a>
+        <a href="/panel/solicitudes?estado=nueva" class="inline-flex items-center gap-1 text-sm font-medium text-brand-500 transition-colors hover:text-brand-600">Ver todas <Icon name="heroicons:arrow-right" class="size-4" /></a>
       </div>
       {
         latest.data?.length ? (

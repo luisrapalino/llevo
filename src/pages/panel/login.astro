@@ -30,7 +30,7 @@ if (Astro.request.method === 'POST' && Astro.locals.supabase) {
   <body class="grid min-h-dvh place-items-center bg-cream px-4 py-10">
 
     <div class="w-full max-w-sm">
-      <div class="flex justify-center"><Logo name="Panel" /></div>
+      <div class="flex justify-center"><Logo height={44} label="Panel" /></div>
       <div class="mt-8 rounded-[20px] bg-paper p-6 border border-line sm:p-8">
         <h1 class="text-2xl font-medium tracking-[-0.01em]">Entrar al panel</h1>
         <p class="mt-1 text-sm text-ink-2">Entra para gestionar solicitudes y la agenda.</p>
@@ -72,7 +72,7 @@ if (Astro.request.method === 'POST' && Astro.locals.supabase) {
         </form>
       </div>
       <p class="mt-6 text-center text-sm text-ink-2">
-        <a href="/" class="hover:text-ink">← Volver a la web</a>
+        <a href="/" class="inline-flex items-center gap-1.5 transition-colors hover:text-ink"><Icon name="heroicons:arrow-left" class="size-4" /> Volver a la web</a>
       </p>
     </div>
   </body>

@@ -1,40 +1,43 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/instrument-sans';
-@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/nunito';
 
 /*
- * Dirección: cercano, cumplido, práctico. Mundo: cartón kraft, cinta de embalar y guías de despacho.
- * Neutros cálidos de cartón, un solo acento (naranja ember) y un momento: la guía de despacho del hero.
- * Rediseño guiado por unslop de Damir Sokolovsky (@heydamir), CC BY 4.0.
+ * Marca Llevo: amable y cercana.
+ * Paleta "cielo y mantequilla": azul cielo como color principal, amarillo mantequilla como acento,
+ * tinta azul noche para textos y crema de fondo. Fredoka para títulos y logo, Nunito para el resto.
+ * El proceso de diseño siguió unslop de Damir Sokolovsky (@heydamir), CC BY 4.0.
  */
 @theme {
-  --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fredoka Variable', 'Nunito Variable', ui-sans-serif, sans-serif;
+  --font-mono: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
 
-  /* Rampa neutra cálida (cartón) */
-  --color-cream: #f7f4ee; /* fondo de página */
-  --color-paper: #fdfbf7; /* tarjetas */
-  --color-sand: #efe9df; /* superficie elevada */
-  --color-ink: #1f1b16; /* texto principal */
-  --color-ink-2: #5e554a; /* texto secundario */
-  --color-ink-3: #7b7266; /* texto tenue */
-  --color-line: rgb(31 27 22 / 0.08); /* hairline */
-  --color-line-strong: rgb(31 27 22 / 0.14);
-  --color-kraft: #dcc6a2;
-  --color-kraft-deep: #c9ad84;
+  /* Neutros */
+  --color-cream: #fffaf1; /* fondo de página */
+  --color-paper: #ffffff; /* tarjetas */
+  --color-sand: #f4f1ea; /* superficie elevada */
+  --color-ink: #14213d; /* texto principal (azul noche) */
+  --color-ink-2: #4a5470; /* texto secundario */
+  --color-ink-3: #6b7489; /* texto tenue */
+  --color-line: rgb(20 33 61 / 0.08);
+  --color-line-strong: rgb(20 33 61 / 0.14);
+  --color-kraft: #dcc6a2; /* cartón (solo en ilustraciones) */
+  --color-butter: #ffd166; /* acento mantequilla */
+  --color-butter-soft: #fff1cc;
+  --color-sky-soft: #e7edff;
 
-  /* Acento: naranja ember, con contraste 4.5:1 sobre blanco desde el 500 */
-  --color-brand-50: #fbf1ea;
-  --color-brand-100: #f6e2d3;
-  --color-brand-200: #efc6a8;
-  --color-brand-300: #e69a6c;
-  --color-brand-400: #dc6a35;
-  --color-brand-500: #c2410c;
-  --color-brand-600: #a8380a;
-  --color-brand-700: #8f300a;
-  --color-brand-800: #74290c;
-  --color-brand-900: #5f230d;
+  /* Principal: azul cielo (blanco encima 5.5:1) */
+  --color-brand-50: #f2f5ff;
+  --color-brand-100: #e7edff;
+  --color-brand-200: #c9d6ff;
+  --color-brand-300: #9db3fb;
+  --color-brand-400: #5f80f2;
+  --color-brand-500: #2f5bea;
+  --color-brand-600: #2449c9;
+  --color-brand-700: #1c3aa3;
+  --color-brand-800: #172f80;
+  --color-brand-900: #132764;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
@@ -48,7 +51,12 @@
   }
   body {
     @apply bg-cream font-sans text-ink antialiased;
-    font-feature-settings: 'ss01';
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
   }
   ::selection {
     @apply bg-brand-100 text-ink;
@@ -64,7 +72,7 @@
 }
 
 @utility btn {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-[10px] px-5 text-[15px] font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 @utility btn-primary {
@@ -72,7 +80,7 @@
 }
 
 @utility btn-dark {
-  @apply btn bg-ink text-white hover:bg-[#2c2721];
+  @apply btn bg-ink text-white hover:bg-[#1d2c4f];
 }
 
 @utility btn-ghost {
@@ -105,11 +113,11 @@
 }
 
 @utility section-eyebrow {
-  @apply text-sm font-medium text-brand-500;
+  @apply text-sm font-bold text-brand-500;
 }
 
 @utility section-title {
-  @apply text-3xl font-medium tracking-[-0.02em] text-balance sm:text-[40px] sm:leading-[1.1];
+  @apply font-display text-3xl font-semibold tracking-[-0.02em] text-balance sm:text-[40px] sm:leading-[1.1];
 }
 
 @utility surface {

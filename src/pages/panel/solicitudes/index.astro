@@ -145,7 +145,7 @@ const link = (over: Record<string, string | number | null>) => {
                   <StatusBadge status={r.status} />
                 </div>
                 <p class="mt-2 truncate text-xs text-ink-2">
-                  {r.origin_address} → {r.destination_address}
+                  {r.origin_address} <Icon name="heroicons:arrow-long-right" class="inline size-3.5 align-[-2px]" /> {r.destination_address}
                 </p>
               </a>
             </li>
@@ -167,13 +167,13 @@ const link = (over: Record<string, string | number | null>) => {
     pages > 1 && (
       <nav class="mt-6 flex items-center justify-between text-sm">
         <a href={link({ p: page - 1 })} class:list={['btn-ghost !py-2', page <= 1 && 'pointer-events-none opacity-40']}>
-          ← Anterior
+          <Icon name="heroicons:arrow-left" class="size-4" /> Anterior
         </a>
         <span class="text-ink-2">
           Página {page} de {pages}
         </span>
         <a href={link({ p: page + 1 })} class:list={['btn-ghost !py-2', page >= pages && 'pointer-events-none opacity-40']}>
-          Siguiente →
+          Siguiente <Icon name="heroicons:arrow-right" class="size-4" />
         </a>
       </nav>
     )
