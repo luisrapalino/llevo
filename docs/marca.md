@@ -5,7 +5,7 @@ Amable y cercana. Un servicio de trasteos que se siente de barrio, cumplido y si
 ## Logo: el sticker
 
 La palabra **llevo** como un sticker pegado con cinta: lo que pones en una caja para saber a dónde va.
-La "o" es un **pin de entrega** y debajo corre una **ruta punteada** que sale de un aro (la recogida): de aquí a allá, igual que en el mapa del formulario.
+La "o" es un **pin de entrega**: su cabeza baja, se dobla hacia la izquierda y se estira en una **estela** del mismo color que recorre la palabra y se desvanece. Pin y ruta son una sola forma: de aquí a allá.
 Los archivos están en `public/brand/` (vectores, sin depender de fuentes instaladas).
 
 | Archivo | Uso |
@@ -24,7 +24,7 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 - Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono del pin.
 - No cambies la inclinación (−6°), los colores ni la tipografía. No le agregues sombras, degradados ni contornos.
 - La cinta siempre es amarilla mantequilla y va en la esquina superior izquierda.
-- La ruta y el aro van en mantequilla; el pin, del mismo color que las letras, con el ojal calado.
+- El pin y su estela van del mismo color que las letras, con el ojal calado; la estela siempre se desvanece hacia la izquierda.
 
 ## Paleta: cielo y mantequilla
 
