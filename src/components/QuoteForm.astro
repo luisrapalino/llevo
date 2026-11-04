@@ -504,6 +504,7 @@ const floors = FLOORS;
 
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   import type { Pricing } from '../lib/settings';
+  import { chimeSuccess } from '../lib/sounds';
 
   const MAX_FILES = 10;
   const MAX_DIM = 1600;
@@ -857,6 +858,7 @@ const floors = FLOORS;
           : 'Abrimos WhatsApp con tu solicitud lista. Solo tienes que enviar el mensaje.';
         window.open(successWa.href, '_blank', 'noopener');
       }
+      chimeSuccess();
       toast.success('Solicitud enviada', {
         description: json_code ? `Código ${json_code}. Te escribimos por WhatsApp muy pronto.` : 'Termina de enviarla en WhatsApp.',
       });

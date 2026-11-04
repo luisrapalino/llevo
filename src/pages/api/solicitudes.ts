@@ -3,6 +3,8 @@ import { CONTACT_PREFS, EXTRAS, FLOORS, HELPERS, LOAD_SIZES, SERVICE_TYPES, TIME
 import { estimate } from '../../lib/pricing';
 import { getSettings } from '../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../lib/supabase';
+import { sendPush } from '../../lib/push';
+import { shortSlot } from '../../lib/format';
 
 export const prerender = false;
 
@@ -129,6 +131,17 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
   if (paths.length) await admin.from('requests').update({ photos: paths }).eq('id', created.id);
+
+  // Aviso al equipo (si alguien activó las notificaciones). No bloquea si falla.
+  const { count: pendientes } = await admin.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'nueva');
+  const fecha = new Intl.DateTimeFormat('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  await sendPush(admin, {
+    title: `Nueva solicitud · ${record.service}`,
+    body: `${name} · ${fecha}, ${shortSlot(record.time_slot).toLowerCase()} · ${record.load_size.toLowerCase()}`,
+    url: `/panel/solicitudes/${created.id}`,
+    tag: created.id,
+    count: pendientes ?? undefined,
+  });
 
   return json({ code: created.code, uploads });
 };

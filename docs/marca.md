@@ -106,3 +106,11 @@ La web se instala como app desde el navegador, sin tiendas de aplicaciones:
 - Botón "Instalar": en el pie de la web y en el menú del panel. En Android y computador abre el aviso del
   navegador; en iPhone explica cómo usar "Compartir → Agregar a inicio".
 - Si cambias archivos del service worker, sube la versión (`VERSION`) en `public/sw.js`.
+
+## Notificaciones y sonidos
+
+- **Push al equipo**: cuando entra una solicitud, cada persona del panel que activó los avisos recibe una notificación ("Nueva solicitud · Servicio", con nombre, día y franja). Al tocarla se abre esa solicitud. Se activan por dispositivo con el botón **Avisos** del menú del panel; al activarlos llega una notificación de prueba.
+- **iPhone**: los avisos solo funcionan con el panel instalado como app (Safari → Compartir → Agregar a inicio, y activarlos desde la app).
+- **Panel abierto**: cada 30 s revisa si hay solicitudes nuevas; muestra un aviso con el botón "Ver", suena una campanita y actualiza el contador amarillo de "Solicitudes" y el número del ícono de la app.
+- **Sonidos** (Web Audio, sin archivos): campanita de dos notas en el panel (se apaga con el botón **Sonido**, se recuerda por dispositivo) y un arpegio corto y alegre cuando el cliente envía su solicitud. Volumen bajo, nada estridente.
+- Las claves de envío (VAPID) se crean solas la primera vez y se guardan en Supabase, en una tabla que solo lee el servidor. No hay que configurar nada en Vercel.
