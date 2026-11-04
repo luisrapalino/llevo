@@ -1,6 +1,6 @@
 // Service worker de Llevo: hace la web instalable, la acelera y muestra una página sin conexión.
 // Nunca guarda en caché el panel ni la API (información privada y siempre al día).
-const VERSION = 'llevo-v3';
+const VERSION = 'llevo-v4';
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const PRECACHE = ['/offline.html', '/brand/llevo-logo.svg', '/favicon.svg', '/icons/icon-192.png', '/icons/panel-192.png'];
