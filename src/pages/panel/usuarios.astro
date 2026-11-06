@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import PanelLayout from '../../layouts/PanelLayout.astro';
 import { fmtDateTime } from '../../lib/format';
+import { roleLabel } from '../../lib/roles';
 import { createAdminClient } from '../../lib/supabase';
 
 const db = Astro.locals.supabase!;
@@ -73,7 +74,7 @@ const { data: users } = await db.from('profiles').select('id, email, full_name, 
                     u.role === 'admin' ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-sand/60 text-ink-2 ring-line-strong',
                   ]}
                 >
-                  {u.role === 'admin' ? 'Administrador' : 'Equipo'}
+                  {roleLabel(u.role)}
                 </span>
               </div>
 

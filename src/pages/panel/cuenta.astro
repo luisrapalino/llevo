@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import PanelLayout from '../../layouts/PanelLayout.astro';
+import { roleLabel } from '../../lib/roles';
 
 const db = Astro.locals.supabase!;
 const me = Astro.locals.profile!;
@@ -22,7 +23,7 @@ if (Astro.request.method === 'POST') {
 
 <PanelLayout title="Mi cuenta">
   <h1 class="text-3xl font-medium tracking-[-0.02em] tracking-tight">Mi cuenta</h1>
-  <p class="mt-1 text-sm text-ink-2">{me.email} · {me.role === 'admin' ? 'Administrador' : 'Equipo'}</p>
+  <p class="mt-1 text-sm text-ink-2">{me.email} · {roleLabel(me.role)}</p>
 
   <div class="mt-8 grid max-w-3xl gap-6 md:grid-cols-2">
     <form method="post" class="space-y-4 rounded-2xl bg-paper p-4 border border-line sm:p-6">

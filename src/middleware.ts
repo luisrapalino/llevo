@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { isPanelUserRole } from './lib/roles';
 import { createSessionClient, panelStatus } from './lib/supabase';
 
 const PUBLIC_PANEL = ['/panel/login', '/panel/bienvenida'];
@@ -30,12 +31,18 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   }
 
   if (PUBLIC_PANEL.includes(path)) {
-    if (ctx.locals.profile) return ctx.redirect('/panel');
+    if (ctx.locals.profile && isPanelUserRole(ctx.locals.profile.role)) return ctx.redirect('/panel');
     // Sin usuarios todavía: guía a crear el primer administrador.
     if (path === '/panel/login' && (await panelStatus()) === 'no-users') return ctx.redirect('/panel/bienvenida');
     return next();
   }
   if (!ctx.locals.profile) return ctx.redirect('/panel/login');
+  if (!isPanelUserRole(ctx.locals.profile.role)) {
+    return ctx.redirect(
+      '/panel/login?error=' +
+        encodeURIComponent('Esta cuenta no tiene acceso al panel de gestión. Usa la app o contacta a Llevo.'),
+    );
+  }
   if (ADMIN_ONLY.some((p) => path.startsWith(p)) && ctx.locals.profile.role !== 'admin') {
     return ctx.redirect('/panel?error=Solo%20un%20administrador%20puede%20entrar%20ah%C3%AD');
   }
