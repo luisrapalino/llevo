@@ -89,6 +89,7 @@ teñido con la paleta) y la búsqueda de direcciones de [Photon](https://photon.
 No necesitan claves ni tienen costo. Código en `src/lib/map.ts` y `src/scripts/route-map.ts`.
 
 - Pines propios: un aro para la recogida y una bandera azul para la entrega, unidos por la línea de ruta punteada.
+- La línea sale por las calles. No se dibuja una recta mientras se calcula; la recta solo queda si el servicio de rutas no responde. La misma pareja de puntos se reutiliza en la pestaña, sin volver a calcularla.
 - El mapa se limita a Valledupar y solo se descarga cuando el cliente llega al paso de ruta.
 - Al tocar el mapa o arrastrar un pin se llena la dirección aproximada; al escribir aparecen sugerencias de Valledupar.
 - La ubicación de cada punto se guarda con la solicitud y el panel la muestra en un mapa de solo lectura.

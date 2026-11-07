@@ -246,6 +246,7 @@ const floors = FLOORS;
             }
             <input type="hidden" name="origen_ubicacion" data-geo-value />
             <input type="hidden" name="destino_ubicacion" data-dest-value />
+            <input type="hidden" data-route-km value="" />
           </fieldset>
 
           <!-- PASO 3 · Carga -->
@@ -445,7 +446,8 @@ const floors = FLOORS;
               <div>
                 <p class="text-sm text-[#b4bdd4]">Precio estimado</p>
                 <p class="text-3xl font-medium tracking-[-0.02em]" data-estimate>—</p>
-                <p class="mt-1 text-xs text-ink-3">Valor de referencia. Te confirmo el precio final al revisar tus fotos.</p>
+                <p class="mt-1 hidden text-xs text-[#b4bdd4]" data-estimate-km></p>
+                <p class="mt-1 text-xs text-[#b4bdd4]">Valor de referencia. Te confirmo el precio final al revisar tus fotos.</p>
               </div>
               <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-500">
                 <Icon name="heroicons:calculator" class="size-6" />
@@ -497,7 +499,7 @@ const floors = FLOORS;
 </section>
 
 <script>
-  import { estimate, type EstimateInput } from '../lib/pricing';
+  import { estimate, routeNote, type EstimateInput } from '../lib/pricing';
   import { toast } from '../lib/toast';
   import { gsap } from 'gsap';
 
@@ -717,6 +719,8 @@ const floors = FLOORS;
   const pricing: Pricing | null = form.dataset.pricing ? JSON.parse(form.dataset.pricing) : null;
   const estimateBox = form.querySelector<HTMLElement>('[data-estimate-box]')!;
   const estimateEl = form.querySelector<HTMLElement>('[data-estimate]')!;
+  const estimateKm = form.querySelector<HTMLElement>('[data-estimate-km]')!;
+  const routeKmInput = form.querySelector<HTMLInputElement>('[data-route-km]');
   const cop = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
   function estimateInput(data: FormData): EstimateInput {
     const g = (k: string) => String(data.get(k) ?? '');
@@ -729,16 +733,28 @@ const floors = FLOORS;
       helpers: g('ayudantes'),
       extras: data.getAll('extras').map(String),
       service_date: g('fecha') || null,
+      distance_km: currentKm(),
     };
+  }
+  function currentKm(): number | null {
+    const raw = routeKmInput?.value ?? '';
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
   }
   function updateEstimate() {
     if (!pricing) return;
+    const km = currentKm();
     const value = estimate(estimateInput(new FormData(form)), pricing);
     estimateBox.classList.toggle('hidden', value == null);
     estimateBox.classList.toggle('flex', value != null);
     if (value != null) estimateEl.textContent = `Desde ${cop.format(value)}`;
+    const note = routeNote(km, pricing);
+    estimateKm.textContent = note ?? '';
+    estimateKm.classList.toggle('hidden', !note);
   }
   form.addEventListener('change', updateEstimate);
+  window.addEventListener('llevo:route', () => updateEstimate());
 
   /* ---------- Geolocalización ---------- */
   const geoBtn = form.querySelector<HTMLButtonElement>('[data-geo]');

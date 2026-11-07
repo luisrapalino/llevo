@@ -39,6 +39,10 @@ export interface Pricing {
   assembly: number;
   packing: number;
   weekendPct: number;
+  /** Kilómetros que ya entran en la tarifa base. Lo que pase de aquí se cobra aparte. */
+  includedKm: number;
+  /** Valor por cada kilómetro por encima de includedKm. */
+  perKm: number;
 }
 
 export interface Settings {
@@ -131,6 +135,8 @@ export const DEFAULT_SETTINGS: Settings = {
     assembly: 40000,
     packing: 30000,
     weekendPct: 10,
+    includedKm: 8,
+    perKm: 4000,
   },
 };
 

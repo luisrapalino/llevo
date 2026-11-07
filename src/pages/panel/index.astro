@@ -57,18 +57,62 @@ const prevMonthRevenue = sum(prevRevenue.data);
 const revenueDelta = monthRevenue - prevMonthRevenue;
 
 const thumbs = thumbUrls(latest.data ?? []);
+const firstName = (Astro.locals.profile?.full_name || Astro.locals.profile?.email || '').split(/[\s@]/)[0];
+
+const delta =
+  monthRevenue === 0 && prevMonthRevenue === 0
+    ? { text: 'Todavía sin cobros', tone: 'text-ink-3' }
+    : revenueDelta === 0
+      ? { text: 'Igual que el mes pasado', tone: 'text-ink-3' }
+      : revenueDelta > 0
+        ? { text: `+${formatCOP(revenueDelta)} frente al mes pasado`, tone: 'text-emerald-700' }
+        : { text: `${formatCOP(Math.abs(revenueDelta))} menos que el mes pasado`, tone: 'text-red-700' };
 
 const stats = [
-  { label: 'Nuevas', count: byStatus.nueva, value: String(byStatus.nueva), meta: 'Por revisar', href: '/panel/solicitudes?estado=nueva' },
-  { label: 'Por confirmar', count: byStatus.cotizada, value: String(byStatus.cotizada), meta: 'Cotizadas, esperando respuesta', href: '/panel/solicitudes?estado=cotizada' },
-  { label: 'Agendadas', count: byStatus.agendada, value: String(byStatus.agendada), meta: 'Servicios pendientes', href: '/panel/solicitudes?estado=agendada' },
+  {
+    label: 'Nuevas',
+    count: byStatus.nueva,
+    value: String(byStatus.nueva),
+    meta: 'Por revisar',
+    metaTone: 'text-sky-700/80',
+    href: '/panel/solicitudes?estado=nueva',
+    icon: STATUSES.nueva.icon,
+    iconWrap: STATUSES.nueva.iconWrap,
+    card: 'border-sky-200 bg-sky-50/80 hover:bg-sky-50',
+  },
+  {
+    label: 'Por confirmar',
+    count: byStatus.cotizada,
+    value: String(byStatus.cotizada),
+    meta: 'Esperando respuesta',
+    metaTone: 'text-amber-800/80',
+    href: '/panel/solicitudes?estado=cotizada',
+    icon: STATUSES.cotizada.icon,
+    iconWrap: STATUSES.cotizada.iconWrap,
+    card: 'border-amber-200 bg-amber-50/80 hover:bg-amber-50',
+  },
+  {
+    label: 'Agendadas',
+    count: byStatus.agendada,
+    value: String(byStatus.agendada),
+    meta: 'Servicios pendientes',
+    metaTone: 'text-violet-800/80',
+    href: '/panel/solicitudes?estado=agendada',
+    icon: STATUSES.agendada.icon,
+    iconWrap: STATUSES.agendada.iconWrap,
+    card: 'border-violet-200 bg-violet-50/80 hover:bg-violet-50',
+  },
   {
     label: 'Ingresos del mes',
     count: monthRevenue,
     money: true,
     value: formatCOP(monthRevenue),
-    meta: `${revenueDelta >= 0 ? '+' : '−'}${formatCOP(Math.abs(revenueDelta))} vs mes anterior`,
+    meta: delta.text,
+    metaTone: delta.tone,
     href: '/panel/solicitudes?estado=completada',
+    icon: 'heroicons:banknotes',
+    iconWrap: 'bg-butter text-ink',
+    card: 'border-line bg-paper hover:bg-sand/40',
   },
 ];
 ---
@@ -77,20 +121,25 @@ const stats = [
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
       <p class="text-sm text-ink-2">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-      <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">Resumen</h1>
+      <h1 class="text-2xl font-medium tracking-[-0.02em] sm:text-3xl">{firstName ? `Hola, ${firstName}` : 'Hoy'}</h1>
     </div>
     <a href="/panel/agenda" class="btn-ghost hidden self-start sm:inline-flex sm:self-auto">
       <Icon name="heroicons:calendar-days" class="size-4" /> Ver agenda
     </a>
   </div>
 
-  <div class="-mx-3 mt-5 flex snap-x gap-2.5 overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+  <div class="mt-5 grid grid-cols-2 gap-2.5 sm:mt-8 sm:gap-3 lg:grid-cols-4">
     {
       stats.map((s) => (
-        <a href={s.href} data-lift class="w-[38%] shrink-0 snap-start rounded-2xl border border-line bg-paper p-3.5 transition-colors sm:w-auto sm:p-5 hover:bg-sand/40">
-          <p class="text-sm text-ink-2">{s.label}</p>
-          <p class="mt-2 text-2xl leading-none sm:mt-3 sm:text-[28px] font-medium tracking-[-0.01em] tabular-nums" data-count={s.count} data-money={s.money ? '1' : undefined}>{s.value}</p>
-          <p class="mt-2 truncate text-xs text-ink-3 tabular-nums sm:mt-3">{s.meta}</p>
+        <a href={s.href} data-lift class:list={['flex min-w-0 flex-col rounded-2xl border p-3.5 transition-colors sm:p-5', s.card]}>
+          <span class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium">{s.label}</span>
+            <span class:list={['grid size-9 shrink-0 place-items-center rounded-xl', s.iconWrap]}>
+              <Icon name={s.icon} class="size-5" />
+            </span>
+          </span>
+          <p class="mt-4 text-2xl leading-none font-medium tracking-[-0.02em] tabular-nums sm:text-[28px]" data-count={s.count} data-money={s.money ? '1' : undefined}>{s.value}</p>
+          <p class:list={['mt-2 truncate text-xs tabular-nums', s.metaTone]}>{s.meta}</p>
         </a>
       ))
     }
@@ -145,7 +194,7 @@ const stats = [
                     <span class="block truncate font-medium" data-vt="name">{r.customer_name}</span>
                     <span class="block truncate text-xs text-ink-2">
                       {r.service} · {timeAgo(r.created_at)}
-                      {r.photos.length > 0 && ` · ${r.photos.length} foto(s)`}
+                      {r.photos.length > 0 && ` · ${r.photos.length} ${r.photos.length === 1 ? 'foto' : 'fotos'}`}
                     </span>
                   </span>
                   <span class="text-right text-sm font-medium whitespace-nowrap">{r.estimated_price ? formatCOP(r.estimated_price) : ''}</span>
@@ -161,22 +210,29 @@ const stats = [
   </div>
 
   <section class="mt-6 rounded-2xl bg-paper p-4 border border-line sm:p-6">
-    <h2 class="text-lg font-medium">Resumen por estado</h2>
-    <div class="mt-4 flex h-3 overflow-hidden rounded-full bg-sand">
+    <h2 class="text-lg font-medium">Por estado</h2>
+    <div class="mt-4 flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-sand">
       {
         STATUS_KEYS.map((s) => {
           const total = Object.values(byStatus).reduce((a, b) => a + b, 0) || 1;
-          return <span class:list={[STATUSES[s].dot]} style={`width:${(byStatus[s] / total) * 100}%`} title={`${STATUSES[s].label}: ${byStatus[s]}`} />;
+          const share = (byStatus[s] / total) * 100;
+          return share > 0 && <span class:list={[STATUSES[s].dot]} style={`width:${share}%`} title={`${STATUSES[s].label}: ${byStatus[s]}`} />;
         })
       }
     </div>
-    <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+    <ul class="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-5">
       {
         STATUS_KEYS.map((s) => (
-          <li class="flex items-center gap-2">
-            <span class:list={['size-2.5 rounded-full', STATUSES[s].dot]} />
-            <span class="text-ink-2">{STATUSES[s].label}</span>
-            <span class="font-medium">{byStatus[s]}</span>
+          <li>
+            <a href={`/panel/solicitudes?estado=${s}`} class="flex items-center gap-2.5 rounded-2xl border border-line px-2.5 py-2 transition hover:bg-sand/60">
+              <span class:list={['grid size-8 shrink-0 place-items-center rounded-xl', STATUSES[s].iconWrap]}>
+                <Icon name={STATUSES[s].icon} class="size-4" />
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-semibold">{STATUSES[s].label}</span>
+                <span class="block text-xs text-ink-3 tabular-nums">{byStatus[s]}</span>
+              </span>
+            </a>
           </li>
         ))
       }

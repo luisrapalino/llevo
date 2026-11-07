@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { CONTACT_PREFS, EXTRAS, FLOORS, HELPERS, LOAD_SIZES, SERVICE_TYPES, TIME_SLOTS } from '../../lib/constants';
+import { distanceKm, fetchDrivingRoute, parseMapsLink } from '../../lib/map';
 import { estimate } from '../../lib/pricing';
 import { getSettings } from '../../lib/settings';
 import { createAdminClient, PHOTOS_BUCKET } from '../../lib/supabase';
@@ -20,6 +21,16 @@ const EXT: Record<string, string> = {
 };
 
 const mapLink = (v: string) => (/^https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+$/.test(v) ? v : null);
+
+/** Kilómetros por calle entre los dos pines. Si el ruteo falla, usa la línea recta. */
+async function tripKm(origin: string | null, destination: string | null): Promise<number | null> {
+  const a = parseMapsLink(origin);
+  const b = parseMapsLink(destination);
+  if (!a || !b) return null;
+  const road = await fetchDrivingRoute(a, b);
+  const km = road?.distanceKm ?? distanceKm(a, b);
+  return Math.round(km * 10) / 10;
+}
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -112,9 +123,10 @@ export const POST: APIRoute = async ({ request }) => {
   };
 
   const settings = await getSettings(admin);
-  record.estimated_price = estimate(record, settings.pricing);
+  const distance = await tripKm(record.origin_location, record.destination_location);
+  record.estimated_price = estimate({ ...record, distance_km: distance }, settings.pricing);
 
-  const { data: created, error } = await admin.from('requests').insert(record).select('id, code').single();
+  const { data: created, error } = await admin.from('requests').insert({ ...record, distance_km: distance }).select('id, code').single();
   if (error || !created) {
     console.error('insert request', error);
     return json({ error: 'No pudimos guardar tu solicitud. Intenta de nuevo.' }, 500);

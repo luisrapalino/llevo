@@ -68,6 +68,8 @@ if (Astro.request.method === 'POST') {
         assembly: num('assembly'),
         packing: num('packing'),
         weekendPct: Math.min(100, num('weekendPct')),
+        includedKm: num('includedKm'),
+        perKm: num('perKm'),
       };
       break;
   }
@@ -286,6 +288,24 @@ const { business, vehicle, services, faqs, pricing } = settings;
           </div>
 
           <div>
+            <h3 class="font-medium">Recorrido</h3>
+            <p class="mt-1 text-sm text-ink-2">La base ya incluye un viaje corto dentro de Valledupar. Solo se cobra lo que pase de esos kilómetros.</p>
+            <div class="mt-3 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label" for="includedKm">Kilómetros incluidos</label>
+                <input class="field" id="includedKm" name="includedKm" inputmode="decimal" value={pricing.includedKm} />
+              </div>
+              <div>
+                <label class="field-label" for="perKm">Por kilómetro de más</label>
+                <div class="relative">
+                  <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-3">$</span>
+                  <input class="field !pl-8" id="perKm" name="perKm" inputmode="numeric" value={pricing.perKm} data-price />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
             <h3 class="font-medium">Recargos</h3>
             <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
@@ -316,7 +336,7 @@ const { business, vehicle, services, faqs, pricing } = settings;
 
           <p class="rounded-2xl bg-sand/70 p-4 text-sm text-ink-2">
             <Icon name="heroicons:information-circle" class="mr-1 inline size-4 align-[-3px] text-brand-600" />
-            La distancia no se calcula automáticamente: ajusta el precio final en cada solicitud antes de enviarlo.
+            El estimado usa los kilómetros de la ruta. El precio que envías por WhatsApp lo confirmas tú, después de ver las fotos.
           </p>
         </div>
       )
