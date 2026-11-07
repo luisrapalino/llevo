@@ -16,7 +16,7 @@ const steps = [
   { id: 'ruta', title: 'Ruta', hint: 'Desde y hasta', icon: 'heroicons:map-pin' },
   { id: 'carga', title: 'Tu carga', hint: 'Fotos y detalles', icon: 'heroicons:photo' },
   { id: 'fecha', title: 'Fecha y hora', hint: 'Cuándo', icon: 'heroicons:calendar-days' },
-  { id: 'contacto', title: 'Contacto', hint: 'Cómo te hablamos', icon: 'heroicons:user' },
+  { id: 'contacto', title: 'Contacto', hint: 'A qué número te escribo', icon: 'heroicons:user' },
 ];
 
 const serviceTypes = SERVICE_TYPES;
@@ -30,8 +30,8 @@ const floors = FLOORS;
   <div class="mx-auto max-w-6xl px-4 sm:px-6">
     <div class="mx-auto max-w-2xl text-center" data-reveal>
       <span class="section-eyebrow">Cotización gratis</span>
-      <h2 class="section-title mt-4">Cuéntanos qué vamos a llevar</h2>
-      <p class="mt-4 text-ink-2">Entre más detalles y fotos nos des, más exacto será tu precio.</p>
+      <h2 class="section-title mt-4">Cuéntame qué hay que llevar</h2>
+      <p class="mt-4 text-ink-2">Con fotos se ve si cabe en la camioneta y te doy un precio más exacto.</p>
     </div>
 
     <div class="mt-7 grid gap-6 sm:mt-12 lg:grid-cols-[260px_1fr] [&>*]:min-w-0">
@@ -67,7 +67,7 @@ const floors = FLOORS;
           <p class="flex items-center gap-2 font-medium text-ink">
             <Icon name="heroicons:lock-closed" class="size-4 text-ink-3" /> Tus datos están seguros
           </p>
-          <p class="mt-1">Solo los usamos para cotizar y coordinar tu servicio.</p>
+          <p class="mt-1">Solo los uso para cotizar y coordinar el viaje.</p>
         </div>
         </div>
       </aside>
@@ -110,7 +110,7 @@ const floors = FLOORS;
                         <Icon name={s.icon} class="size-5 sm:size-6" />
                       </span>
                       <span>
-                        <span class="block text-[15px] leading-snug font-medium sm:text-base">{s.value}</span>
+                        <span class="block text-[15px] leading-snug font-medium sm:text-base">{s.label}</span>
                         <span class="block text-xs text-ink-2 sm:text-sm">{s.text}</span>
                       </span>
                     </label>
@@ -147,7 +147,7 @@ const floors = FLOORS;
               <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Desde dónde y hasta dónde?</h3>
               <p class="mt-1 text-sm text-ink-2">Incluye barrio o una referencia para llegar más fácil.</p>
               <p class="mt-3 inline-flex items-center gap-2 rounded-lg bg-butter-soft px-3 py-1.5 text-sm text-ink">
-                <Icon name="heroicons:map-pin" class="size-4 text-ink-2" /> Por ahora solo atendemos en {cityName(business)}
+                <Icon name="heroicons:map-pin" class="size-4 text-ink-2" /> Por ahora solo en {cityName(business)}
               </p>
             </div>
 
@@ -252,8 +252,8 @@ const floors = FLOORS;
           <fieldset data-step="2" class="hidden space-y-8">
             <legend class="sr-only">Qué vas a llevar</legend>
             <div>
-              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Qué vamos a llevar?</h3>
-              <p class="mt-1 text-sm text-ink-2">Las fotos nos ayudan a darte un precio exacto.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Qué hay que llevar?</h3>
+              <p class="mt-1 text-sm text-ink-2">Con fotos veo si cabe y te doy un precio más exacto.</p>
             </div>
 
             <!-- Dropzone -->
@@ -303,7 +303,7 @@ const floors = FLOORS;
               <div class="mt-3 grid gap-3 sm:grid-cols-2">
                 <div class="rounded-2xl bg-paper p-4 border border-line">
                   <p class="flex items-center gap-2 text-sm font-medium">
-                    <Icon name="heroicons:user-group" class="size-5 text-ink-3" /> Ayudantes extra
+                    <Icon name="heroicons:user-group" class="size-5 text-ink-3" /> ¿Alguien más para cargar?
                   </p>
                   <div class="mt-3 flex gap-2">
                     {
@@ -384,8 +384,8 @@ const floors = FLOORS;
           <fieldset data-step="4" class="hidden space-y-6">
             <legend class="sr-only">Datos de contacto</legend>
             <div>
-              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿Cómo te contactamos?</h3>
-              <p class="mt-1 text-sm text-ink-2">Te enviaremos la cotización a este número.</p>
+              <h3 class="text-2xl font-medium tracking-[-0.01em]">¿A qué número te escribo?</h3>
+              <p class="mt-1 text-sm text-ink-2">Te mando la cotización a este WhatsApp.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
@@ -436,7 +436,7 @@ const floors = FLOORS;
 
             <div>
               <label for="notas" class="field-label">
-                ¿Algo más que debamos saber? <span class="font-normal text-ink-3">(opcional)</span>
+                ¿Algo más que deba saber? <span class="font-normal text-ink-3">(opcional)</span>
               </label>
               <textarea id="notas" name="notas" rows="3" class="field resize-none" placeholder="Ej. La calle es estrecha, hay que pedir permiso en portería, etc."></textarea>
             </div>
@@ -445,7 +445,7 @@ const floors = FLOORS;
               <div>
                 <p class="text-sm text-[#b4bdd4]">Precio estimado</p>
                 <p class="text-3xl font-medium tracking-[-0.02em]" data-estimate>—</p>
-                <p class="mt-1 text-xs text-ink-3">Valor de referencia. Te confirmamos el precio final al revisar tus fotos.</p>
+                <p class="mt-1 text-xs text-ink-3">Valor de referencia. Te confirmo el precio final al revisar tus fotos.</p>
               </div>
               <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-500">
                 <Icon name="heroicons:calculator" class="size-6" />
@@ -482,7 +482,7 @@ const floors = FLOORS;
             Código de tu solicitud: <span class="rounded-lg bg-sand px-2 py-0.5 font-mono font-medium text-ink" data-success-code></span>
           </p>
           <p class="mx-auto mt-3 max-w-md text-ink-2" data-success-text>
-            Revisaremos tus fotos y detalles, y te enviaremos la cotización muy pronto.
+            Reviso tus fotos y te escribo la cotización muy pronto.
           </p>
           <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <a href="#" target="_blank" rel="noopener" class="btn-primary" data-success-wa>
@@ -872,7 +872,7 @@ const floors = FLOORS;
       '',
       `📝 ${g('descripcion')}`,
       all('objetos').length ? `Incluye: ${all('objetos').join(', ')}` : '',
-      `Ayudantes extra: ${g('ayudantes')}${all('extras').length ? ` · ${all('extras').join(', ')}` : ''}`,
+      `Ayuda extra: ${g('ayudantes')}${all('extras').length ? ` · ${all('extras').join(', ')}` : ''}`,
       g('notas') ? `Notas: ${g('notas')}` : '',
       photos.length ? `📷 ${photos.length} foto(s)` : '',
     ];
@@ -935,7 +935,7 @@ const floors = FLOORS;
         codeWrap.classList.remove('hidden');
         successText.textContent = failed
           ? `Recibimos tu solicitud, pero ${failed} foto(s) no se pudieron subir. Envíalas por WhatsApp citando tu código.`
-          : 'Revisaremos tus fotos y detalles, y te enviaremos la cotización muy pronto por WhatsApp.';
+          : 'Reviso tus fotos y te escribo la cotización muy pronto por WhatsApp.';
         successWa.href = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(`¡Hola! Acabo de enviar la solicitud ${json.code} desde la web.`)}`;
       } else {
         const msg = photos.length ? `${text}\n\n(Te envío las fotos a continuación)` : text;
@@ -960,7 +960,7 @@ const floors = FLOORS;
         gsap.from(Array.from(success.children).slice(1), { autoAlpha: 0, y: 10, stagger: 0.06, delay: 0.1, duration: 0.4, ease: 'power3.out' });
       }
     } catch (err) {
-      const message = (err instanceof Error && err.message) || 'Intenta de nuevo o escríbenos por WhatsApp.';
+      const message = (err instanceof Error && err.message) || 'Intenta de nuevo o escríbeme por WhatsApp.';
       formError.textContent = message;
       formError.classList.remove('hidden');
       toast.error('No pudimos enviar tu solicitud', { description: message });

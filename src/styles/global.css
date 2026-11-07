@@ -1,16 +1,16 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/plus-jakarta-sans';
 @import '@fontsource-variable/nunito';
 
 /*
- * Marca Llevo: amable y cercana.
- * Paleta "cielo y mantequilla": azul cielo como color principal, amarillo mantequilla como acento,
- * tinta azul noche para textos y crema de fondo. Fredoka para títulos y logo, Nunito para el resto.
+ * Marca Llevo: cercana, pero sobria.
+ * Paleta "cielo y mantequilla". Plus Jakarta Sans en títulos y logo (limpia, como los objetos 3D);
+ * Nunito en textos largos.
  * El proceso de diseño siguió unslop de Damir Sokolovsky (@heydamir), CC BY 4.0.
  */
 @theme {
   --font-sans: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Fredoka Variable', 'Nunito Variable', ui-sans-serif, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', 'Nunito Variable', ui-sans-serif, sans-serif;
   --font-mono: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
 
   /* Neutros */
@@ -23,6 +23,8 @@
   --color-line: rgb(20 33 61 / 0.08);
   --color-line-strong: rgb(20 33 61 / 0.14);
   --color-kraft: #dcc6a2; /* cartón (solo en ilustraciones) */
+  --color-kraft-face: #ead9bb; /* cara superior de las cajas */
+  --color-kraft-deep: #c4aa80; /* costado y pliegues */
   --color-butter: #ffd166; /* acento mantequilla */
   --color-butter-soft: #fff1cc;
   --color-sky-soft: #e7edff;
@@ -135,10 +137,18 @@
   @apply w-px flex-1 bg-[repeating-linear-gradient(to_bottom,var(--color-ink-3)_0_3px,transparent_3px_7px)] opacity-60;
 }
 
+/* Ilustración 3D suelta sobre la página: sin recuadro, la sombra sigue la forma. */
+.scene {
+  filter: drop-shadow(0 18px 22px rgb(20 33 61 / 0.14));
+}
+.scene-dark {
+  filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.38));
+}
+
 /* Mientras GSAP prepara las entradas, los elementos animados no parpadean (ver Layout.astro) */
 .motion [data-hero-title],
 .motion [data-hero-fade],
-.motion [data-guide],
+.motion [data-hero-art],
 .motion [data-reveal] {
   visibility: hidden;
 }
@@ -263,13 +273,14 @@ dialog.llevo-overlay-dialog::backdrop {
   border-radius: 16px;
 }
 
-/* Visor de fotos: una sola imagen (sin fundido entre dos) que se "descubre" mientras crece.
-   La caja viaja del cuadrito a la foto completa; la imagen se recorta con cover, así al empezar
-   se ve igual que la miniatura y al terminar se ve entera. Curva tipo resorte (rápida y suave al llegar). */
+/* Visor de fotos: el rectángulo viaja del cuadrito a la foto.
+   cover hace que el extremo pequeño coincida con la miniatura (recorte) y el grande,
+   si la caja tiene el aspecto de la foto, muestre la imagen entera.
+   La sombra va en el grupo, sin clip-path: si no, el recorte se come la sombra. */
 ::view-transition-group(foto) {
   animation-duration: 440ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-  clip-path: inset(0 round 16px);
+  filter: drop-shadow(0 12px 28px rgb(20 33 61 / 0.22));
 }
 ::view-transition-image-pair(foto) {
   isolation: auto;
@@ -281,6 +292,8 @@ dialog.llevo-overlay-dialog::backdrop {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  border-radius: 16px;
 }
 /* Al abrir se ve solo la foto grande; al cerrar, solo la foto grande encogiéndose */
 html.vt-foto-open::view-transition-old(foto) {
@@ -292,6 +305,11 @@ html.vt-foto-close::view-transition-new(foto) {
 html.vt-foto-close::view-transition-group(foto) {
   animation-duration: 380ms;
 }
+/* La sombra vive en el grupo mientras vuela. En reposo va en la foto, no durante el snapshot:
+   si el filtro está en la imagen al capturarla, la sombra entra en el bitmap y al aterrizar el tamaño no coincide. */
+[data-viewer-img][data-settled='true'] {
+  filter: drop-shadow(0 12px 28px rgb(20 33 61 / 0.22));
+}
 
 /* Visor de fotos (transición dentro de la misma página): solo la foto viaja.
    Sin esto heredaba la entrada de "página nueva" y lo fijo (barra lateral, encabezado, miniatura)
@@ -299,11 +317,11 @@ html.vt-foto-close::view-transition-group(foto) {
 html.vt-foto *:not([data-viewer-img]):not(.vt-foto-src) {
   view-transition-name: none !important;
 }
-html.vt-foto::view-transition-old(root) {
-  animation: 320ms ease both vt-fade-out;
-}
+/* Sin fundido de toda la página: ese snapshot (sobre todo con blur) retrasa la salida
+   y tapa la transición de la foto. El fondo oscuro entra con el DOM nuevo; solo viaja la imagen. */
+html.vt-foto::view-transition-old(root),
 html.vt-foto::view-transition-new(root) {
-  animation: 320ms ease both vt-fade-in;
+  animation: none;
 }
 @keyframes vt-fade-in {
   from {

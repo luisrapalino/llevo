@@ -1,16 +1,22 @@
 ---
 const steps = [
   {
-    title: 'Cuéntanos qué llevas',
-    text: 'Llena el formulario y sube fotos de tus cosas. Así calculamos espacio y esfuerzo sin adivinar.',
+    title: 'Cuéntame qué llevas',
+    text: 'Llena el formulario y sube fotos. Así veo si cabe en la camioneta, sin adivinar.',
+    image: '/illustrations/step-photos.png',
+    alt: 'Celular con fotos de una nevera y una caja',
   },
   {
     title: 'Recibe tu precio',
-    text: 'Te escribimos por WhatsApp con la cotización final antes de confirmar el servicio.',
+    text: 'Te escribo por WhatsApp con el precio antes de confirmar.',
+    image: '/illustrations/step-quote.png',
+    alt: 'Dos mensajes, el tuyo y la cotización',
   },
   {
-    title: 'Nosotros lo llevamos',
-    text: 'Llegamos el día y la hora acordados, cargamos con cuidado y entregamos en destino.',
+    title: 'Te lo llevo',
+    text: 'Llego el día y la hora acordados, lo cargo con cuidado y te lo dejo en destino.',
+    image: '/illustrations/step-arrive.png',
+    alt: 'La camioneta llegando a la casa marcada',
   },
 ];
 ---
@@ -25,17 +31,36 @@ const steps = [
       <p class="text-[#b4bdd4]">Cotizar te toma menos de 2 minutos desde tu celular.</p>
     </div>
 
-    <ol class="relative mt-8 grid gap-0 md:mt-14 md:grid-cols-3 md:gap-8" data-steps>
-      <span class="absolute top-0 left-0 hidden h-px w-full origin-left bg-brand-400 md:block" aria-hidden="true" data-steps-line></span>
-      {
-        steps.map((s, i) => (
-          <li class="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-white/10 py-4 md:block md:pt-6 md:pb-0" data-reveal>
-            <span class="row-span-2 grid size-9 place-items-center rounded-full bg-white/10 font-mono text-sm text-[#c8d0e4] tabular-nums md:inline md:size-auto md:rounded-none md:bg-transparent md:text-[#8c96b0]">0{i + 1}</span>
-            <h3 class="self-center text-base font-medium md:mt-4 md:text-lg">{s.title}</h3>
-            <p class="mt-1 text-sm leading-relaxed text-[#b4bdd4] md:mt-2 md:text-[15px]">{s.text}</p>
-          </li>
-        ))
-      }
-    </ol>
+    <div class="mt-10 md:mt-14" data-steps>
+      <div class="grid gap-8 md:grid-cols-3">
+        {
+          steps.map(({ image, alt }) => (
+            <div data-reveal>
+              <img
+                src={image}
+                alt={alt}
+                width="768"
+                height="768"
+                class="scene-dark mx-auto h-64 w-auto max-w-full md:h-72"
+              />
+            </div>
+          ))
+        }
+      </div>
+      <div class="relative my-8 hidden h-px origin-left bg-brand-400 md:block" data-steps-line></div>
+      <ol class="grid gap-8 md:grid-cols-3">
+        {
+          steps.map(({ title, text }, i) => (
+            <li class="grid grid-cols-[2.25rem_1fr] gap-x-3 gap-y-1" data-reveal>
+              <span class="row-span-2 grid size-9 place-items-center self-start rounded-full bg-white/10 font-mono text-sm text-[#c8d0e4] tabular-nums md:inline md:size-auto md:self-center md:rounded-none md:bg-transparent md:text-[#8c96b0]">
+                0{i + 1}
+              </span>
+              <h3 class="self-center text-base font-medium md:text-lg">{title}</h3>
+              <p class="text-sm leading-relaxed text-[#b4bdd4] md:text-[15px]">{text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
   </div>
 </section>

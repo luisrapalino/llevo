@@ -4,21 +4,21 @@ import { cityName, type Business, type Vehicle } from '../lib/settings';
 
 const { vehicle, business } = Astro.props as { vehicle: Vehicle; business: Business };
 const perks = [
-  { icon: 'heroicons:squares-2x2', text: 'Cobijas y amarres para proteger tus muebles' },
-  { icon: 'heroicons:user-group', text: 'Ayudantes adicionales si los necesitas' },
-  { icon: 'heroicons:wrench-screwdriver', text: 'Desarme y armado básico de camas y muebles' },
-  { icon: 'heroicons:map', text: `Por ahora atendemos solo en ${cityName(business)}` },
+  { icon: 'heroicons:hand-raised', text: 'Ayudo a cargar y descargar' },
+  { icon: 'heroicons:clock', text: 'Muchas veces el mismo día, si hay cupo' },
+  { icon: 'heroicons:chat-bubble-left-right', text: 'Todo por WhatsApp: sin contratos ni vueltas' },
+  { icon: 'heroicons:map', text: `Solo ${cityName(business)}: de barrio a barrio` },
 ];
 ---
 
 <section id="vehiculo" class="scroll-mt-20 py-14 sm:py-28">
   <div class="mx-auto grid max-w-6xl items-start gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
     <div data-reveal>
-      <p class="section-eyebrow">El vehículo</p>
-      <h2 class="section-title mt-3">Un solo viaje, todo tuyo</h2>
+      <p class="section-eyebrow">La camioneta</p>
+      <h2 class="section-title mt-3">Una camioneta pequeña, no una flota</h2>
       <p class="mt-4 max-w-lg text-lg text-ink-2">
-        Trabajamos con un vehículo propio. Tus cosas no comparten espacio con otros clientes y vamos directo de origen a
-        destino.
+        Si cabe en el platón —una nevera, un somier, un equipo de sonido— lo cargo y te lo dejo donde lo necesites. Un
+        viaje, directo, como pedírselo al vecino.
       </p>
       <ul class="mt-10 space-y-4">
         {
@@ -32,25 +32,34 @@ const perks = [
       </ul>
     </div>
 
-    <div class="surface p-6 sm:p-8" data-reveal>
-      <div class="flex items-center gap-3">
-        <Icon name="heroicons:truck" class="size-5 text-ink-3" />
-        <p class="font-medium">{vehicle.name}</p>
+    <div data-reveal>
+      <img
+        src="/illustrations/pickup.png"
+        alt="Camioneta pequeña con el platón abierto"
+        width="920"
+        height="539"
+        class="scene h-auto w-full"
+      />
+      <div class="surface relative z-10 mx-2 mt-4 p-6 sm:mx-8 sm:p-8">
+        <div class="flex items-center gap-3">
+          <Icon name="heroicons:truck" class="size-5 text-ink-3" />
+          <p class="font-medium">{vehicle.name}</p>
+        </div>
+        <dl class="mt-6 divide-y divide-line border-y border-line text-[15px]">
+          <div class="flex justify-between gap-4 py-3">
+            <dt class="text-ink-2">Capacidad</dt>
+            <dd class="text-right font-medium">{vehicle.capacity}</dd>
+          </div>
+          <div class="flex justify-between gap-4 py-3">
+            <dt class="text-ink-2">Espacio de carga</dt>
+            <dd class="text-right font-medium">{vehicle.size}</dd>
+          </div>
+        </dl>
+        <p class="mt-6 text-sm text-ink-2">Cabe, por ejemplo</p>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {vehicle.fits.map((f) => <li class="rounded-md bg-sand px-2.5 py-1 text-sm">{f}</li>)}
+        </ul>
       </div>
-      <dl class="mt-6 divide-y divide-line border-y border-line text-[15px]">
-        <div class="flex justify-between gap-4 py-3">
-          <dt class="text-ink-2">Capacidad</dt>
-          <dd class="text-right font-medium">{vehicle.capacity}</dd>
-        </div>
-        <div class="flex justify-between gap-4 py-3">
-          <dt class="text-ink-2">Espacio de carga</dt>
-          <dd class="text-right font-medium">{vehicle.size}</dd>
-        </div>
-      </dl>
-      <p class="mt-6 text-sm text-ink-2">Cabe, por ejemplo</p>
-      <ul class="mt-3 flex flex-wrap gap-2">
-        {vehicle.fits.map((f) => <li class="rounded-md bg-sand px-2.5 py-1 text-sm">{f}</li>)}
-      </ul>
     </div>
   </div>
 </section>

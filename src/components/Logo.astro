@@ -1,7 +1,7 @@
 ---
 /**
- * Logo de Llevo: la palabra como un sticker pegado con cinta.
- * variant "color" (azul) para fondos claros, "inverso" (blanco) para fondos azules u oscuros.
+ * Logo: la vuelta al lado de la palabra, en la tipografía de los títulos.
+ * En claro la figura es azul; sobre tinta, blanca.
  */
 interface Props {
   height?: number;
@@ -9,11 +9,33 @@ interface Props {
   label?: string;
 }
 const { height = 36, variant = 'color', label } = Astro.props;
-const src = variant === 'inverso' ? '/brand/llevo-logo-inverso.svg' : '/brand/llevo-logo.svg';
-const width = Math.round((height * 632) / 369);
+const onDark = variant === 'inverso';
+const mark = onDark ? '#f4f6fb' : '#2F5BEA';
 ---
 
-<span class="inline-flex items-center gap-2">
-  <img src={src} alt="Llevo" width={width} height={height} class="block" loading="eager" decoding="async" />
-  {label && <span class="font-display text-lg font-semibold text-ink-2">{label}</span>}
+<span data-logo class="inline-flex items-center" style={`font-size: ${height}px`}>
+  <svg viewBox="40 42 176 172" class="block h-[0.72em] w-auto" aria-hidden="true">
+    <path
+      fill={mark}
+      d="M112 78V128a14 14 0 0 0 14 14h54a36 36 0 0 1 0 72H76a36 36 0 0 1-36-36V78a36 36 0 0 1 72 0z"></path>
+  </svg>
+  <span
+    class:list={[
+      'ml-[0.2em] font-display leading-none font-semibold tracking-[-0.045em]',
+      onDark ? 'text-[#f4f6fb]' : 'text-ink',
+    ]}
+    style="font-size: 0.78em">llevo</span
+  >
+  {
+    label && (
+      <span
+        class:list={[
+          'ml-2 font-display text-lg font-medium tracking-[-0.02em]',
+          onDark ? 'text-[#b4bdd4]' : 'text-ink-3',
+        ]}
+      >
+        {label}
+      </span>
+    )
+  }
 </span>
