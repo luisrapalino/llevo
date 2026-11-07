@@ -13,7 +13,7 @@ const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.pl
 
 if ('serviceWorker' in navigator) {
   const register = () =>
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(() => {
       /* sin service worker la web funciona igual */
     });
   // En el panel este script se carga tarde (después de la transición): si la página ya cargó, registrar ya

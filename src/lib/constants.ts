@@ -28,11 +28,51 @@ export const COMMON_ITEMS = [
 ];
 
 export const STATUSES = {
-  nueva: { label: 'Nueva', badge: 'bg-sky-50 text-sky-700 ring-sky-200', dot: 'bg-sky-500' },
-  cotizada: { label: 'Cotizada', badge: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500' },
-  agendada: { label: 'Agendada', badge: 'bg-violet-50 text-violet-700 ring-violet-200', dot: 'bg-violet-500' },
-  completada: { label: 'Completada', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500' },
-  cancelada: { label: 'Cancelada', badge: 'bg-sand text-ink-3 ring-line-strong', dot: 'bg-ink-3' },
+  nueva: {
+    label: 'Nueva',
+    icon: 'heroicons:inbox',
+    badge: 'bg-sky-50 text-sky-700 ring-sky-200',
+    dot: 'bg-sky-500',
+    iconWrap: 'bg-sky-100 text-sky-700',
+    filterOn: 'border-sky-500 bg-sky-50 text-sky-800',
+    option: 'border-line bg-paper text-ink hover:border-sky-300 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-800',
+  },
+  cotizada: {
+    label: 'Cotizada',
+    icon: 'heroicons:currency-dollar',
+    badge: 'bg-amber-50 text-amber-700 ring-amber-200',
+    dot: 'bg-amber-500',
+    iconWrap: 'bg-amber-100 text-amber-700',
+    filterOn: 'border-amber-500 bg-amber-50 text-amber-800',
+    option: 'border-line bg-paper text-ink hover:border-amber-300 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-800',
+  },
+  agendada: {
+    label: 'Agendada',
+    icon: 'heroicons:calendar-days',
+    badge: 'bg-violet-50 text-violet-700 ring-violet-200',
+    dot: 'bg-violet-500',
+    iconWrap: 'bg-violet-100 text-violet-700',
+    filterOn: 'border-violet-500 bg-violet-50 text-violet-800',
+    option: 'border-line bg-paper text-ink hover:border-violet-300 has-[:checked]:border-violet-500 has-[:checked]:bg-violet-50 has-[:checked]:text-violet-800',
+  },
+  completada: {
+    label: 'Completada',
+    icon: 'heroicons:check-circle',
+    badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    dot: 'bg-emerald-500',
+    iconWrap: 'bg-emerald-100 text-emerald-700',
+    filterOn: 'border-emerald-500 bg-emerald-50 text-emerald-800',
+    option: 'border-line bg-paper text-ink hover:border-emerald-300 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800',
+  },
+  cancelada: {
+    label: 'Cancelada',
+    icon: 'heroicons:x-circle',
+    badge: 'bg-sand text-ink-3 ring-line-strong',
+    dot: 'bg-ink-3',
+    iconWrap: 'bg-sand text-ink-2',
+    filterOn: 'border-ink bg-sand text-ink',
+    option: 'border-line bg-paper text-ink hover:border-line-strong has-[:checked]:border-ink has-[:checked]:bg-sand has-[:checked]:text-ink',
+  },
 } as const;
 
 export type Status = keyof typeof STATUSES;

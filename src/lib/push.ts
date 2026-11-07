@@ -45,6 +45,8 @@ export async function sendPush(admin: SupabaseClient, payload: PushPayload, opts
     if (opts.userId) q = q.eq('user_id', opts.userId);
     const { data: subs } = await q;
     let sent = 0;
+    let removed = 0;
+    let status: number | null = null;
     await Promise.all(
       (subs ?? []).map(async (s) => {
         try {
@@ -55,15 +57,18 @@ export async function sendPush(admin: SupabaseClient, payload: PushPayload, opts
           );
           sent++;
         } catch (err: any) {
-          // Suscripción vencida o revocada: se borra
-          if (err?.statusCode === 404 || err?.statusCode === 410) await admin.from('push_subscriptions').delete().eq('id', s.id);
-          else console.error('push', err?.statusCode, err?.body ?? err?.message);
+          status = err?.statusCode ?? status;
+          // Suscripción vencida o revocada: se borra para no seguir intentando con un celular que ya no escucha
+          if (err?.statusCode === 404 || err?.statusCode === 410) {
+            removed++;
+            await admin.from('push_subscriptions').delete().eq('id', s.id);
+          } else console.error('push', err?.statusCode, err?.body ?? err?.message);
         }
       }),
     );
-    return { sent, total: subs?.length ?? 0 };
+    return { sent, total: subs?.length ?? 0, removed, status };
   } catch (err) {
     console.error('push', err);
-    return { sent: 0, total: 0 };
+    return { sent: 0, total: 0, removed: 0, status: null as number | null };
   }
 }

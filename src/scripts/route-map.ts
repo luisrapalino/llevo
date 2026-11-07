@@ -39,12 +39,27 @@ if (wrap && container) {
   const updateDistance = () => {
     const a = route?.get('origen');
     const b = route?.get('destino');
-    if (!a || !b || !mapLib) return;
+    if (!a || !b || !mapLib) {
+      publishKm(null);
+      return;
+    }
     const path = route.getRoute();
-    const km = path?.distanceKm ?? mapLib.distanceKm(a, b);
-    const how = path ? 'por carretera' : 'en línea recta';
-    distance.querySelector('span')!.textContent = `≈ ${km.toLocaleString('es-CO', { maximumFractionDigits: 1 })} km ${how} entre los dos puntos`;
+    if (!path) {
+      distance.classList.add('hidden');
+      distance.classList.remove('flex');
+      publishKm(null);
+      return;
+    }
+    const how = path.source === 'road' ? 'por carretera' : 'en línea recta';
+    distance.querySelector('span')!.textContent = `≈ ${path.distanceKm.toLocaleString('es-CO', { maximumFractionDigits: 1 })} km ${how} entre los dos puntos`;
     distance.classList.replace('hidden', 'flex');
+    publishKm(path.distanceKm);
+  };
+
+  const kmInput = document.querySelector<HTMLInputElement>('[data-route-km]');
+  const publishKm = (km: number | null) => {
+    if (kmInput) kmInput.value = km == null ? '' : String(km);
+    window.dispatchEvent(new CustomEvent('llevo:route', { detail: { km } }));
   };
 
   /** Guarda el punto, mueve el pin y, si el campo está vacío, escribe la dirección aproximada. */

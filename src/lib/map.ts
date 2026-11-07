@@ -8,7 +8,7 @@
 import type { Map as MLMap, Marker } from 'maplibre-gl';
 
 export type LngLat = { lng: number; lat: number };
-export type RoutePath = { coords: [number, number][]; distanceKm: number };
+export type RoutePath = { coords: [number, number][]; distanceKm: number; source: 'road' | 'straight' };
 
 /** Zona de servicio: Valledupar (con un margen alrededor del casco urbano). */
 export const SERVICE_AREA = {
@@ -279,7 +279,7 @@ export async function fetchDrivingRoute(a: LngLat, b: LngLat, signal?: AbortSign
     const route = data.routes?.[0];
     const coords = route?.geometry?.coordinates as [number, number][] | undefined;
     if (!coords?.length || typeof route.distance !== 'number') return null;
-    return { coords, distanceKm: route.distance / 1000 };
+    return { coords, distanceKm: route.distance / 1000, source: 'road' };
   } catch {
     return null;
   }
@@ -325,11 +325,50 @@ export async function createRouteMap(
   let path: RoutePath | null = null;
   let routeAbort: AbortController | null = null;
   let fitAfterRoute = false;
+  let advanceFrame = 0;
 
-  const paintLine = (coords: [number, number][]) => {
-    const src = map.getSource('ruta') as any;
+  const setLine = (id: 'ruta' | 'ruta-avance', coords: [number, number][]) => {
+    const src = map.getSource(id) as any;
     if (!src) return;
     src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+  };
+
+  /** La línea crece desde la recogida hasta la entrega. Con reducir movimiento aparece completa. */
+  const playRoute = (coords: [number, number][]) => {
+    cancelAnimationFrame(advanceFrame);
+    setLine('ruta', coords);
+    if (coords.length < 2 || reduce) {
+      setLine('ruta-avance', coords);
+      return;
+    }
+    const cum = [0];
+    for (let i = 1; i < coords.length; i++) {
+      cum.push(cum[i - 1] + Math.hypot(coords[i][0] - coords[i - 1][0], coords[i][1] - coords[i - 1][1]));
+    }
+    const total = cum[cum.length - 1] || 1;
+    const started = performance.now();
+    const frame = (now: number) => {
+      const t = Math.min(1, (now - started) / 1700);
+      const eased = 1 - (1 - t) ** 3;
+      const target = total * eased;
+      let i = 1;
+      while (i < cum.length && cum[i] < target) i++;
+      const span = (cum[i] ?? total) - cum[i - 1] || 1;
+      const u = Math.min(1, (target - cum[i - 1]) / span);
+      const a = coords[i - 1];
+      const b = coords[Math.min(i, coords.length - 1)];
+      const tip: [number, number] = [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+      setLine('ruta-avance', [...coords.slice(0, i), tip]);
+      if (t < 1) advanceFrame = requestAnimationFrame(frame);
+    };
+    setLine('ruta-avance', [coords[0], coords[0]]);
+    advanceFrame = requestAnimationFrame(frame);
+  };
+
+  const clearRoute = () => {
+    cancelAnimationFrame(advanceFrame);
+    setLine('ruta', []);
+    setLine('ruta-avance', []);
   };
 
   const publishRoute = (next: RoutePath | null) => {
@@ -337,25 +376,27 @@ export async function createRouteMap(
     routeListeners.forEach((cb) => cb(next));
   };
 
-  /** Dibuja la ruta por calles; si OSRM no responde, deja la línea recta. */
+  /** Dibuja la ruta por calles. La recta solo aparece si el servicio no responde. */
   const drawRoute = () => {
     routeAbort?.abort();
     routeAbort = null;
     const a = points.origen;
     const b = points.destino;
     if (!a || !b) {
-      paintLine([]);
+      clearRoute();
       publishRoute(null);
       return;
     }
-    const straight: RoutePath = {
-      coords: [
-        [a.lng, a.lat],
-        [b.lng, b.lat],
-      ],
-      distanceKm: distanceKm(a, b),
-    };
-    paintLine(straight.coords);
+    const key = routeKey(a, b);
+    const cached = readRouteCache(key);
+    if (cached) {
+      playRoute(cached.coords);
+      publishRoute(cached);
+      fitAfterRoute = false;
+      return;
+    }
+    // Sin línea mientras llega: la recta intermedia se veía y luego saltaba a las calles.
+    clearRoute();
     publishRoute(null);
 
     const ctrl = new AbortController();
@@ -365,10 +406,18 @@ export async function createRouteMap(
     fetchDrivingRoute(a, b, ctrl.signal).then((road) => {
       if (ctrl.signal.aborted) return;
       if (points.origen !== a || points.destino !== b) return;
-      const next = road ?? straight;
-      paintLine(next.coords);
+      const next: RoutePath = road ?? {
+        coords: [
+          [a.lng, a.lat],
+          [b.lng, b.lat],
+        ],
+        distanceKm: distanceKm(a, b),
+        source: 'straight',
+      };
+      if (road) writeRouteCache(key, road);
+      playRoute(next.coords);
       publishRoute(next);
-      if (wantFit && road) fit();
+      if (wantFit) fit();
     });
   };
 
@@ -406,17 +455,29 @@ export async function createRouteMap(
     if (fly) fit();
   };
 
-  await new Promise<void>((resolve) => map.once('load', () => resolve()));
+  await new Promise<void>((resolve) => {
+    if (map.isStyleLoaded()) resolve();
+    else map.once('load', () => resolve());
+  });
   applyMinimalStyle(map);
   // El crédito del mapa queda como un botón de información, sin tapar el mapa
   container.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
-  map.addSource('ruta', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } });
+  const emptyLine = () => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates: [] as [number, number][] } });
+  map.addSource('ruta', { type: 'geojson', data: emptyLine() });
+  map.addSource('ruta-avance', { type: 'geojson', data: emptyLine() });
   map.addLayer({
     id: 'ruta',
     type: 'line',
     source: 'ruta',
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': C.blue, 'line-width': 3.5, 'line-dasharray': [0.1, 2.2] },
+    paint: { 'line-color': C.blue, 'line-width': 3, 'line-opacity': 0.28, 'line-dasharray': [0.1, 2.2] },
+  });
+  map.addLayer({
+    id: 'ruta-avance',
+    type: 'line',
+    source: 'ruta-avance',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': C.blue, 'line-width': 4.5 },
   });
 
   return {
@@ -427,6 +488,38 @@ export async function createRouteMap(
     onChange: (cb) => listeners.push(cb),
     onRoute: (cb) => routeListeners.push(cb),
   };
+}
+
+const ROUTE_CACHE_KEY = 'llevo-rutas';
+
+function routeKey(a: LngLat, b: LngLat) {
+  const r = (n: number) => n.toFixed(5);
+  return `${r(a.lng)},${r(a.lat)};${r(b.lng)},${r(b.lat)}`;
+}
+
+/** La misma pareja de puntos no vuelve a pedir la ruta al entrar otra vez en esta pestaña. */
+function readRouteCache(key: string): RoutePath | null {
+  try {
+    const all = JSON.parse(sessionStorage.getItem(ROUTE_CACHE_KEY) || '{}') as Record<string, RoutePath>;
+    const hit = all[key];
+    if (!hit?.coords?.length || hit.source !== 'road') return null;
+    return hit;
+  } catch {
+    return null;
+  }
+}
+
+function writeRouteCache(key: string, path: RoutePath) {
+  try {
+    const all = JSON.parse(sessionStorage.getItem(ROUTE_CACHE_KEY) || '{}') as Record<string, RoutePath>;
+    delete all[key];
+    all[key] = path;
+    const keys = Object.keys(all);
+    while (keys.length > 12) delete all[keys.shift()!];
+    sessionStorage.setItem(ROUTE_CACHE_KEY, JSON.stringify(all));
+  } catch {
+    /* cuota llena o el navegador no guarda datos de la pestaña */
+  }
 }
 
 /** Distancia en línea recta (km) entre dos puntos. */

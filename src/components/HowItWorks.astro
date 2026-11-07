@@ -31,36 +31,33 @@ const steps = [
       <p class="text-[#b4bdd4]">Cotizar te toma menos de 2 minutos desde tu celular.</p>
     </div>
 
-    <div class="mt-10 md:mt-14" data-steps>
-      <div class="grid gap-8 md:grid-cols-3">
-        {
-          steps.map(({ image, alt }) => (
-            <div data-reveal>
-              <img
-                src={image}
-                alt={alt}
-                width="768"
-                height="768"
-                class="scene-dark mx-auto h-64 w-auto max-w-full md:h-72"
-              />
-            </div>
-          ))
-        }
-      </div>
-      <div class="relative my-8 hidden h-px origin-left bg-brand-400 md:block" data-steps-line></div>
-      <ol class="grid gap-8 md:grid-cols-3">
-        {
-          steps.map(({ title, text }, i) => (
-            <li class="grid grid-cols-[2.25rem_1fr] gap-x-3 gap-y-1" data-reveal>
-              <span class="row-span-2 grid size-9 place-items-center self-start rounded-full bg-white/10 font-mono text-sm text-[#c8d0e4] tabular-nums md:inline md:size-auto md:self-center md:rounded-none md:bg-transparent md:text-[#8c96b0]">
-                0{i + 1}
-              </span>
-              <h3 class="self-center text-base font-medium md:text-lg">{title}</h3>
-              <p class="text-sm leading-relaxed text-[#b4bdd4] md:text-[15px]">{text}</p>
-            </li>
-          ))
-        }
-      </ol>
-    </div>
+    <ol class="mt-10 grid grid-cols-1 gap-y-4 md:mt-14 md:grid-cols-3 md:gap-x-8 md:gap-y-8" data-steps>
+      {
+        steps.map(({ image, alt, title, text }, i) => {
+          const column = ['md:col-start-1', 'md:col-start-2', 'md:col-start-3'][i];
+          return (
+            <>
+              <li class:list={['md:row-start-1', column]} data-reveal>
+                <img
+                  src={image}
+                  alt={alt}
+                  width="768"
+                  height="768"
+                  class="scene-dark mx-auto h-52 w-auto max-w-full md:h-72"
+                />
+              </li>
+              <li class:list={['mb-10 grid grid-cols-[2.25rem_1fr] gap-x-3 gap-y-1 md:row-start-3 md:mb-0', column]} data-reveal>
+                <span class="row-span-2 grid size-9 place-items-center self-start rounded-full bg-white/10 font-mono text-sm text-[#c8d0e4] tabular-nums md:inline md:size-auto md:self-center md:rounded-none md:bg-transparent md:text-[#8c96b0]">
+                  0{i + 1}
+                </span>
+                <h3 class="self-center text-base font-medium md:text-lg">{title}</h3>
+                <p class="text-sm leading-relaxed text-[#b4bdd4] md:text-[15px]">{text}</p>
+              </li>
+            </>
+          );
+        })
+      }
+      <li class="col-span-full hidden h-px origin-left list-none bg-brand-400 md:row-start-2 md:block" data-steps-line aria-hidden="true"></li>
+    </ol>
   </div>
 </section>

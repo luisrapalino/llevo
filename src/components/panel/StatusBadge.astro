@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import { STATUSES, type Status } from '../../lib/constants';
 
 const { status, ...rest } = Astro.props as { status: Status } & Record<string, unknown>;
@@ -6,6 +7,6 @@ const s = STATUSES[status] ?? STATUSES.nueva;
 ---
 
 <span {...rest} class:list={['inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 whitespace-nowrap', s.badge]}>
-  <span class:list={['size-1.5 rounded-full', s.dot]}></span>
+  <Icon name={s.icon} class="size-3.5" />
   {s.label}
 </span>

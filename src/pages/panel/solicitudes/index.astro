@@ -65,14 +65,29 @@ const link = (over: Record<string, string | number | null>) => {
 
   <!-- Filtros por estado -->
   <div class="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
-    <a href={link({ estado: null, p: null })} class:list={['chip shrink-0', !estado && '!bg-ink !text-white !border-ink']}>
-      Todas <span class="opacity-60">{total}</span>
+    <a
+      href={link({ estado: null, p: null })}
+      class:list={[
+        'inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition',
+        !estado ? 'border-ink bg-ink text-white' : 'border-line bg-paper text-ink hover:bg-sand/60',
+      ]}
+    >
+      <Icon name="heroicons:squares-2x2" class="size-4" />
+      Todas <span class="text-xs tabular-nums opacity-70">{total}</span>
     </a>
     {
       STATUS_KEYS.map((s) => (
-        <a href={link({ estado: s, p: null })} class:list={['chip shrink-0', estado === s && '!bg-ink !text-white !border-ink']}>
-          <span class:list={['size-2 rounded-full', STATUSES[s].dot]} />
-          {STATUSES[s].label} <span class="opacity-60">{counts[s]}</span>
+        <a
+          href={link({ estado: s, p: null })}
+          class:list={[
+            'inline-flex h-10 shrink-0 items-center gap-2 rounded-full border py-1 pr-3.5 pl-1.5 text-sm font-semibold transition',
+            estado === s ? STATUSES[s].filterOn : 'border-line bg-paper text-ink hover:bg-sand/60',
+          ]}
+        >
+          <span class:list={['grid size-7 place-items-center rounded-full', STATUSES[s].iconWrap]}>
+            <Icon name={STATUSES[s].icon} class="size-4" />
+          </span>
+          {STATUSES[s].label} <span class="text-xs tabular-nums opacity-60">{counts[s]}</span>
         </a>
       ))
     }

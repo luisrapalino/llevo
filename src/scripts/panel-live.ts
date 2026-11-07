@@ -21,8 +21,8 @@ function setCount(n: number) {
     el.classList.toggle('hidden', n === 0);
   });
   const nav = navigator as Nav;
-  if (n > 0) nav.setAppBadge?.(n).catch(() => {});
-  else nav.clearAppBadge?.().catch(() => {});
+  if (n > 0) nav.setAppBadge?.(n).catch(() => { });
+  else nav.clearAppBadge?.().catch(() => { });
 }
 
 function announce(items: Item[]) {
@@ -94,6 +94,7 @@ const pushBtns = () => Array.from(document.querySelectorAll<HTMLButtonElement>('
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
 const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const supported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const CONFIRMED = 'llevo-aviso';
 
 function b64ToBytes(b64: string) {
   const pad = '='.repeat((4 - (b64.length % 4)) % 4);
@@ -101,33 +102,75 @@ function b64ToBytes(b64: string) {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-async function currentSub() {
+function confirmedEndpoint() {
+  try {
+    return localStorage.getItem(CONFIRMED);
+  } catch {
+    return null;
+  }
+}
+
+function rememberEndpoint(endpoint: string | null) {
+  try {
+    if (endpoint) localStorage.setItem(CONFIRMED, endpoint);
+    else localStorage.removeItem(CONFIRMED);
+  } catch {
+    /* modo privado: el botón igual dice la verdad en esta visita */
+  }
+}
+
+async function registration() {
   if (!supported()) return null;
-  const reg = await navigator.serviceWorker.getRegistration('/');
+  return navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(() => null);
+}
+
+async function currentSub() {
+  const reg = (await registration()) ?? (await navigator.serviceWorker?.getRegistration());
   return (await reg?.pushManager.getSubscription()) ?? null;
 }
 
-type PushState = 'on' | 'off' | 'denied' | 'install' | 'unsupported';
+type PushState = 'on' | 'off' | 'confirm' | 'unsynced' | 'denied' | 'install' | 'unsupported';
 async function pushState(): Promise<PushState> {
   if (!supported()) return ios() && !standalone() ? 'install' : 'unsupported';
   if (Notification.permission === 'denied') return 'denied';
-  return (await currentSub()) && Notification.permission === 'granted' ? 'on' : 'off';
+  const sub = await currentSub();
+  if (Notification.permission === 'granted' && !sub) return 'confirm';
+  if (sub && sub.endpoint === confirmedEndpoint()) return 'on';
+  if (sub) return 'unsynced';
+  return 'off';
 }
 
 const LABELS: Record<PushState, string> = {
   on: 'Avisos activados',
   off: 'Activar avisos',
+  confirm: 'Confirmar avisos',
+  unsynced: 'Reintentar avisos',
   denied: 'Avisos bloqueados',
   install: 'Activar avisos',
   unsupported: 'Avisos no disponibles',
 };
 
+const HINTS: Partial<Record<PushState, string>> = {
+  confirm: 'El teléfono permitió los avisos, falta confirmarlos aquí',
+  unsynced: 'Este celular no está recibiendo avisos',
+  denied: 'Los avisos están bloqueados en el teléfono',
+  install: 'Instala la app del panel para recibir avisos',
+};
+
 async function paintPush() {
   const state = await pushState();
+  const hint = HINTS[state] ?? null;
   pushBtns().forEach((b) => {
     b.dataset.pushState = state;
     b.setAttribute('aria-pressed', String(state === 'on'));
-    b.querySelector('[data-state]')!.textContent = LABELS[state];
+    const label = b.querySelector('[data-state]');
+    if (!label) return;
+    if (b.hasAttribute('data-push-hint')) {
+      b.hidden = !hint;
+      if (hint) label.textContent = hint;
+      return;
+    }
+    label.textContent = LABELS[state];
   });
   return state;
 }
@@ -146,45 +189,101 @@ const BRAVE_HELP = {
   duration: 20000,
 };
 
-async function enablePush() {
+async function postSub(sub: PushSubscription) {
+  const save = await fetch('/api/push/subscribe', {
+    method: 'POST',
+    credentials: 'same-origin',
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ subscription: sub.toJSON() }),
+  });
+  if (!save.ok) {
+    const body = await save.json().catch(() => ({}));
+    throw new Error(body.error || 'No se guardó la suscripción');
+  }
+}
+
+async function subscribeTo(reg: ServiceWorkerRegistration, publicKey: string, fresh: boolean) {
+  let sub = await reg.pushManager.getSubscription();
+  if (fresh && sub) {
+    await fetch('/api/push/subscribe', {
+      method: 'DELETE',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint }),
+    }).catch(() => { });
+    await sub.unsubscribe().catch(() => { });
+    sub = null;
+  }
+  if (sub) return sub;
+  try {
+    return await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
+  } catch (err) {
+    if (await isBrave()) {
+      toast.error('Brave tiene bloqueados los avisos', BRAVE_HELP);
+      return null;
+    }
+    if (err instanceof Error && /push service not available/i.test(err.message)) {
+      toast.error('Este navegador no puede enviar avisos', {
+        description: 'Actívalos desde Chrome o desde la app del panel instalada en el celular.',
+        duration: 10000,
+      });
+      return null;
+    }
+    throw err;
+  }
+}
+
+async function enablePush(fresh = false) {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
     toast.error('No diste permiso para los avisos', { description: 'Puedes activarlos luego desde la configuración del navegador.' });
     return;
   }
-  const keyRes = await fetch('/api/push/key');
+  const keyRes = await fetch('/api/push/key', { cache: 'no-store' });
   if (!keyRes.ok) throw new Error('Sin clave');
   const { publicKey } = await keyRes.json();
+  await registration();
   const reg = await navigator.serviceWorker.ready;
-  let sub: PushSubscription;
-  try {
-    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
-  } catch (err) {
-    if (await isBrave()) {
-      toast.error('Brave tiene bloqueados los avisos', BRAVE_HELP);
-      return;
-    }
-    throw err;
-  }
-  const save = await fetch('/api/push/subscribe', {
+  let sub = await subscribeTo(reg, publicKey, fresh);
+  if (!sub) return;
+  await postSub(sub);
+  let test: { sent?: number; removed?: number } = await fetch('/api/push/subscribe', {
     method: 'POST',
+    credentials: 'same-origin',
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription: sub.toJSON() }),
-  });
-  if (!save.ok) {
-    await sub.unsubscribe();
-    throw new Error('No se guardó');
-  }
-  const test = await fetch('/api/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ test: true }) })
+    body: JSON.stringify({ test: true }),
+  })
     .then((r) => r.json())
     .catch(() => ({ sent: 0 }));
+  // La suscripción vieja del celular ya no existe en el servicio de avisos: se pide una nueva, una sola vez
+  if (test.removed && !fresh) {
+    sub = await subscribeTo(reg, publicKey, true);
+    if (!sub) return;
+    await postSub(sub);
+    test = await fetch('/api/push/subscribe', {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test: true }),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ sent: 0 }));
+  }
   if (!test.sent) {
-    toast.warning('Los avisos quedaron activados, pero la prueba no salió', {
-      description: 'Revisa tu conexión y vuelve a intentarlo en un momento.',
+    if (test.removed) {
+      await sub.unsubscribe().catch(() => { });
+      rememberEndpoint(null);
+    }
+    toast.warning('El aviso de prueba no llegó', {
+      description: 'La suscripción no quedó aceptada. Espera un momento y toca otra vez.',
       duration: 10000,
     });
     return;
   }
+  rememberEndpoint(sub.endpoint);
   if (await isBrave()) {
     // En Brave la suscripción puede funcionar y aun así no llegar nada con la app cerrada
     toast('Avisos activados (Brave)', {
@@ -193,7 +292,7 @@ async function enablePush() {
     });
     return;
   }
-  toast.success('Avisos activados', { description: 'Te llegará una notificación cada vez que entre una solicitud, aunque el panel esté cerrado.' });
+  toast.success('Avisos activados', { description: 'Te tiene que llegar ahora una notificación de prueba. Si no aparece, el teléfono la está bloqueando.' });
 }
 
 async function disablePush() {
@@ -201,12 +300,22 @@ async function disablePush() {
   if (sub) {
     await fetch('/api/push/subscribe', {
       method: 'DELETE',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ endpoint: sub.endpoint }),
-    }).catch(() => {});
+    }).catch(() => { });
     await sub.unsubscribe();
   }
+  rememberEndpoint(null);
   toast('Avisos desactivados en este dispositivo');
+}
+
+/** Si este aparato ya tiene suscripción, la vuelve a guardar. No manda prueba: eso solo pasa al tocar el botón. */
+async function syncPush() {
+  if (!supported() || Notification.permission !== 'granted') return;
+  const sub = await currentSub();
+  if (!sub) return;
+  await postSub(sub).catch(() => { });
 }
 
 pushBtns().forEach((b) =>
@@ -230,16 +339,17 @@ pushBtns().forEach((b) =>
       });
       return;
     }
-    b.disabled = true;
+    pushBtns().forEach((x) => (x.disabled = true));
     try {
       if (state === 'on') await disablePush();
-      else await enablePush();
-    } catch {
-      toast.error('No pudimos activar los avisos', { description: 'Revisa tu conexión e inténtalo de nuevo.' });
+      else await enablePush(state === 'unsynced');
+    } catch (err) {
+      const description = err instanceof Error && err.message !== 'Sin clave' ? err.message : 'Revisa tu conexión e inténtalo de nuevo.';
+      toast.error('No pudimos activar los avisos', { description });
     } finally {
-      b.disabled = false;
+      pushBtns().forEach((x) => (x.disabled = false));
       paintPush();
     }
   }),
 );
-paintPush();
+syncPush().finally(() => paintPush());

@@ -1,6 +1,6 @@
 // Service worker de Llevo: hace la web instalable, la acelera y muestra una página sin conexión.
 // Nunca guarda en caché el panel ni la API (información privada y siempre al día).
-const VERSION = 'llevo-v10';
+const VERSION = 'llevo-v12';
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const PRECACHE = ['/offline.html', '/brand/llevo-logo.svg', '/favicon.svg', '/icons/icon-192.png', '/icons/panel-192.png'];
@@ -70,22 +70,33 @@ self.addEventListener('push', (event) => {
   }
   const title = data.title || 'Nueva solicitud';
   const url = data.url || '/panel/solicitudes';
+  const options = {
+    body: data.body || 'Tienes una solicitud nueva en Llevo.',
+    icon: '/icons/panel-192.png',
+    badge: '/icons/badge-96.png?v=2',
+    tag: data.tag || 'llevo',
+    renotify: true,
+    data: { url },
+  };
   event.waitUntil(
     (async () => {
-      // Primero avisar al panel abierto (actualiza contador y lista), luego la notificación
-      const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      open.forEach((c) => c.postMessage({ type: 'llevo:push', payload: data }));
-      if (typeof data.count === 'number' && self.navigator.setAppBadge) {
-        await self.navigator.setAppBadge(data.count).catch(() => {});
+      // El aviso va primero. En el iPhone, si algo falla antes, la notificación no aparece.
+      try {
+        await self.registration.showNotification(title, options);
+      } catch {
+        await self.registration.showNotification(title, { body: options.body, tag: options.tag, data: { url } });
       }
-      await self.registration.showNotification(title, {
-        body: data.body || 'Tienes una solicitud nueva en Llevo.',
-        icon: '/icons/panel-192.png',
-        badge: '/icons/badge-96.png',
-        tag: data.tag || 'llevo',
-        renotify: true,
-        data: { url },
-      });
+      try {
+        const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        open.forEach((c) => c.postMessage({ type: 'llevo:push', payload: data }));
+      } catch {
+        /* el aviso ya se mostró */
+      }
+      try {
+        if (typeof data.count === 'number' && self.navigator.setAppBadge) await self.navigator.setAppBadge(data.count);
+      } catch {
+        /* el número del ícono es opcional */
+      }
     })(),
   );
 });
