@@ -1,14 +1,14 @@
 export const SERVICE_TYPES = [
-  { value: 'Trasteo / mudanza', icon: 'heroicons:home-modern', text: 'Casa, apto o habitación' },
-  { value: 'Acarreo puntual', icon: 'heroicons:archive-box', text: 'Uno o pocos objetos' },
-  { value: 'Recoger una compra', icon: 'heroicons:shopping-bag', text: 'Tienda o Marketplace' },
-  { value: 'Negocio / oficina', icon: 'heroicons:building-storefront', text: 'Mercancía o equipos' },
+  { value: 'Acarreo puntual', label: 'Acarreo', icon: 'heroicons:archive-box', text: 'Nevera, sofá, cartel…' },
+  { value: 'Trasteo / mudanza', label: 'Mudanza pequeña', icon: 'heroicons:home-modern', text: 'Habitación o apartaestudio' },
+  { value: 'Recoger una compra', label: 'Una compra', icon: 'heroicons:shopping-bag', text: 'Tienda o Marketplace' },
+  { value: 'Negocio / oficina', label: 'Sonido o aviso', icon: 'heroicons:speaker-wave', text: 'Equipo, cartel, local' },
 ] as const;
 
 export const LOAD_SIZES = [
   { value: 'Pocas cosas', text: '1 a 5 objetos o cajas' },
   { value: 'Media carga', text: 'Habitación o apartaestudio' },
-  { value: 'Carga completa', text: 'Apartamento pequeño' },
+  { value: 'Carga completa', text: 'Lo que quepa en la camioneta' },
 ] as const;
 
 export const TIME_SLOTS = [
@@ -23,8 +23,8 @@ export const HELPERS = ['0', '1', '2', '3+'] as const;
 export const EXTRAS = ['Desarme y armado', 'Material de embalaje'] as const;
 export const CONTACT_PREFS = ['WhatsApp', 'Llamada', 'Correo'] as const;
 export const COMMON_ITEMS = [
-  'Nevera', 'Lavadora', 'Cama', 'Colchón', 'Sofá', 'Comedor', 'Escritorio', 'Closet / armario',
-  'Televisor', 'Cajas', 'Bicicleta', 'Electrodomésticos',
+  'Nevera', 'Lavadora', 'Somier', 'Colchón', 'Sofá', 'Cama', 'Equipo de sonido', 'Cartel / anuncio',
+  'Televisor', 'Cajas', 'Escritorio', 'Electrodomésticos',
 ];
 
 export const STATUSES = {
@@ -42,6 +42,7 @@ export const STATUS_KEYS = Object.keys(STATUSES) as Status[];
 export const ICON_CHOICES = [
   'heroicons:home-modern', 'heroicons:archive-box', 'heroicons:shopping-bag', 'heroicons:building-storefront',
   'heroicons:truck', 'heroicons:cube', 'heroicons:gift', 'heroicons:wrench-screwdriver', 'heroicons:computer-desktop',
+  'heroicons:speaker-wave', 'heroicons:hand-raised',
   'heroicons:tv', 'heroicons:user-group', 'heroicons:map', 'heroicons:sparkles', 'heroicons:briefcase',
   'heroicons:building-office-2', 'heroicons:academic-cap', 'heroicons:heart', 'heroicons:star',
 ];

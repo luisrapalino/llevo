@@ -36,18 +36,18 @@ function buttons(root: ParentNode) {
   });
 }
 
-/** El sticker del logo se "despega" un poco al pasar el mouse. */
+/** El logo se levanta un poco al pasar el mouse. */
 function logo(root: ParentNode) {
-  root.querySelectorAll<HTMLImageElement>('img[src^="/brand/llevo-logo"]').forEach((img) => {
-    if (!once(img, 'Logo')) return;
-    const host = img.closest('a') ?? img;
+  root.querySelectorAll<HTMLElement>('[data-logo]').forEach((el) => {
+    if (!once(el, 'Logo')) return;
+    const host = el.closest('a') ?? el;
     hover(host, () => {
-      animate(img, { rotate: 5, y: -2 }, SOFT);
-      return () => animate(img, { rotate: 0, y: 0 }, SOFT);
+      animate(el, { y: -2 }, SOFT);
+      return () => animate(el, { y: 0 }, SOFT);
     });
     press(host, () => {
-      animate(img, { scale: 0.94 }, SNAP);
-      return () => animate(img, { scale: 1 }, SOFT);
+      animate(el, { scale: 0.97 }, SNAP);
+      return () => animate(el, { scale: 1 }, SOFT);
     });
   });
 }
@@ -146,6 +146,17 @@ function panel(root: ParentNode) {
   });
 }
 
+/** Ilustraciones pegadas con cinta: se despegan un poco al pasar el mouse. */
+function stickers(root: ParentNode) {
+  root.querySelectorAll<HTMLElement>('[data-sticker]').forEach((el) => {
+    if (!once(el, 'Sticker')) return;
+    hover(el, () => {
+      animate(el, { y: -4, rotate: 1.5 }, SOFT);
+      return () => animate(el, { y: 0, rotate: 0 }, SOFT);
+    });
+  });
+}
+
 if (!reduce()) {
   buttons(document);
   logo(document);
@@ -155,4 +166,5 @@ if (!reduce()) {
   photos();
   faq();
   panel(document);
+  stickers(document);
 }

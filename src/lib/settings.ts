@@ -56,7 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
     name: 'Llevo',
     tagline: 'Trasteos y acarreos en Valledupar',
     description:
-      'Trasteos, mudanzas pequeñas y acarreos en Valledupar. Cuéntanos qué llevas, sube fotos y recibe tu cotización por WhatsApp.',
+      'Acarreos y mudanzas pequeñas en Valledupar con camioneta. Una nevera, un sofá, un cartel: sube fotos y recibe el precio por WhatsApp.',
     whatsapp: '573000000000',
     countryCode: '57',
     phoneDisplay: '+57 300 000 0000',
@@ -66,61 +66,61 @@ export const DEFAULT_SETTINGS: Settings = {
     heroBadge: 'Disponible esta semana',
   },
   vehicle: {
-    name: 'Furgón / camioneta de carga',
-    capacity: 'Hasta 1.5 toneladas',
-    size: 'Platón de 3 × 1.8 m aprox.',
-    fits: ['Nevera', 'Lavadora', 'Cama doble', 'Sofá 3 puestos', 'Comedor 4 puestos', '20+ cajas'],
+    name: 'Camioneta pequeña',
+    capacity: 'Lo que quepa en un viaje',
+    size: 'Platón de camioneta, no es furgón',
+    fits: ['Nevera', 'Lavadora', 'Somier', 'Sofá', 'Equipo de sonido', 'Cartel / anuncio'],
   },
   services: [
     {
-      icon: 'heroicons:home-modern',
-      title: 'Trasteos y mudanzas',
-      text: 'Apartaestudios, habitaciones y apartamentos pequeños. Cargamos, transportamos y descargamos.',
-    },
-    {
       icon: 'heroicons:archive-box',
       title: 'Acarreos puntuales',
-      text: 'Una nevera, una cama, un sofá o unas cajas. Lo llevamos de un punto a otro el mismo día.',
+      text: 'Una nevera, una lavadora, un somier, un sofá o un cartel. De un punto a otro, muchas veces el mismo día.',
+    },
+    {
+      icon: 'heroicons:home-modern',
+      title: 'Mudanzas pequeñas',
+      text: 'Una habitación o un apartaestudio: lo que quepa en la camioneta. Un viaje, sin montar un camión.',
     },
     {
       icon: 'heroicons:shopping-bag',
-      title: 'Compras y entregas',
-      text: '¿Compraste algo grande en una tienda o por Marketplace? Lo recogemos y te lo llevamos.',
+      title: 'Compras y encargos',
+      text: '¿Compraste algo grande en una tienda o en Marketplace? Lo recojo y te lo dejo en la casa.',
     },
     {
-      icon: 'heroicons:building-storefront',
-      title: 'Negocios y oficinas',
-      text: 'Mercancía, mobiliario o equipos para tu local, bodega u oficina. Viajes únicos o recurrentes.',
+      icon: 'heroicons:speaker-wave',
+      title: 'Eventos y avisos',
+      text: 'Equipo de sonido, un anuncio, cosas de un local. Un viaje corto, sin logística de empresa.',
     },
   ],
   faqs: [
     {
-      q: '¿Cómo calculan el precio?',
-      a: 'Depende de la distancia, el volumen de la carga, los pisos (y si hay ascensor) y si necesitas ayudantes. Con las fotos que subes te damos un precio cerrado antes de confirmar.',
+      q: '¿Cómo sale el precio?',
+      a: 'Depende de la distancia, si cabe en la camioneta, los pisos (y si hay ascensor) y si hace falta ayuda. Con las fotos te doy un precio cerrado antes de confirmar.',
     },
     {
-      q: '¿En qué ciudades trabajan?',
-      a: 'Por ahora solo en Valledupar, en cualquier barrio de la ciudad. Pronto llegaremos a más lugares.',
+      q: '¿En qué ciudad estás?',
+      a: 'Solo en Valledupar, en cualquier barrio de la ciudad.',
     },
     {
       q: '¿Con cuánta anticipación debo reservar?',
-      a: 'Idealmente 1 o 2 días antes, sobre todo para fines de semana y fin de mes. Si es urgente, escríbenos: muchas veces podemos el mismo día.',
+      a: 'Idealmente 1 o 2 días antes, sobre todo para fines de semana y fin de mes. Si es urgente, escríbeme: muchas veces puedo el mismo día.',
     },
     {
-      q: '¿Ayudan a cargar y descargar?',
-      a: 'Sí. El conductor ayuda con la carga y descarga. Para trasteos grandes o pisos altos sin ascensor puedes pedir ayudantes adicionales en el formulario.',
+      q: '¿Ayudas a cargar y descargar?',
+      a: 'Sí, ayudo a cargar y descargar. Si hay muchos pisos sin ascensor, avísame en el formulario y vemos si hace falta otra persona.',
     },
     {
       q: '¿Qué pasa si mis cosas no caben en un viaje?',
-      a: 'Con las fotos te avisamos antes si se necesitan dos viajes y te damos el precio total desde el principio.',
+      a: 'Con las fotos te digo antes si cabe en la camioneta. Si no cabe en un viaje, te lo digo claro y vemos cómo hacerlo.',
     },
     {
-      q: '¿Qué cosas no transportan?',
-      a: 'No llevamos sustancias peligrosas, inflamables, animales vivos ni artículos ilegales. Si tienes dudas sobre algo puntual, pregúntanos.',
+      q: '¿Qué no llevas?',
+      a: 'No llevo sustancias peligrosas, inflamables, animales vivos ni artículos ilegales. Si tienes dudas sobre algo puntual, pregúntame.',
     },
     {
       q: '¿Cómo se paga?',
-      a: 'Puedes pagar en efectivo o por Nequi al terminar el servicio.',
+      a: 'Puedes pagar por transferencia o en efectivo al terminar el servicio.',
     },
   ],
   pricing: {

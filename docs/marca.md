@@ -2,37 +2,31 @@
 
 Amable y cercana. Un servicio de trasteos que se siente de barrio, cumplido y sin complicaciones.
 
-## Logo: el sticker
+## Logo
 
-La palabra **llevo** como un sticker pegado con cinta: lo que pones en una caja para saber a dónde va.
-La "o" es un **pin de entrega**: su cabeza baja, se dobla hacia la izquierda y se estira en una **estela** del mismo color que recorre la palabra y se desvanece. Pin y ruta son una sola forma: de aquí a allá.
-Los archivos están en `public/brand/` (vectores, sin depender de fuentes instaladas).
+La palabra **llevo** en la misma tipografía de los títulos, con la **vuelta** al lado: una línea azul doblada una vez, extremos redondos. Sin pin, sin placa y sin cinta.
+El componente está en `src/components/Logo.astro`. El ícono (favicon y app) es la vuelta en blanco sobre azul.
 
 | Archivo | Uso |
 | --- | --- |
-| `llevo-logo.svg` | Principal, sobre fondos claros (crema o blanco) |
-| `llevo-logo-inverso.svg` | Sobre azul o fondos oscuros |
-| `llevo-logo-tinta.svg` | A una tinta (impresión económica, sellos) |
-| `llevo-logo-recto.svg` | Sin inclinación, para espacios muy estrechos |
-| `llevo-wordmark.svg` | Solo la palabra, cuando el sticker se ve pesado |
-| `llevo-icono.svg` / `favicon.svg` | Ícono: el sticker azul con el pin del logo (con su cola corta) en blanco, grande y centrado, y la cinta |
-| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: sticker blanco con el pin azul (con su cola corta) sobre azul |
-| `llevo-icono-panel.svg`, `icons/panel-*` | Ícono del Panel: mismo sticker sobre tinta, con un **engranaje** en lugar del ojal del pin para distinguirlo de la app de clientes |
+| `llevo-icono.svg` / `favicon.svg` | Ícono: vuelta blanca sobre azul |
+| `llevo-icono-app.svg`, `apple-touch-icon.png`, `icons/` | Ícono de app: vuelta blanca sobre azul |
+| `llevo-icono-panel.svg`, `icons/panel-*` | Ícono del Panel: la misma vuelta sobre tinta |
+| `llevo-logo.svg` | Palabra con la vuelta, para la página sin conexión |
 | `og-image.png` | Imagen al compartir la web en redes y WhatsApp |
 
 **Reglas**
-- Espacio libre alrededor: al menos la altura de la letra "o".
-- Tamaño mínimo: 24 px de alto en pantalla; por debajo usa el ícono del pin.
-- No cambies la inclinación (−6°), los colores ni la tipografía. No le agregues sombras, degradados ni contornos.
-- La cinta siempre es amarilla mantequilla y va en la esquina superior izquierda.
-- El pin y su estela van del mismo color que las letras, con el ojal calado; la estela siempre se desvanece hacia la izquierda.
+- Espacio libre alrededor: al menos la altura de la vuelta.
+- En claro la vuelta es azul cielo y la palabra es tinta. Sobre tinta, las dos van en blanco.
+- No la inclines, no le pongas cinta ni una placa de color detrás de la palabra.
+- Tamaño mínimo de la palabra: 24 px de alto; por debajo usa solo la vuelta.
 
 ## Paleta: cielo y mantequilla
 
 | Nombre | HEX | Uso |
 | --- | --- | --- |
 | Azul cielo | `#2F5BEA` | Logo, botones, enlaces, selección |
-| Mantequilla | `#FFD166` | Acentos puntuales: cinta, destacados |
+| Mantequilla | `#FFD166` | Acentos puntuales: destacados, cinta de una caja |
 | Azul noche | `#14213D` | Textos y fondos oscuros |
 | Cielo suave | `#E7EDFF` | Fondos de apoyo, botones secundarios |
 | Crema | `#FFFAF1` | Fondo de la web |
@@ -44,26 +38,28 @@ Los archivos están en `public/brand/` (vectores, sin depender de fuentes instal
 
 ## Tipografía
 
-- **Fredoka** (600) para el logo, títulos y frases cortas grandes.
+- **Plus Jakarta Sans** (600) para el logo, títulos y frases cortas. Es más seca que una tipografía redonda, y se lleva con los objetos 3D.
 - **Nunito** (400 a 700) para textos, botones, formularios, números y el panel.
-- Ambas son gratuitas (Google Fonts) y se cargan desde `@fontsource-variable`.
+- Ambas son gratuitas y se cargan desde `@fontsource-variable`.
 
 ## Tono
 
 Cercano y directo, de tú. Frases cortas, sin exclamaciones ni promesas que no podamos cumplir.
-Ejemplo: "Tú lo empacas, nosotros lo llevamos".
+Ejemplo: "Si cabe en la camioneta, te lo llevo".
+
+No es una empresa de envíos ni una flota de furgones. Es una camioneta pequeña en Valledupar: nevera, lavadora, somier, sofá, un cartel, el sonido de un evento. Como pedírselo al vecino que tiene el carro.
 
 ## Movimiento (GSAP)
 
 Animaciones con [GSAP](https://gsap.com) siguiendo las guías oficiales de
 [greensock/gsap-skills](https://github.com/greensock/gsap-skills). El código está en `src/scripts/motion.ts`.
 
-- **Una sola entrada al cargar:** el título sube palabra por palabra y la guía de despacho se arma
-  (etiqueta, cinta, ruta, total que cuenta y el sello "Agendado").
+- **Una sola entrada al cargar:** el título sube palabra por palabra y la escena del hero aparece.
+- **Ilustraciones:** renders 3D sobrios, sin recuadro. En el inicio, la escena quieta de la calle.
 - **Al hacer scroll:** cada bloque aparece una sola vez; en "Cómo funciona" una línea une los pasos.
 - **Formulario:** el paso nuevo entra desde la dirección en la que avanzas; la barra de progreso se anima.
 - **Panel:** las cifras del resumen cuentan desde cero.
-- Solo se animan `transform` y opacidad, con curvas suaves (`power3.out`); nada en bucle.
+- Solo se animan `transform` y opacidad, con curvas suaves (`power3.out`).
 - Si el sistema tiene **reducir movimiento** activado, todo aparece de inmediato sin animación.
 
 ## Microinteracciones (Motion)
@@ -73,7 +69,7 @@ en cada botón. Código en `src/scripts/micro.ts`. GSAP se encarga de las entrad
 las respuestas al tocar.
 
 - Botones: se hunden un poco al presionarlos; la flecha se asoma al pasar el mouse.
-- Logo: el sticker se despega un poco al pasar el mouse.
+- Logo: se levanta un poco al pasar el mouse.
 - WhatsApp: el botón se levanta y se inclina como saludando.
 - Formulario: rebote al elegir una opción, las barras de tamaño crecen, los días responden al tocarlos,
   las fotos nuevas aparecen con un pequeño rebote y los campos con error hacen una sacudida suave.

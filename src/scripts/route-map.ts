@@ -40,8 +40,10 @@ if (wrap && container) {
     const a = route?.get('origen');
     const b = route?.get('destino');
     if (!a || !b || !mapLib) return;
-    const km = mapLib.distanceKm(a, b);
-    distance.querySelector('span')!.textContent = `≈ ${km.toLocaleString('es-CO', { maximumFractionDigits: 1 })} km en línea recta entre los dos puntos`;
+    const path = route.getRoute();
+    const km = path?.distanceKm ?? mapLib.distanceKm(a, b);
+    const how = path ? 'por carretera' : 'en línea recta';
+    distance.querySelector('span')!.textContent = `≈ ${km.toLocaleString('es-CO', { maximumFractionDigits: 1 })} km ${how} entre los dos puntos`;
     distance.classList.replace('hidden', 'flex');
   };
 
@@ -72,6 +74,7 @@ if (wrap && container) {
       wrap!.querySelector('[data-map-loading]')?.remove();
       route.map.on('click', (e) => place(active, { lng: e.lngLat.lng, lat: e.lngLat.lat }));
       route.onChange((kind, p) => place(kind, p, { fly: false }));
+      route.onRoute(() => updateDistance());
       pending.splice(0).forEach(([k, p]) => place(k, p));
     } catch {
       const loading = wrap!.querySelector('[data-map-loading]');

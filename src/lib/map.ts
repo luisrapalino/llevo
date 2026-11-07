@@ -1,12 +1,14 @@
 /**
- * Mapa minimalista de Llevo: MapLibre + OpenFreeMap (estilo Positron) teñido con la marca,
- * pines propios (aro = recogida, bandera = entrega) y la línea de ruta punteada.
- * Búsqueda de direcciones con Photon (OpenStreetMap), limitada a Valledupar.
- * Todo se carga bajo demanda para no pesar en la portada.
+ * Mapa tipo “delivery” (estilo muy limpio): MapLibre + OpenFreeMap Positron + ajustes propios.
+ * Equilibrio: calles claras, edificios suaves, nombres de vías principales y ciudad/barrio;
+ * sin POI, trenes, escudos ni agua etiquetada (eso sí ensucia en delivery).
+ * Pines (recogida / entrega), ruta por calles (OSRM) y búsqueda Photon (solo Valledupar).
+ * Todo se carga bajo demanda.
  */
 import type { Map as MLMap, Marker } from 'maplibre-gl';
 
 export type LngLat = { lng: number; lat: number };
+export type RoutePath = { coords: [number, number][]; distanceKm: number };
 
 /** Zona de servicio: Valledupar (con un margen alrededor del casco urbano). */
 export const SERVICE_AREA = {
@@ -16,19 +18,58 @@ export const SERVICE_AREA = {
 
 const STYLE = 'https://tiles.openfreemap.org/styles/positron';
 const PHOTON = 'https://photon.komoot.io';
+const OSRM = 'https://router.project-osrm.org';
 
 const C = {
-  cream: '#FFFAF1',
-  land: '#F6F1E7',
-  park: '#E9F0DF',
-  water: '#D6E2FF',
-  building: '#EFE9DD',
-  road: '#FFFFFF',
-  roadCasing: '#E6DFD2',
-  text: '#4A5470',
+  cream: '#F8F7F4',
+  land: '#F4F2ED',
+  park: '#EEF1E8',
+  water: '#E2E8F0',
+  building: '#EDEAE3',
+  road: '#FAFAF8',
+  roadCasing: '#E8E4DC',
+  text: 'rgb(20 33 61 / 0.42)',
   ink: '#14213D',
   blue: '#2F5BEA',
 };
+
+/** Solo lo que realmente ensucia; el resto (edificios, calles nombradas, ciudad) se ve. */
+const MINIMAL_HIDE_LAYERS = [
+  'ne2_shaded',
+  'landcover_ice_shelf',
+  'landcover_glacier',
+  'highway_path',
+  'tunnel_motorway_casing',
+  'tunnel_motorway_inner',
+  'aeroway-taxiway',
+  'aeroway-runway-casing',
+  'aeroway-area',
+  'aeroway-runway',
+  'railway_transit',
+  'railway_transit_dashline',
+  'railway_service',
+  'railway_service_dashline',
+  'railway',
+  'railway_dashline',
+  'highway_motorway_bridge_casing',
+  'highway_motorway_bridge_inner',
+  'boundary_disputed',
+  'waterway_line_label',
+  'water_name_point_label',
+  'water_name_line_label',
+  'highway-name-path',
+  'highway-name-minor',
+  'highway-shield-non-us',
+  'highway-shield-us-interstate',
+  'road_shield_us',
+  'airport',
+  'label_other',
+  'label_village',
+  'label_state',
+  'label_country_3',
+  'label_country_2',
+  'label_country_1',
+] as const;
 
 let maplibre: typeof import('maplibre-gl') | null = null;
 async function lib() {
@@ -39,8 +80,8 @@ async function lib() {
   return maplibre!;
 }
 
-/** Tiñe el estilo Positron con los colores de la marca (ignora capas que no existan). */
-function recolor(map: MLMap) {
+/** Paleta suave + capas ocultas = mapa más limpio (similar a apps de entrega). */
+function applyMinimalStyle(map: MLMap) {
   const paint: [string, string, unknown][] = [
     ['background', 'background-color', C.cream],
     ['landuse_residential', 'fill-color', C.land],
@@ -48,28 +89,52 @@ function recolor(map: MLMap) {
     ['landcover_wood', 'fill-color', C.park],
     ['water', 'fill-color', C.water],
     ['waterway', 'line-color', C.water],
-    ['building', 'fill-color', C.building],
-    ['building', 'fill-outline-color', C.roadCasing],
     ['highway_minor', 'line-color', C.road],
     ['highway_major_casing', 'line-color', C.roadCasing],
     ['highway_major_inner', 'line-color', C.road],
+    ['highway_major_subtle', 'line-color', C.road],
     ['highway_motorway_casing', 'line-color', C.roadCasing],
     ['highway_motorway_inner', 'line-color', C.road],
+    ['highway_motorway_subtle', 'line-color', C.road],
+    ['road_area_pier', 'fill-color', C.cream],
+    ['road_pier', 'line-color', C.cream],
+    ['building', 'fill-color', C.building],
+    ['building', 'fill-outline-color', C.roadCasing],
+    ['building', 'fill-opacity', 0.55],
   ];
   for (const [layer, prop, value] of paint) {
     try {
       if (map.getLayer(layer)) map.setPaintProperty(layer, prop as any, value);
     } catch {
-      /* capa o propiedad no disponible en esta versión del estilo */
+      /* capa o propiedad no disponible */
     }
   }
-  for (const layer of map.getStyle().layers ?? []) {
-    if (layer.type !== 'symbol') continue;
+  for (const id of MINIMAL_HIDE_LAYERS) {
     try {
-      map.setPaintProperty(layer.id, 'text-color', C.text);
-      map.setPaintProperty(layer.id, 'text-halo-color', C.cream);
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
     } catch {
-      /* sin texto */
+      /* id distinto en otra versión del estilo */
+    }
+  }
+  for (const id of ['boundary_3', 'boundary_2'] as const) {
+    try {
+      if (map.getLayer(id)) {
+        map.setPaintProperty(id, 'line-color', C.roadCasing);
+        map.setPaintProperty(id, 'line-opacity', 0.4);
+      }
+    } catch {
+      /* — */
+    }
+  }
+  /** Texto suave: calles principales + ciudad / barrio (no aldeas ni país). */
+  for (const id of ['highway-name-major', 'label_town', 'label_city', 'label_city_capital'] as const) {
+    try {
+      if (!map.getLayer(id)) continue;
+      map.setPaintProperty(id, 'text-color', C.text);
+      map.setPaintProperty(id, 'text-halo-color', C.cream);
+      map.setPaintProperty(id, 'text-halo-width', 1.2);
+    } catch {
+      /* — */
     }
   }
 }
@@ -127,7 +192,15 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
       document.removeEventListener('keydown', onKey);
     }
     container.classList.toggle('llevo-map-full', on);
-    document.documentElement.classList.toggle('overflow-hidden', on);
+    const root = document.documentElement;
+    if (on) {
+      const gap = window.innerWidth - root.clientWidth;
+      if (gap > 0) root.style.paddingRight = `${gap}px`;
+      root.classList.add('overflow-hidden');
+    } else {
+      root.classList.remove('overflow-hidden');
+      root.style.paddingRight = '';
+    }
     const coop = (map as any).cooperativeGestures;
     if (coop) on ? coop.disable() : coop.enable();
     paint();
@@ -175,7 +248,7 @@ function expandControl(map: MLMap, container: HTMLElement, refit: () => void) {
         setTimeout(r, 250);
       });
     });
-    await t.finished.catch(() => {});
+    await t.finished.catch(() => { });
     named.forEach((el) => (el.style.viewTransitionName = ''));
     html.classList.remove('vt-mapa', 'vt-mapa-open', 'vt-mapa-close');
     refit();
@@ -190,7 +263,26 @@ export interface RouteMap {
   map: MLMap;
   set(kind: 'origen' | 'destino', p: LngLat, opts?: { fly?: boolean }): void;
   get(kind: 'origen' | 'destino'): LngLat | null;
+  /** Última ruta por calles (o null si falta un punto / aún no llegó). */
+  getRoute(): RoutePath | null;
   onChange(cb: (kind: 'origen' | 'destino', p: LngLat) => void): void;
+  onRoute(cb: (path: RoutePath | null) => void): void;
+}
+
+/** Camino en coche entre dos puntos (OSRM). Si falla, null → el mapa usa línea recta. */
+export async function fetchDrivingRoute(a: LngLat, b: LngLat, signal?: AbortSignal): Promise<RoutePath | null> {
+  const url = `${OSRM}/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const route = data.routes?.[0];
+    const coords = route?.geometry?.coordinates as [number, number][] | undefined;
+    if (!coords?.length || typeof route.distance !== 'number') return null;
+    return { coords, distanceKm: route.distance / 1000 };
+  } catch {
+    return null;
+  }
 }
 
 /** Crea el mapa en un contenedor. `interactive=false` para vistas de solo lectura (panel). */
@@ -229,18 +321,64 @@ export async function createRouteMap(
   const points: Record<'origen' | 'destino', LngLat | null> = { origen: null, destino: null };
   const markers: Partial<Record<'origen' | 'destino', Marker>> = {};
   const listeners: ((k: 'origen' | 'destino', p: LngLat) => void)[] = [];
+  const routeListeners: ((path: RoutePath | null) => void)[] = [];
+  let path: RoutePath | null = null;
+  let routeAbort: AbortController | null = null;
+  let fitAfterRoute = false;
 
-  const drawRoute = () => {
+  const paintLine = (coords: [number, number][]) => {
     const src = map.getSource('ruta') as any;
     if (!src) return;
-    const coords = points.origen && points.destino ? [[points.origen.lng, points.origen.lat], [points.destino.lng, points.destino.lat]] : [];
     src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+  };
+
+  const publishRoute = (next: RoutePath | null) => {
+    path = next;
+    routeListeners.forEach((cb) => cb(next));
+  };
+
+  /** Dibuja la ruta por calles; si OSRM no responde, deja la línea recta. */
+  const drawRoute = () => {
+    routeAbort?.abort();
+    routeAbort = null;
+    const a = points.origen;
+    const b = points.destino;
+    if (!a || !b) {
+      paintLine([]);
+      publishRoute(null);
+      return;
+    }
+    const straight: RoutePath = {
+      coords: [
+        [a.lng, a.lat],
+        [b.lng, b.lat],
+      ],
+      distanceKm: distanceKm(a, b),
+    };
+    paintLine(straight.coords);
+    publishRoute(null);
+
+    const ctrl = new AbortController();
+    routeAbort = ctrl;
+    const wantFit = fitAfterRoute;
+    fitAfterRoute = false;
+    fetchDrivingRoute(a, b, ctrl.signal).then((road) => {
+      if (ctrl.signal.aborted) return;
+      if (points.origen !== a || points.destino !== b) return;
+      const next = road ?? straight;
+      paintLine(next.coords);
+      publishRoute(next);
+      if (wantFit && road) fit();
+    });
   };
 
   const fit = () => {
     const pts = [points.origen, points.destino].filter(Boolean) as LngLat[];
     if (pts.length === 2) {
       const b = new ml.LngLatBounds([pts[0].lng, pts[0].lat], [pts[0].lng, pts[0].lat]).extend([pts[1].lng, pts[1].lat]);
+      if (path?.coords.length) {
+        for (const [lng, lat] of path.coords) b.extend([lng, lat]);
+      }
       map.fitBounds(b, { padding: 64, maxZoom: 15.5, duration: reduce ? 0 : 700 });
     } else if (pts.length === 1) {
       const target = { center: [pts[0].lng, pts[0].lat] as [number, number], zoom: Math.max(map.getZoom(), 15) };
@@ -263,12 +401,13 @@ export async function createRouteMap(
     } else {
       markers[kind]!.setLngLat([p.lng, p.lat]);
     }
+    if (fly) fitAfterRoute = true;
     drawRoute();
     if (fly) fit();
   };
 
   await new Promise<void>((resolve) => map.once('load', () => resolve()));
-  recolor(map);
+  applyMinimalStyle(map);
   // El crédito del mapa queda como un botón de información, sin tapar el mapa
   container.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
   map.addSource('ruta', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } });
@@ -284,7 +423,9 @@ export async function createRouteMap(
     map,
     set,
     get: (k) => points[k],
+    getRoute: () => path,
     onChange: (cb) => listeners.push(cb),
+    onRoute: (cb) => routeListeners.push(cb),
   };
 }
 

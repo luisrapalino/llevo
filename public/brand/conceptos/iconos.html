@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Llevo — ícono de app</title>
+<style>
+  html, body { margin: 0; background: #fffaf1; color: #14213d; }
+  body { font-family: "Segoe UI", sans-serif; padding: 36px 40px 32px; }
+  h1 { font-size: 28px; font-weight: 650; margin: 0; letter-spacing: -0.03em; }
+  p.sub { margin: 6px 0 28px; color: #5c6578; font-size: 15px; }
+  .row { display: flex; gap: 36px; align-items: flex-start; }
+  .phone {
+    width: 320px; border-radius: 36px; padding: 36px 22px 28px;
+    background: linear-gradient(180deg, #c9d7f2 0%, #f3ead4 100%);
+    box-shadow: 0 18px 40px rgb(20 33 61 / 0.12);
+  }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 8px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .tile {
+    width: 62px; height: 62px; border-radius: 14px;
+    box-shadow: 0 6px 10px rgb(20 33 61 / 0.12);
+  }
+  .tile.ghost { background: rgb(255 255 255 / 0.55); }
+  .tile.butter { background: #ffd166; }
+  .tile.ink { background: #14213d; }
+  .app span { font-size: 11px; color: #14213d; }
+  .side { display: flex; flex-direction: column; gap: 22px; padding-top: 8px; }
+  .pair { display: flex; gap: 28px; }
+  figure { margin: 0; text-align: center; }
+  figcaption { margin-top: 10px; font-size: 13px; color: #5c6578; }
+  .big { width: 180px; height: 180px; margin: 0 auto; }
+  .mid { width: 96px; height: 96px; margin: 0 auto; }
+  img { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+  <h1>Llevo — ícono de app</h1>
+  <p class="sub">La vuelta en blanco, sobre el azul. El teléfono la muestra al tamaño de la pantalla de inicio.</p>
+  <div class="row">
+    <div class="phone">
+      <div class="grid">
+        <div class="app"><div class="tile ghost"></div><span>Notas</span></div>
+        <div class="app"><div class="tile butter"></div><span>Fotos</span></div>
+        <div class="app"><img class="tile" src="vuelta-app-icon.svg" alt=""><span>Llevo</span></div>
+        <div class="app"><div class="tile ink"></div><span>Mapa</span></div>
+        <div class="app"><div class="tile ghost"></div><span>Reloj</span></div>
+        <div class="app"><div class="tile ghost"></div><span>Clima</span></div>
+        <div class="app"><div class="tile butter"></div><span>Música</span></div>
+        <div class="app"><div class="tile ghost"></div><span>Mail</span></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="pair">
+        <figure>
+          <img class="big" src="vuelta-app-icon.svg" alt="Ícono grande de Llevo">
+          <figcaption>iOS</figcaption>
+        </figure>
+        <figure>
+          <svg class="mid" viewBox="0 0 256 256" role="img" aria-label="Ícono circular de Llevo">
+            <circle cx="128" cy="128" r="128" fill="#2F5BEA"/>
+            <g transform="translate(12.54 12.54) scale(0.902)" fill="#ffffff">
+              <path d="M112 78V128a14 14 0 0 0 14 14h54a36 36 0 0 1 0 72H76a36 36 0 0 1-36-36V78a36 36 0 0 1 72 0z"/>
+            </g>
+          </svg>
+          <figcaption>Android</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,30 +1,29 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { cityName, whatsappLink, type Business } from '../lib/settings';
-import DispatchLabel from './DispatchLabel.astro';
 
 const { business } = Astro.props as { business: Business };
 ---
 
-<section class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-6 pb-14 sm:gap-12 sm:px-6 sm:pt-12 sm:pb-20 lg:min-h-[calc(100dvh-64px)] lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:py-16">
+<section class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-6 pb-14 sm:gap-12 sm:px-6 sm:pt-12 sm:pb-20 lg:min-h-[calc(100dvh-64px)] lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:py-16">
   <div>
     <p class="flex items-center gap-2 text-sm text-ink-2" data-hero-fade>
       <span class="size-2 rounded-full bg-[#16a34a]" aria-hidden="true"></span>
       {business.heroBadge} en {cityName(business)} · Respuesta en minutos
     </p>
 
-    <h1 data-hero-title class="mt-4 font-display text-[38px] leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl lg:text-[68px]">
-      Tú lo empacas, nosotros lo llevamos
+    <h1 data-hero-title class="mt-4 font-display text-[38px] leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl lg:text-[64px]">
+      Si cabe en la camioneta, te lo llevo
     </h1>
 
     <p data-hero-fade class="mt-4 max-w-[36rem] text-[17px] sm:mt-6 sm:text-lg leading-[1.6] text-pretty text-ink-2 sm:text-[19px]">
-      Trasteos, mudanzas pequeñas y acarreos en {cityName(business)}. Sube fotos de lo que vas a mover, elige día y hora, y te
-      enviamos el precio por WhatsApp.
+      Una nevera, un sofá, un cartel o una mudanza pequeña en {cityName(business)}. Sube fotos, elige día y te escribo el
+      precio por WhatsApp. Sin espera de horas ni papeleo.
     </p>
 
     <div data-hero-fade class="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row">
       <a href="#cotizar" class="btn-primary h-12 px-6 text-base">
-        Cotizar mi trasteo
+        Cotizar ahora
         <Icon name="heroicons:arrow-right" class="size-[18px]" />
       </a>
       <a href={whatsappLink(business.whatsapp)} target="_blank" rel="noopener" class="btn-ghost h-12 px-6 text-base">
@@ -33,5 +32,13 @@ const { business } = Astro.props as { business: Business };
     </div>
   </div>
 
-  <DispatchLabel />
+  <div class="min-w-0" data-hero-art aria-hidden="true">
+    <img
+      src="/illustrations/hero-street.png"
+      alt=""
+      width="888"
+      height="493"
+      class="h-auto w-full"
+    />
+  </div>
 </section>
